@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { loadProfile, saveProfile, type IntakeData } from '@/lib/profile'
+import { loadProfile, saveProfile, EMPTY_PROFILE, type IntakeData } from '@/lib/profile'
 import { TOP_COUNTRIES, ALL_COUNTRIES, CA_PROVINCES } from '@/lib/geo'
 
 const statusOptions = [
@@ -117,21 +117,13 @@ function CountrySelect({
 }
 
 export default function ProfilePage() {
-  const [data, setData] = useState<IntakeData>({
-    status: '',
-    originCountry: '',
-    currentCountry: '',
-    province: '',
-    city: '',
-    goal: '',
-    timeline: '',
-  })
+  const [data, setData] = useState<IntakeData>({ ...EMPTY_PROFILE })
   const [saved, setSaved] = useState(false)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     const profile = loadProfile()
-    if (profile) setData({ ...profile, province: profile.province ?? '', city: profile.city ?? '' })
+    if (profile) setData(profile)
     setLoaded(true)
   }, [])
 

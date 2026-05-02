@@ -5,7 +5,9 @@ import { Plus, Trash2, ListChecks } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { loadTasks, saveTasks, type Task } from '@/lib/tasks'
+import { loadTasks, saveTasks, generateTasks, type Task } from '@/lib/tasks'
+import { loadProfile } from '@/lib/profile'
+import { calculateScore } from '@/lib/scoring'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/lib/useToast'
 import { Toast } from '@/components/ui/Toast'
@@ -16,7 +18,18 @@ export default function TasksPage() {
   const { message, showToast } = useToast()
 
   useEffect(() => {
-    setTasks(loadTasks())
+    const saved = typeof window !== 'undefined' && localStorage.getItem('navly_tasks')
+    if (saved) {
+      setTasks(loadTasks())
+    } else {
+      const profile = loadProfile()
+      if (profile) {
+        const score = calculateScore(profile)
+        setTasks(generateTasks(profile, score))
+      } else {
+        setTasks(loadTasks())
+      }
+    }
   }, [])
 
   function update(updated: Task[]) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { Progress } from '@/components/ui/progress'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { cn } from '@/lib/utils'
 import {
+  loadProfile,
   saveProfile,
   statusLabels,
   goalLabels,
@@ -864,6 +865,11 @@ export function IntakeFlow() {
   const [data, setData] = useState<IntakeData>({ ...EMPTY_PROFILE })
   const [stepIndex, setStepIndex] = useState(0)
   const [done, setDone] = useState(false)
+
+  useEffect(() => {
+    const saved = loadProfile()
+    if (saved) setData(saved)
+  }, [])
 
   const steps = getSteps(data)
   const currentStep = steps[stepIndex]

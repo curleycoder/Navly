@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import {
-  FileText,
+  Flame,
   ListChecks,
   MessageSquare,
   ShieldCheck,
@@ -14,16 +14,24 @@ import {
   MinusCircle,
   ChevronDown,
   ChevronUp,
+  CalendarCheck,
+  BookOpen,
+  GraduationCap,
+  Briefcase,
+  Award,
+  ShieldAlert,
 } from 'lucide-react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { loadProfile, statusLabels, goalLabels, timelineLabels, type IntakeData } from '@/lib/profile'
-import { loadDocuments, docCounts } from '@/lib/documents'
+import { loadPresence, isCheckedInToday, getPresenceGoal, type PresenceData } from '@/lib/presence'
 import { calculateScore, type ScoreResult, type PathwayStatus } from '@/lib/scoring'
 import { cn } from '@/lib/utils'
+import { ProgressGauge } from '@/components/dashboard/ProgressGauge'
+import { RequirementCard } from '@/components/dashboard/RequirementCard'
 
 const quickActions = [
-  { href: '/dashboard/documents', label: 'Document checklist', desc: 'Track missing and expiring documents', icon: FileText },
+  { href: '/dashboard/days', label: 'Days in Canada', desc: 'Check in daily and track your streak', icon: Flame },
   { href: '/dashboard/tasks', label: 'My tasks', desc: 'Stay on top of your next steps', icon: ListChecks },
   { href: '/dashboard/chat', label: 'Ask the AI assistant', desc: 'Get plain-language answers to your questions', icon: MessageSquare },
   { href: '/dashboard/prep', label: 'Consultation prep', desc: 'Build a summary before speaking with a professional', icon: ShieldCheck },
@@ -31,38 +39,7 @@ const quickActions = [
 
 // ─── Score Tracker ────────────────────────────────────────────────────────────
 
-function PathwayBadge({ status }: { status: PathwayStatus['status'] }) {
-  const configs = {
-    eligible:       { icon: CheckCircle2, label: 'Eligible',       className: 'text-green-700 bg-green-50 border-green-200' },
-    'not-yet':      { icon: Clock,        label: 'Not yet',         className: 'text-amber-700 bg-amber-50 border-amber-200' },
-    possible:       { icon: TrendingUp,   label: 'Possible',        className: 'text-blue-700 bg-blue-50 border-blue-200' },
-    'not-applicable': { icon: MinusCircle, label: 'N/A',            className: 'text-slate-500 bg-slate-50 border-slate-200' },
-  }
-  const cfg = configs[status]
-  const Icon = cfg.icon
-  return (
-    <span className={cn('inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold', cfg.className)}>
-      <Icon className="h-3 w-3" /> {cfg.label}
-    </span>
-  )
-}
-
-function ScoreBreakdownRow({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
-  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0
-  return (
-    <div className="flex items-center gap-3">
-      <span className="w-36 shrink-0 text-xs text-slate-500">{label}</span>
-      <div className="flex-1 rounded-full bg-slate-100 h-1.5">
-        <div className={cn('h-1.5 rounded-full transition-all', color)} style={{ width: `${pct}%` }} />
-      </div>
-      <span className="w-12 text-right text-xs font-semibold text-[#0B1F3A]">{value} / {max}</span>
-    </div>
-  )
-}
-
-function ScoreTracker({ score }: { profile: IntakeData; score: ScoreResult }) {
-  const [showBreakdown, setShowBreakdown] = useState(false)
-
+function ScoreTracker({ profile, score }: { profile: IntakeData; score: ScoreResult }) {
   if (!score.hasEnoughData) {
     return (
       <Card className="mb-8 rounded-2xl border-[#D62828]/20 bg-[#D62828]/5">
@@ -70,7 +47,7 @@ function ScoreTracker({ score }: { profile: IntakeData; score: ScoreResult }) {
           <div className="flex items-start gap-3">
             <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-[#D62828]" />
             <div>
-              <p className="font-semibold text-[#0B1F3A]">Complete your profile to see your PR score</p>
+              <p className="font-semibold text-[#0B1F3A]">Complete your profile to see your PR progress</p>
               <p className="mt-1 text-sm text-slate-600">
                 Your profile is missing: <span className="font-medium text-[#D62828]">{score.missingFields.join(', ')}</span>.
               </p>
@@ -88,123 +65,122 @@ function ScoreTracker({ score }: { profile: IntakeData; score: ScoreResult }) {
   }
 
   const crs = score.crs!
+  
+  // Language Card
+  const langDetails = score.clb ? [
+    { label: 'Reading', value: `CLB ${score.clb.r}` },
+    { label: 'Writing', value: `CLB ${score.clb.w}` },
+    { label: 'Listening', value: `CLB ${score.clb.l}` },
+    { label: 'Speaking', value: `CLB ${score.clb.s}` },
+  ] : [];
+  const minLang = score.clb ? Math.min(score.clb.r, score.clb.w, score.clb.l, score.clb.s) : 0;
+  const langStatus = minLang >= 9 ? 'Complete' : minLang >= 7 ? 'In Progress' : 'Required';
+
+  // Education Card
+  const eduLabels: Record<string, string> = {
+    'less-than-secondary': 'None', secondary: 'High School', '1-year': '1 Year', '2-year': '2 Years', bachelors: "Bachelor's", 'two-credentials': 'Two Certs', masters: "Master's", doctoral: "Doctorate"
+  };
+  const eduVal = profile.educationLevel ? eduLabels[profile.educationLevel] || profile.educationLevel : 'Not set';
+  const hasECA = profile.ecaCompleted === 'yes';
+  const eduDetails = [
+    { label: 'Level', value: eduVal },
+    { label: 'ECA', value: hasECA ? 'Yes' : 'No' },
+    { label: 'Can. Study', value: (!profile.canadianEducation || profile.canadianEducation === 'none') ? 'No' : 'Yes' }
+  ];
+  const advEdu = ['bachelors', 'two-credentials', 'masters', 'doctoral'].includes(profile.educationLevel);
+  const eduStatus = advEdu && hasECA ? 'Complete' : 'In Progress';
+
+  // Work Experience Card
+  const canWork = parseFloat(profile.canadianWorkMonths) || 0;
+  const forWork = parseFloat(profile.foreignWorkYears) || 0;
+  const workDetails = [
+    { label: 'Canadian', value: `${Math.floor(canWork / 12)} Yrs` },
+    { label: 'Foreign', value: `${forWork} Yrs` },
+    { label: 'TEER', value: profile.teerLevel || 'Unknown' },
+    { label: 'Job Offer', value: profile.hasJobOffer === 'yes' ? 'Yes' : 'No' }
+  ];
+  const workStatus = canWork >= 12 || forWork >= 3 ? 'Complete' : 'In Progress';
+
+  // Pathways Card
+  const pathwayDetails = score.pathways.slice(0, 3).map((p) => ({ 
+    label: p.id.toUpperCase(), 
+    value: p.status === 'eligible' ? 'Eligible' : 'Not Yet' 
+  }));
+  const isEligible = score.pathways.some(p => p.status === 'eligible');
 
   return (
-    <div className="mb-8">
-      <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-500">PR Score Tracker</h2>
-
-      {/* CRS card */}
-      <Card className="mb-4 rounded-2xl border-slate-200 bg-white">
-        <CardContent className="p-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Estimated CRS score</p>
-              <p className="mt-1 text-4xl font-bold text-[#0B1F3A]">{crs.total}</p>
-              <p className="mt-0.5 text-xs text-slate-400">out of ~1,200 max</p>
-            </div>
-            {score.clb && (
-              <div className="text-right">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Your CLB</p>
-                <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-right text-xs">
-                  <span className="text-slate-500">Reading</span>  <span className="font-bold text-[#0B1F3A]">CLB {score.clb.r}</span>
-                  <span className="text-slate-500">Writing</span>  <span className="font-bold text-[#0B1F3A]">CLB {score.clb.w}</span>
-                  <span className="text-slate-500">Listening</span><span className="font-bold text-[#0B1F3A]">CLB {score.clb.l}</span>
-                  <span className="text-slate-500">Speaking</span> <span className="font-bold text-[#0B1F3A]">CLB {score.clb.s}</span>
-                </div>
-              </div>
-            )}
+    <div className="mb-10 animate-fade-in">
+      <div className="mb-6 flex flex-col items-start gap-4 lg:flex-row lg:items-stretch">
+        <div className="flex w-full shrink-0 flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:w-[350px]">
+          <ProgressGauge 
+            value={crs.total || 0} 
+            max={600} 
+            label="Complete" 
+            sublabel="Targeting competitive base score (500+)" 
+          />
+          <div className="flex w-full items-center justify-center gap-8 border-t border-slate-100 pt-4">
+             <div className="flex flex-col text-center">
+               <span className="text-3xl font-bold text-[#0B1F3A]">{crs.total}</span>
+               <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">CRS Points</span>
+             </div>
+             <div className="h-10 w-px bg-slate-200" />
+             <div className="flex flex-col text-center">
+               <span className="text-3xl font-bold text-[#0B1F3A]">{score.fsw?.score || 0}</span>
+               <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">FSW Grid</span>
+             </div>
           </div>
+        </div>
+        
+        <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
+          <RequirementCard 
+             icon={BookOpen} 
+             title="Language (IELTS)"
+             status={langStatus}
+             details={langDetails}
+             progress={minLang >= 9 ? 100 : minLang >= 7 ? 65 : 30}
+          />
+          <RequirementCard 
+             icon={GraduationCap} 
+             title="Education Check"
+             status={eduStatus}
+             details={eduDetails}
+             progress={eduStatus === 'Complete' ? 100 : 50}
+          />
+          <RequirementCard 
+             icon={Briefcase} 
+             title="Work Experience"
+             status={workStatus}
+             details={workDetails}
+             progress={workStatus === 'Complete' ? 100 : 50}
+          />
+          <RequirementCard 
+             icon={Award} 
+             title="Pathway Eligibility"
+             status={isEligible ? 'Complete' : 'Under Review'}
+             details={pathwayDetails.length > 0 ? pathwayDetails : [{label: "Pathways", value: "None"}]}
+             progress={isEligible ? 100 : score.pathways.some(p => p.status === 'possible') ? 70 : 40}
+          />
+        </div>
+      </div>
 
-          <button
-            type="button"
-            onClick={() => setShowBreakdown((s) => !s)}
-            className="mt-4 flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-[#0B1F3A]"
-          >
-            {showBreakdown ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-            {showBreakdown ? 'Hide' : 'Show'} score breakdown
-          </button>
-
-          {showBreakdown && (
-            <div className="mt-4 flex flex-col gap-2.5">
-              <ScoreBreakdownRow label="Age"                   value={crs.age}                  max={110} color="bg-purple-400" />
-              <ScoreBreakdownRow label="Education"             value={crs.education}            max={140} color="bg-blue-400" />
-              <ScoreBreakdownRow label="Language"              value={crs.firstLanguage}        max={136} color="bg-green-400" />
-              <ScoreBreakdownRow label="Canadian work"         value={crs.canadianExperience}   max={80}  color="bg-amber-400" />
-              <ScoreBreakdownRow label="Skill transferability" value={crs.skillTransferability} max={100} color="bg-orange-400" />
-              <ScoreBreakdownRow label="Additional points"     value={crs.additional}           max={200} color="bg-[#D62828]/70" />
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* FSW 67/100 (show when no or little Canadian experience) */}
-      {score.fsw && (
-        <Card className="mb-4 rounded-2xl border-slate-200 bg-white">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-500">FSW 67-point grid</p>
-                <p className={cn('mt-1 text-2xl font-bold', score.fsw.eligible ? 'text-green-700' : 'text-[#0B1F3A]')}>
-                  {score.fsw.score} / 100
-                </p>
-              </div>
-              <div className={cn(
-                'rounded-xl px-3 py-1.5 text-sm font-semibold',
-                score.fsw.eligible ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'
-              )}>
-                {score.fsw.eligible ? 'Passes threshold' : 'Below 67 pass mark'}
-              </div>
-            </div>
-            {!score.fsw.meetsWorkRequirement && (
-              <p className="mt-2 text-xs text-amber-700">
-                FSW requires at least 1 year of TEER 0/1/2/3 work experience.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Pathways */}
-      <Card className="mb-4 rounded-2xl border-slate-200 bg-white">
-        <CardContent className="p-5">
-          <p className="mb-3 text-sm font-semibold text-[#0B1F3A]">Pathway eligibility</p>
-          <div className="flex flex-col gap-3">
-            {score.pathways.map((p) => (
-              <div key={p.id} className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-[#0B1F3A]">{p.name}</p>
-                  <p className="mt-0.5 text-xs text-slate-500">{p.reason}</p>
-                </div>
-                <PathwayBadge status={p.status} />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Improvements */}
       {score.improvements.length > 0 && (
-        <Card className="rounded-2xl border-slate-200 bg-white">
-          <CardContent className="p-5">
-            <p className="mb-3 text-sm font-semibold text-[#0B1F3A]">Your top score improvements</p>
-            <div className="flex flex-col gap-4">
-              {score.improvements.slice(0, 4).map((imp, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#0B1F3A] text-xs font-bold text-white">
-                    {i + 1}
+         <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+           <div className="mb-4 flex items-center gap-2">
+             <ShieldAlert className="h-5 w-5 text-amber-600" />
+             <h3 className="text-sm font-bold uppercase tracking-wide text-amber-800">Top Action Items</h3>
+           </div>
+           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {score.improvements.slice(0, 2).map((imp, i) => (
+               <div key={i} className="flex flex-col justify-between rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
+                  <div className="mb-3 flex items-start justify-between">
+                    <span className="font-bold text-[#0b1f3a]">{imp.label}</span>
+                    <span className="ml-2 whitespace-nowrap rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-bold text-green-700 shadow-sm">{imp.impact}</span>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-[#0B1F3A]">{imp.label}</p>
-                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-bold text-green-700">{imp.impact}</span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-slate-500">{imp.action}</p>
-                  </div>
-                </div>
+                  <p className="text-sm leading-6 text-slate-600">{imp.action}</p>
+               </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
+           </div>
+         </div>
       )}
     </div>
   )
@@ -228,13 +204,13 @@ function QuebecWarning() {
 export default function DashboardPage() {
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
-  const [counts, setCounts] = useState({ ready: 0, expiring: 0, missing: 0, total: 0 })
+  const [presence, setPresence] = useState<PresenceData>({ totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null })
 
   useEffect(() => {
     const p = loadProfile()
     setProfile(p)
     if (p) setScore(calculateScore(p))
-    setCounts(docCounts(loadDocuments()))
+    setPresence(loadPresence())
   }, [])
 
   const status   = profile ? (statusLabels[profile.status] ?? profile.status) : '—'
@@ -300,29 +276,48 @@ export default function DashboardPage() {
         <ScoreTracker profile={profile} score={score} />
       )}
 
-      {/* Documents progress */}
+      {/* Days in Canada */}
       <Card className="mb-8 rounded-2xl border-slate-200 bg-white">
         <CardContent className="p-5">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Documents</p>
-              <p className="mt-0.5 text-lg font-bold text-[#0B1F3A]">{counts.ready} of {counts.total} ready</p>
-            </div>
-            <Link href="/dashboard/documents" className="flex items-center gap-1 text-sm font-semibold text-[#D62828] hover:underline">
-              View all <ArrowRight className="h-3.5 w-3.5" />
+          <div className="mb-1 flex items-center justify-between">
+            <p className="text-sm text-slate-500">Days in Canada</p>
+            <Link href="/dashboard/days" className="flex items-center gap-1 text-sm font-semibold text-[#D62828] hover:underline">
+              Check in <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="h-2 w-full rounded-full bg-slate-100">
-            <div
-              className="h-2 rounded-full bg-[#D62828] transition-all"
-              style={{ width: counts.total > 0 ? `${Math.round((counts.ready / counts.total) * 100)}%` : '0%' }}
-            />
+          <div className="mt-3 flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Flame className={presence.streak > 0 ? 'h-5 w-5 text-orange-500' : 'h-5 w-5 text-slate-300'} />
+              <div>
+                <p className="text-2xl font-bold text-[#0B1F3A]">{presence.streak}</p>
+                <p className="text-xs text-slate-500">day streak</p>
+              </div>
+            </div>
+            <div className="h-8 w-px bg-slate-200" />
+            <div className="flex items-center gap-2">
+              <CalendarCheck className="h-5 w-5 text-[#0B1F3A]" />
+              <div>
+                <p className="text-2xl font-bold text-[#0B1F3A]">{presence.totalDays}</p>
+                <p className="text-xs text-slate-500">total days</p>
+              </div>
+            </div>
+            {profile?.goal && (() => {
+              const goal = getPresenceGoal(profile.goal)
+              if (!goal) return null
+              const pct = Math.min((presence.totalDays / goal.days) * 100, 100)
+              return (
+                <div className="ml-auto flex flex-col items-end gap-1">
+                  <span className="text-xs font-semibold text-[#D62828]">{presence.totalDays} / {goal.days}</span>
+                  <div className="h-1.5 w-24 rounded-full bg-slate-100">
+                    <div className="h-1.5 rounded-full bg-[#D62828] transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              )
+            })()}
           </div>
-          <div className="mt-3 flex gap-4 text-xs text-slate-500">
-            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-green-500" /> {counts.ready} ready</span>
-            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-400" /> {counts.expiring} expiring</span>
-            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-slate-300" /> {counts.missing} missing</span>
-          </div>
+          {!isCheckedInToday(presence) && (
+            <p className="mt-3 text-xs text-amber-600 font-medium">You haven't checked in today yet.</p>
+          )}
         </CardContent>
       </Card>
 

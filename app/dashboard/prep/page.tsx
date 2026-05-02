@@ -7,49 +7,57 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { loadProfile, statusLabels, goalLabels, timelineLabels } from '@/lib/profile'
-import { loadDocuments, docCounts } from '@/lib/documents'
 import { loadTasks } from '@/lib/tasks'
+import { calculateScore, type ScoreResult } from '@/lib/scoring'
+import { loadPresence, type PresenceData } from '@/lib/presence'
 import type { IntakeData } from '@/lib/profile'
-import type { Document } from '@/lib/documents'
 import type { Task } from '@/lib/tasks'
 
 const NOTES_KEY = 'navly_prep_notes'
 
 function buildSummaryText(
   profile: IntakeData | null,
-  docs: Document[],
+  score: ScoreResult | null,
+  presence: PresenceData,
   tasks: Task[],
   notes: string
 ): string {
-  const counts = docCounts(docs)
   const pendingTasks = tasks.filter((t) => !t.done)
-  const missingDocs = docs.filter((d) => d.status === 'missing')
-  const expiringDocs = docs.filter((d) => d.status === 'expiring')
 
   const lines: string[] = [
     'NAVLY — CONSULTATION SUMMARY',
     '─'.repeat(40),
     '',
     'IMMIGRATION PROFILE',
-    `Current status:   ${profile ? (statusLabels[profile.status] ?? profile.status) : 'Not provided'}`,
+    `Current status:    ${profile ? (statusLabels[profile.status] ?? profile.status) : 'Not provided'}`,
     `Country of origin: ${profile?.originCountry || 'Not provided'}`,
-    `Currently in:     ${profile?.currentCountry || 'Not provided'}`,
-    `Main goal:        ${profile ? (goalLabels[profile.goal] ?? profile.goal) : 'Not provided'}`,
-    `Timeline:         ${profile ? (timelineLabels[profile.timeline] ?? profile.timeline) : 'Not provided'}`,
-    '',
-    'DOCUMENTS',
-    `${counts.ready} of ${counts.total} ready  |  ${counts.expiring} expiring  |  ${counts.missing} missing`,
+    `Currently in:      ${profile?.currentCountry || 'Not provided'}`,
+    `Main goal:         ${profile ? (goalLabels[profile.goal] ?? profile.goal) : 'Not provided'}`,
+    `Timeline:          ${profile ? (timelineLabels[profile.timeline] ?? profile.timeline) : 'Not provided'}`,
   ]
 
-  if (missingDocs.length > 0) {
-    lines.push('', 'Still needed:')
-    missingDocs.forEach((d) => lines.push(`  • ${d.name}`))
+  if (score?.hasEnoughData && score.crs) {
+    lines.push('', 'PR SCORE ESTIMATE')
+    lines.push(`CRS score:         ${score.crs.total} / ~1,200`)
+    if (score.fsw) {
+      lines.push(`FSW 67-pt grid:    ${score.fsw.score} / 100 (${score.fsw.eligible ? 'passes threshold' : 'below threshold'})`)
+    }
+    if (score.pathways.length > 0) {
+      lines.push('', 'Pathway eligibility:')
+      score.pathways.forEach((p) => lines.push(`  ${p.name}: ${p.status} — ${p.reason}`))
+    }
+    if (score.improvements.length > 0) {
+      lines.push('', 'Top improvements:')
+      score.improvements.slice(0, 3).forEach((imp) => lines.push(`  • ${imp.label} (${imp.impact})`))
+    }
   }
 
-  if (expiringDocs.length > 0) {
-    lines.push('', 'Expiring soon:')
-    expiringDocs.forEach((d) => lines.push(`  • ${d.name}`))
-  }
+  lines.push(
+    '',
+    'DAYS IN CANADA',
+    `Streak:            ${presence.streak} day${presence.streak !== 1 ? 's' : ''}`,
+    `Total days logged: ${presence.totalDays}`,
+  )
 
   if (pendingTasks.length > 0) {
     lines.push('', 'OPEN TASKS')
@@ -70,14 +78,17 @@ function buildSummaryText(
 
 export default function PrepPage() {
   const [profile, setProfile] = useState<IntakeData | null>(null)
-  const [docs, setDocs] = useState<Document[]>([])
+  const [score, setScore] = useState<ScoreResult | null>(null)
+  const [presence, setPresence] = useState<PresenceData>({ totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null })
   const [tasks, setTasks] = useState<Task[]>([])
   const [notes, setNotes] = useState('')
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    setProfile(loadProfile())
-    setDocs(loadDocuments())
+    const p = loadProfile()
+    setProfile(p)
+    if (p) setScore(calculateScore(p))
+    setPresence(loadPresence())
     setTasks(loadTasks())
     const saved = localStorage.getItem(NOTES_KEY)
     if (saved) setNotes(saved)
@@ -89,7 +100,7 @@ export default function PrepPage() {
   }
 
   async function copyToClipboard() {
-    const text = buildSummaryText(profile, docs, tasks, notes)
+    const text = buildSummaryText(profile, score, presence, tasks, notes)
     await navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -99,10 +110,7 @@ export default function PrepPage() {
     window.print()
   }
 
-  const counts = docCounts(docs)
   const pendingTasks = tasks.filter((t) => !t.done)
-  const missingDocs = docs.filter((d) => d.status === 'missing')
-  const expiringDocs = docs.filter((d) => d.status === 'expiring')
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10">
@@ -161,44 +169,66 @@ export default function PrepPage() {
             )}
           </Section>
 
-          <Separator className="my-5" />
+          {/* Score section */}
+          {score?.hasEnoughData && score.crs && (
+            <>
+              <Separator className="my-5" />
+              <Section title="PR score estimate">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Row label="CRS score" value={`${score.crs.total} / ~1,200`} />
+                  {score.fsw && (
+                    <Row
+                      label="FSW 67-pt grid"
+                      value={`${score.fsw.score} / 100 — ${score.fsw.eligible ? 'passes threshold' : 'below threshold'}`}
+                    />
+                  )}
+                </div>
+                {score.pathways.length > 0 && (
+                  <div className="mt-3">
+                    <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">Pathway eligibility</p>
+                    <ul className="flex flex-col gap-1">
+                      {score.pathways.map((p) => (
+                        <li key={p.id} className="text-sm text-slate-700">
+                          <span className="font-semibold text-[#0B1F3A]">{p.name}:</span>{' '}
+                          {p.reason}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {score.improvements.length > 0 && (
+                  <div className="mt-3">
+                    <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">Top improvements</p>
+                    <ul className="flex flex-col gap-1">
+                      {score.improvements.slice(0, 3).map((imp, i) => (
+                        <li key={i} className="text-sm text-slate-700">
+                          •{' '}<span className="font-semibold">{imp.label}</span>{' '}
+                          <span className="text-green-700">({imp.impact})</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </Section>
+            </>
+          )}
 
-          {/* Documents section */}
-          <Section title="Documents">
-            <p className="mb-3 text-sm text-slate-600">
-              <span className="font-semibold text-green-600">{counts.ready} ready</span>
-              {' · '}
-              <span className="font-semibold text-amber-500">{counts.expiring} expiring</span>
-              {' · '}
-              <span className="font-semibold text-slate-500">{counts.missing} missing</span>
-              {' of '}
-              {counts.total} total
-            </p>
-            {missingDocs.length > 0 && (
-              <div className="mb-3">
-                <p className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-400">Still needed</p>
-                <ul className="flex flex-col gap-1">
-                  {missingDocs.map((d) => (
-                    <li key={d.id} className="text-sm text-slate-700">• {d.name}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {expiringDocs.length > 0 && (
+          {/* Days in Canada */}
+          <Separator className="my-5" />
+          <Section title="Days in Canada">
+            <div className="flex gap-6">
               <div>
-                <p className="mb-1 text-xs font-bold uppercase tracking-wide text-amber-500">Expiring soon</p>
-                <ul className="flex flex-col gap-1">
-                  {expiringDocs.map((d) => (
-                    <li key={d.id} className="text-sm text-amber-700">• {d.name}</li>
-                  ))}
-                </ul>
+                <dt className="text-xs text-slate-500">Streak</dt>
+                <dd className="mt-0.5 text-sm font-semibold text-[#0B1F3A]">{presence.streak} day{presence.streak !== 1 ? 's' : ''}</dd>
               </div>
-            )}
-            {missingDocs.length === 0 && expiringDocs.length === 0 && (
-              <p className="text-sm text-slate-400">All documents accounted for.</p>
-            )}
+              <div>
+                <dt className="text-xs text-slate-500">Total days logged</dt>
+                <dd className="mt-0.5 text-sm font-semibold text-[#0B1F3A]">{presence.totalDays}</dd>
+              </div>
+            </div>
           </Section>
 
+          {/* Open tasks */}
           {pendingTasks.length > 0 && (
             <>
               <Separator className="my-5" />
@@ -214,7 +244,7 @@ export default function PrepPage() {
 
           <Separator className="my-5" />
 
-          {/* Notes / questions */}
+          {/* Notes */}
           <Section title="Questions for my consultant">
             <Textarea
               placeholder="Write down the questions you want to ask during your consultation…"

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
-  FileText,
+  Flame,
   ListChecks,
   MessageSquare,
   ShieldCheck,
@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils'
 
 export const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-  { href: '/dashboard/documents', label: 'Documents', icon: FileText },
+  { href: '/dashboard/days', label: 'Days in Canada', icon: Flame },
   { href: '/dashboard/tasks', label: 'Tasks', icon: ListChecks },
   { href: '/dashboard/chat', label: 'AI Assistant', icon: MessageSquare },
   { href: '/dashboard/prep', label: 'Consultation Prep', icon: ShieldCheck },

@@ -5,24 +5,77 @@ import { Send, AlertTriangle, Bot, User, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+import { loadProfile, type IntakeData } from '@/lib/profile'
 
 type Message = {
   role: 'user' | 'assistant'
   content: string
 }
 
-const SUGGESTIONS = [
+const FALLBACK_SUGGESTIONS = [
   'What is Express Entry?',
   'What is a PGWP and who qualifies?',
   'What documents do I need for a PR application?',
   'What is the difference between RCIC and an immigration lawyer?',
 ]
 
+function getSuggestions(profile: IntakeData | null): string[] {
+  if (!profile) return FALLBACK_SUGGESTIONS
+
+  if (profile.goal === 'pr') {
+    const s = ['What is Express Entry and how does a draw work?',
+               'What CRS score do I need to receive an invitation to apply?',
+               'What is the difference between CEC, FSW, and PNP?']
+    if (profile.status === 'work-permit') {
+      s.unshift('How do I qualify for Canadian Experience Class with my work permit?')
+    } else if (profile.status === 'student') {
+      s.unshift('How does the PGWP-to-CEC pathway work for international students?')
+    } else {
+      s.unshift('What is the Federal Skilled Worker program and who qualifies?')
+    }
+    return s.slice(0, 4)
+  }
+
+  if (profile.goal === 'work-permit') {
+    return [
+      'How do I extend my work permit in Canada?',
+      'What is the difference between an LMIA and an LMIA-exempt work permit?',
+      'What happens if my work permit expires before my renewal is approved?',
+      'Can I change employers while on an open work permit?',
+    ]
+  }
+
+  if (profile.goal === 'study-permit') {
+    return [
+      'How do I extend my study permit in Canada?',
+      'What is a DLI and why does it matter for my permit?',
+      'Can I work off-campus while studying in Canada?',
+      'What is the PGWP and who qualifies for it?',
+    ]
+  }
+
+  if (profile.goal === 'citizenship') {
+    return [
+      'How many days do I need to be in Canada to qualify for citizenship?',
+      'What documents do I need for a citizenship application?',
+      'What is the citizenship knowledge test and how do I prepare?',
+      'Can I hold dual citizenship in Canada?',
+    ]
+  }
+
+  return FALLBACK_SUGGESTIONS
+}
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [profile, setProfile] = useState<IntakeData | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setProfile(loadProfile())
+  }, [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -118,7 +171,7 @@ export default function ChatPage() {
 
               <p className="mb-3 text-sm font-semibold text-slate-500">Try asking:</p>
               <div className="grid gap-2 sm:grid-cols-2">
-                {SUGGESTIONS.map((s) => (
+                {getSuggestions(profile).map((s) => (
                   <button
                     key={s}
                     onClick={() => send(s)}
