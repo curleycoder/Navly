@@ -1,0 +1,71 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Menu, LogOut } from 'lucide-react'
+import { Sheet, SheetContent, SheetClose } from '@/components/ui/sheet'
+import { NavlyLogo } from '@/components/ui/NavlyLogo'
+import { navItems } from '@/components/dashboard/Sidebar'
+import { cn } from '@/lib/utils'
+
+export function MobileNav() {
+  const [open, setOpen] = useState(false)
+  const pathname = usePathname()
+
+  return (
+    <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 md:hidden">
+      <Link href="/">
+        <NavlyLogo size="sm" />
+      </Link>
+
+      <Sheet open={open} onOpenChange={setOpen}>
+        <button
+          onClick={() => setOpen(true)}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+
+        <SheetContent side="left" showCloseButton={false} className="w-64 p-0">
+          <div className="flex h-14 items-center border-b border-slate-200 px-5">
+            <NavlyLogo size="sm" />
+          </div>
+
+          <nav className="flex flex-1 flex-col gap-1 p-3">
+            {navItems.map(({ href, label, icon: Icon }) => {
+              const active = pathname === href
+              return (
+                <SheetClose
+                  key={href}
+                  render={
+                    <Link
+                      href={href}
+                      className={cn(
+                        'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors',
+                        active
+                          ? 'bg-[#0B1F3A] text-white'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-[#0B1F3A]'
+                      )}
+                    />
+                  }
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {label}
+                </SheetClose>
+              )
+            })}
+          </nav>
+
+          <div className="border-t border-slate-200 p-3">
+            <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-[#0B1F3A]">
+              <LogOut className="h-4 w-4 shrink-0" />
+              Log out
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </header>
+  )
+}
