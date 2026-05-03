@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Copy, Check, Printer, AlertTriangle } from 'lucide-react'
+import Link from 'next/link'
+import { Copy, Check, Printer, AlertTriangle, ShieldCheck, Tag } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -254,6 +255,34 @@ export default function PrepPage() {
             />
             <p className="mt-2 text-xs text-slate-400">Your notes are saved automatically.</p>
           </Section>
+        </CardContent>
+      </Card>
+
+      {/* Consultant Promo */}
+      <Card className="mb-6 rounded-2xl border-[#0B1F3A] bg-[#0B1F3A] text-white shadow-lg print:hidden">
+        <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10">
+              <ShieldCheck className="h-6 w-6 text-emerald-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold">Book a certified consultant</h2>
+              <p className="mt-1 max-w-sm text-sm leading-relaxed text-slate-300">
+                Get a professional legal review of your profile before you apply. Navly users get an exclusive discount.
+              </p>
+            </div>
+          </div>
+          <div className="flex shrink-0 flex-col items-stretch sm:items-end mt-2 sm:mt-0">
+             <div className="mb-3 inline-flex items-center justify-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-emerald-300 backdrop-blur">
+               <Tag className="h-4 w-4" /> 
+               Choose a consultant for your unique 20% off code
+             </div>
+             <Link href="/dashboard/consultants" className="w-full sm:w-auto">
+               <Button className="w-full bg-[#D62828] text-white shadow-md hover:bg-[#B91C1C]">
+                  View directory matches
+               </Button>
+             </Link>
+          </div>
         </CardContent>
       </Card>
 

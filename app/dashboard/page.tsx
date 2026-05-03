@@ -23,12 +23,15 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
-import { loadProfile, statusLabels, goalLabels, timelineLabels, type IntakeData } from '@/lib/profile'
+import { loadProfile, saveProfile, statusLabels, goalLabels, timelineLabels, type IntakeData } from '@/lib/profile'
 import { loadPresence, isCheckedInToday, getPresenceGoal, type PresenceData } from '@/lib/presence'
 import { calculateScore, type ScoreResult, type PathwayStatus } from '@/lib/scoring'
+import { recordScoreSnapshot } from '@/lib/history'
 import { cn } from '@/lib/utils'
 import { ProgressGauge } from '@/components/dashboard/ProgressGauge'
 import { RequirementCard } from '@/components/dashboard/RequirementCard'
+import { ActionableScoreSheet, type CategoryKey } from '@/components/dashboard/ActionableScoreSheet'
+import { ScoreTimelineChart } from '@/components/dashboard/ScoreTimelineChart'
 
 const quickActions = [
   { href: '/dashboard/days', label: 'Days in Canada', desc: 'Check in daily and track your streak', icon: Flame },
@@ -40,78 +43,91 @@ const quickActions = [
 // ─── Score Tracker ────────────────────────────────────────────────────────────
 
 function ScoreTracker({ profile, score }: { profile: IntakeData; score: ScoreResult }) {
-  if (!score.hasEnoughData) {
-    return (
-      <Card className="mb-8 rounded-2xl border-[#D62828]/20 bg-[#D62828]/5">
-        <CardContent className="p-5">
-          <div className="flex items-start gap-3">
-            <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-[#D62828]" />
-            <div>
-              <p className="font-semibold text-[#0B1F3A]">Complete your profile to see your PR progress</p>
-              <p className="mt-1 text-sm text-slate-600">
-                Your profile is missing: <span className="font-medium text-[#D62828]">{score.missingFields.join(', ')}</span>.
-              </p>
-              <Link
-                href="/onboarding"
-                className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#D62828] hover:underline"
-              >
-                Update profile <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+  const [simulatedProfile, setSimulatedProfile] = useState<IntakeData>(profile);
+  const [activeCategory, setActiveCategory] = useState<CategoryKey>(null);
 
-  const crs = score.crs!
+  useEffect(() => {
+    setSimulatedProfile(profile);
+  }, [profile]);
+
+  const currentScore = calculateScore(simulatedProfile);
+  const crs = currentScore.crs || { total: 0, age: 0, education: 0, firstLanguage: 0, canadianExperience: 0, skillTransferability: 0, additional: 0 };
+  const showIncompleteWarning = !currentScore.hasEnoughData;
   
   // Language Card
-  const langDetails = score.clb ? [
-    { label: 'Reading', value: `CLB ${score.clb.r}` },
-    { label: 'Writing', value: `CLB ${score.clb.w}` },
-    { label: 'Listening', value: `CLB ${score.clb.l}` },
-    { label: 'Speaking', value: `CLB ${score.clb.s}` },
+  const langDetails = currentScore.clb ? [
+    { label: 'Reading', value: `CLB ${currentScore.clb.r}` },
+    { label: 'Writing', value: `CLB ${currentScore.clb.w}` },
+    { label: 'Listening', value: `CLB ${currentScore.clb.l}` },
+    { label: 'Speaking', value: `CLB ${currentScore.clb.s}` },
   ] : [];
-  const minLang = score.clb ? Math.min(score.clb.r, score.clb.w, score.clb.l, score.clb.s) : 0;
+  const minLang = currentScore.clb ? Math.min(currentScore.clb.r, currentScore.clb.w, currentScore.clb.l, currentScore.clb.s) : 0;
   const langStatus = minLang >= 9 ? 'Complete' : minLang >= 7 ? 'In Progress' : 'Required';
 
   // Education Card
   const eduLabels: Record<string, string> = {
     'less-than-secondary': 'None', secondary: 'High School', '1-year': '1 Year', '2-year': '2 Years', bachelors: "Bachelor's", 'two-credentials': 'Two Certs', masters: "Master's", doctoral: "Doctorate"
   };
-  const eduVal = profile.educationLevel ? eduLabels[profile.educationLevel] || profile.educationLevel : 'Not set';
-  const hasECA = profile.ecaCompleted === 'yes';
+  const eduVal = simulatedProfile.educationLevel ? eduLabels[simulatedProfile.educationLevel] || simulatedProfile.educationLevel : 'Not set';
+  const hasECA = simulatedProfile.ecaCompleted === 'yes';
   const eduDetails = [
     { label: 'Level', value: eduVal },
     { label: 'ECA', value: hasECA ? 'Yes' : 'No' },
-    { label: 'Can. Study', value: (!profile.canadianEducation || profile.canadianEducation === 'none') ? 'No' : 'Yes' }
+    { label: 'Can. Study', value: (!simulatedProfile.canadianEducation || simulatedProfile.canadianEducation === 'none') ? 'No' : 'Yes' }
   ];
-  const advEdu = ['bachelors', 'two-credentials', 'masters', 'doctoral'].includes(profile.educationLevel);
+  const advEdu = ['bachelors', 'two-credentials', 'masters', 'doctoral'].includes(simulatedProfile.educationLevel);
   const eduStatus = advEdu && hasECA ? 'Complete' : 'In Progress';
 
   // Work Experience Card
-  const canWork = parseFloat(profile.canadianWorkMonths) || 0;
-  const forWork = parseFloat(profile.foreignWorkYears) || 0;
+  const canWork = parseFloat(simulatedProfile.canadianWorkMonths) || 0;
+  const forWork = parseFloat(simulatedProfile.foreignWorkYears) || 0;
   const workDetails = [
     { label: 'Canadian', value: `${Math.floor(canWork / 12)} Yrs` },
     { label: 'Foreign', value: `${forWork} Yrs` },
-    { label: 'TEER', value: profile.teerLevel || 'Unknown' },
-    { label: 'Job Offer', value: profile.hasJobOffer === 'yes' ? 'Yes' : 'No' }
+    { label: 'TEER', value: simulatedProfile.teerLevel || 'Unknown' },
+    { label: 'Job Offer', value: simulatedProfile.hasJobOffer === 'yes' ? 'Yes' : 'No' }
   ];
   const workStatus = canWork >= 12 || forWork >= 3 ? 'Complete' : 'In Progress';
 
   // Pathways Card
-  const pathwayDetails = score.pathways.slice(0, 3).map((p) => ({ 
+  const pathwayDetails = currentScore.pathways.slice(0, 3).map((p) => ({ 
     label: p.id.toUpperCase(), 
     value: p.status === 'eligible' ? 'Eligible' : 'Not Yet' 
   }));
-  const isEligible = score.pathways.some(p => p.status === 'eligible');
+  const isEligible = currentScore.pathways.some(p => p.status === 'eligible');
+
+  const handleSave = () => {
+    saveProfile(simulatedProfile);
+    if (crs && crs.total > 0) recordScoreSnapshot(crs.total);
+    window.location.reload();
+  };
 
   return (
-    <div className="mb-10 animate-fade-in">
+    <div className="mb-10 animate-fade-in relative">
+      {showIncompleteWarning && (
+        <Card className="mb-8 rounded-2xl border-[#D62828]/20 bg-[#D62828]/5">
+          <CardContent className="p-5">
+            <div className="flex items-start gap-3">
+              <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-[#D62828]" />
+              <div>
+                <p className="font-semibold text-[#0B1F3A]">Profile missing details</p>
+                <p className="mt-1 text-sm text-slate-600">
+                  Your profile is missing some details causing the score to be 0 or inaccurate. Missing: <span className="font-medium text-[#D62828]">{currentScore.missingFields.join(', ')}</span>.
+                </p>
+                <Link
+                  href="/onboarding"
+                  className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#D62828] hover:underline"
+                >
+                  Update profile <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="mb-6 flex flex-col items-start gap-4 lg:flex-row lg:items-stretch">
-        <div className="flex w-full shrink-0 flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:w-[350px]">
+        <div className="flex w-full shrink-0 flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:w-[350px] transition-all duration-300">
           <ProgressGauge 
             value={crs.total || 0} 
             max={600} 
@@ -120,15 +136,16 @@ function ScoreTracker({ profile, score }: { profile: IntakeData; score: ScoreRes
           />
           <div className="flex w-full items-center justify-center gap-8 border-t border-slate-100 pt-4">
              <div className="flex flex-col text-center">
-               <span className="text-3xl font-bold text-[#0B1F3A]">{crs.total}</span>
+               <span className="text-3xl font-bold text-[#0B1F3A] transition-all duration-500">{crs.total}</span>
                <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">CRS Points</span>
              </div>
              <div className="h-10 w-px bg-slate-200" />
              <div className="flex flex-col text-center">
-               <span className="text-3xl font-bold text-[#0B1F3A]">{score.fsw?.score || 0}</span>
+               <span className="text-3xl font-bold text-[#0B1F3A] transition-all duration-500">{currentScore.fsw?.score || 0}</span>
                <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">FSW Grid</span>
              </div>
           </div>
+          <ScoreTimelineChart />
         </div>
         
         <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
@@ -138,6 +155,7 @@ function ScoreTracker({ profile, score }: { profile: IntakeData; score: ScoreRes
              status={langStatus}
              details={langDetails}
              progress={minLang >= 9 ? 100 : minLang >= 7 ? 65 : 30}
+             onClick={() => setActiveCategory('language')}
           />
           <RequirementCard 
              icon={GraduationCap} 
@@ -145,6 +163,7 @@ function ScoreTracker({ profile, score }: { profile: IntakeData; score: ScoreRes
              status={eduStatus}
              details={eduDetails}
              progress={eduStatus === 'Complete' ? 100 : 50}
+             onClick={() => setActiveCategory('education')}
           />
           <RequirementCard 
              icon={Briefcase} 
@@ -152,25 +171,26 @@ function ScoreTracker({ profile, score }: { profile: IntakeData; score: ScoreRes
              status={workStatus}
              details={workDetails}
              progress={workStatus === 'Complete' ? 100 : 50}
+             onClick={() => setActiveCategory('work')}
           />
           <RequirementCard 
              icon={Award} 
              title="Pathway Eligibility"
              status={isEligible ? 'Complete' : 'Under Review'}
              details={pathwayDetails.length > 0 ? pathwayDetails : [{label: "Pathways", value: "None"}]}
-             progress={isEligible ? 100 : score.pathways.some(p => p.status === 'possible') ? 70 : 40}
+             progress={isEligible ? 100 : currentScore.pathways.some(p => p.status === 'possible') ? 70 : 40}
           />
         </div>
       </div>
 
-      {score.improvements.length > 0 && (
+      {currentScore.improvements.length > 0 && (
          <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
            <div className="mb-4 flex items-center gap-2">
              <ShieldAlert className="h-5 w-5 text-amber-600" />
              <h3 className="text-sm font-bold uppercase tracking-wide text-amber-800">Top Action Items</h3>
            </div>
            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {score.improvements.slice(0, 2).map((imp, i) => (
+              {currentScore.improvements.slice(0, 2).map((imp, i) => (
                <div key={i} className="flex flex-col justify-between rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
                   <div className="mb-3 flex items-start justify-between">
                     <span className="font-bold text-[#0b1f3a]">{imp.label}</span>
@@ -182,6 +202,15 @@ function ScoreTracker({ profile, score }: { profile: IntakeData; score: ScoreRes
            </div>
          </div>
       )}
+
+      <ActionableScoreSheet 
+        category={activeCategory} 
+        onClose={() => setActiveCategory(null)} 
+        profile={simulatedProfile} 
+        setProfile={setSimulatedProfile} 
+        onSaveToProfile={handleSave} 
+        onReset={() => setSimulatedProfile(profile)} 
+      />
     </div>
   )
 }

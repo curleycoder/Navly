@@ -1,4 +1,4 @@
-import { LucideIcon } from 'lucide-react'
+import { LucideIcon, ChevronRight } from 'lucide-react'
 
 export interface RequirementCardProps {
   icon: LucideIcon;
@@ -6,9 +6,10 @@ export interface RequirementCardProps {
   status: "Complete" | "In Progress" | "Required" | "Active" | "Under Review";
   details: { label: string; value: string | number }[];
   progress?: number;
+  onClick?: () => void;
 }
 
-export function RequirementCard({ icon: Icon, title, status, details, progress }: RequirementCardProps) {
+export function RequirementCard({ icon: Icon, title, status, details, progress, onClick }: RequirementCardProps) {
   const isComplete = status === "Complete";
   const progressColor = isComplete ? "bg-green-600" : "bg-[#0b1f3a]";
   const statusColors = {
@@ -19,14 +20,24 @@ export function RequirementCard({ icon: Icon, title, status, details, progress }
     "Under Review": "bg-amber-100 text-amber-700"
   };
 
+  const interactiveStyles = onClick ? "cursor-pointer hover:border-[#D62828] hover:shadow-md transition-all group" : "";
+
   return (
-    <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+    <div 
+      onClick={onClick}
+      className={`flex flex-col text-left rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition ${interactiveStyles}`}
+    >
       <div className="mb-4 flex items-start justify-between">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1F3A] text-white">
           <Icon className="h-5 w-5" />
         </div>
+        {onClick && (
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-400 opacity-0 transition-opacity group-hover:opacity-100 group-hover:bg-[#d62828] group-hover:text-white">
+            <ChevronRight className="h-4 w-4" />
+          </div>
+        )}
       </div>
-      <h3 className="mb-3 text-[15px] font-bold text-[#0b1f3aLeading-tight] sm:text-base">
+      <h3 className="mb-3 text-[15px] font-bold leading-tight text-[#0b1f3a] sm:text-base">
         {title}
       </h3>
       
