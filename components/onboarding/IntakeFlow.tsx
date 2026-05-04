@@ -78,9 +78,24 @@ const stepTitles: Record<StepId, string> = {
 const selectClass =
   'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#0B1F3A] focus:outline-none focus:ring-2 focus:ring-[#D62828] focus:border-transparent appearance-none cursor-pointer'
 
-function OptionCard({ label, desc, selected, onClick }: {
-  label: string; desc?: string; selected: boolean; onClick: () => void
+function OptionCard({ label, desc, selected, onClick, comingSoon }: {
+  label: string; desc?: string; selected: boolean; onClick: () => void; comingSoon?: boolean
 }) {
+  if (comingSoon) {
+    return (
+      <div className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 p-4 opacity-60 cursor-not-allowed">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="font-semibold text-slate-400">{label}</p>
+              <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-500">Coming soon</span>
+            </div>
+            {desc && <p className="mt-0.5 text-sm text-slate-400">{desc}</p>}
+          </div>
+        </div>
+      </div>
+    )
+  }
   return (
     <button
       type="button"
@@ -173,10 +188,10 @@ const plannedEntryOptions = [
   { value: 'study-permit', label: 'Study permit', desc: 'Come to Canada to study, then explore PR through PGWP and CEC' },
   { value: 'work-permit', label: 'Work permit', desc: 'Come through a job offer, LMIA, or employer-specific permit' },
   { value: 'express-entry', label: 'Express Entry (direct PR)', desc: 'Apply for PR directly from outside — Federal Skilled Worker or FST' },
-  { value: 'family', label: 'Family sponsorship', desc: 'Be sponsored by a Canadian citizen or permanent resident' },
-  { value: 'visitor', label: 'Visitor visa first', desc: 'Visit Canada, then explore options from inside' },
-  { value: 'business', label: 'Business / investment', desc: 'Provincial entrepreneur or investor programs' },
   { value: 'unsure', label: 'Not sure yet', desc: 'I want to compare all options' },
+  { value: 'family', label: 'Family sponsorship', desc: 'Be sponsored by a Canadian citizen or permanent resident', comingSoon: true },
+  { value: 'visitor', label: 'Visitor visa first', desc: 'Visit Canada, then explore options from inside', comingSoon: true },
+  { value: 'business', label: 'Business / investment', desc: 'Provincial entrepreneur or investor programs', comingSoon: true },
 ]
 
 function StepPlannedEntry({ value, onChange }: { value: string; onChange: (v: string) => void }) {
@@ -188,7 +203,7 @@ function StepPlannedEntry({ value, onChange }: { value: string; onChange: (v: st
       </p>
       <div role="radiogroup" aria-label="Planned entry route" className="mt-6 flex flex-col gap-3">
         {plannedEntryOptions.map((opt) => (
-          <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={value === opt.value} onClick={() => onChange(opt.value)} />
+          <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={value === opt.value} onClick={() => onChange(opt.value)} comingSoon={opt.comingSoon} />
         ))}
       </div>
     </div>
@@ -200,12 +215,12 @@ function StepPlannedEntry({ value, onChange }: { value: string; onChange: (v: st
 const insideStatusOptions = [
   { value: 'student', label: 'International student', desc: 'Currently on a study permit' },
   { value: 'work-permit', label: 'Worker', desc: 'On a work permit, PGWP, or employer-specific permit' },
-  { value: 'visitor', label: 'Visitor', desc: 'On a visitor visa, eTA, or temporary resident permit' },
-  { value: 'refugee', label: 'Refugee / protected person', desc: 'Under refugee protection or asylum claim' },
-  { value: 'family-member', label: 'Spouse or family of Canadian / PR', desc: 'In Canada through family sponsorship or family permit' },
-  { value: 'out-of-status', label: 'Out of status', desc: 'Permit has expired or was not maintained' },
-  { value: 'pr', label: 'Permanent resident', desc: 'Already have PR status' },
   { value: 'other', label: 'Not sure', desc: 'None of the above' },
+  { value: 'visitor', label: 'Visitor', desc: 'On a visitor visa, eTA, or temporary resident permit', comingSoon: true },
+  { value: 'family-member', label: 'Spouse or family of Canadian / PR', desc: 'In Canada through family sponsorship or family permit', comingSoon: true },
+  { value: 'refugee', label: 'Refugee / protected person', desc: 'Under refugee protection or asylum claim', comingSoon: true },
+  { value: 'out-of-status', label: 'Out of status', desc: 'Permit has expired or was not maintained', comingSoon: true },
+  { value: 'pr', label: 'Permanent resident', desc: 'Already have PR status', comingSoon: true },
 ]
 
 function StepInsideStatus({ value, onChange }: { value: string; onChange: (v: string) => void }) {
@@ -213,9 +228,9 @@ function StepInsideStatus({ value, onChange }: { value: string; onChange: (v: st
     <div>
       <h1 className="text-3xl font-bold text-[#0B1F3A]">What is your current status in Canada?</h1>
       <p className="mt-2 text-slate-500">Your current status determines which PR pathways are open to you and what questions we ask next.</p>
-      <div className="mt-6 flex flex-col gap-3">
+      <div role="radiogroup" aria-label="Current status in Canada" className="mt-6 flex flex-col gap-3">
         {insideStatusOptions.map((opt) => (
-          <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={value === opt.value} onClick={() => onChange(opt.value)} />
+          <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={value === opt.value} onClick={() => onChange(opt.value)} comingSoon={opt.comingSoon} />
         ))}
       </div>
     </div>

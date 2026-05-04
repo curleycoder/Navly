@@ -22,8 +22,9 @@ function buildProfileContext(profile: IntakeData): string {
   lines.push(`- Current status: ${profile.status || 'not provided'}`)
   lines.push(`- Country of origin: ${profile.originCountry || 'not provided'}`)
   lines.push(`- Currently in: ${profile.currentCountry || 'not provided'}${profile.province ? `, ${profile.province}` : ''}`)
+  if (profile.locationStatus) lines.push(`- Location: ${profile.locationStatus === 'inside' ? 'inside Canada' : 'outside Canada'}`)
+  if (profile.plannedEntry) lines.push(`- Planned entry route: ${profile.plannedEntry}`)
   lines.push(`- Main goal: ${profile.goal || 'not provided'}`)
-  lines.push(`- Timeline: ${profile.timeline || 'not provided'}`)
 
   if (profile.age) lines.push(`- Age: ${profile.age}`)
   if (profile.maritalStatus) {
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
 
   const stream = client.messages.stream({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 1024,
+    max_tokens: 2048,
     system: systemPrompt,
     messages: trimmed as Anthropic.MessageParam[],
   })

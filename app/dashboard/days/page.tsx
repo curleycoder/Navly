@@ -105,6 +105,67 @@ export default function DaysPage() {
         </p>
       </div>
 
+      {/* Streak + check-in */}
+      <Card className="mb-6 rounded-2xl border-slate-200 bg-white">
+        <CardContent className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Flame className={cn('h-4 w-4', presence.streak > 0 ? 'text-orange-500' : 'text-slate-300')} />
+            <p className="text-sm font-semibold text-[#0B1F3A]">Daily check-in streak</p>
+            {presence.streak > 0 && (
+              <span className="ml-auto text-2xl font-bold text-orange-500">{presence.streak} day{presence.streak !== 1 ? 's' : ''}</span>
+            )}
+          </div>
+          {presence.longestStreak > 1 && (
+            <p className="mb-3 text-xs text-slate-400">Personal best: {presence.longestStreak} days</p>
+          )}
+          {checkedIn ? (
+            <div className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 px-4 py-3">
+              <CalendarCheck className="h-5 w-5 text-green-600" />
+              <p className="text-sm font-semibold text-green-800">Checked in for today — come back tomorrow.</p>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between rounded-xl border border-dashed border-slate-200 px-4 py-3">
+              <p className="text-sm text-slate-600">Are you in Canada today?</p>
+              <Button onClick={handleCheckIn} size="sm" className="gap-1.5 bg-[#D62828] text-white hover:bg-[#B91C1C]">
+                <CalendarCheck className="h-4 w-4" />
+                Yes, I'm here
+              </Button>
+            </div>
+          )}
+          <div className="mt-3 flex items-start gap-2 rounded-xl bg-slate-50 px-3 py-2">
+            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
+            <p className="text-xs text-slate-400">
+              The streak is for your engagement. Your <strong>Days in Canada</strong> count above is calculated automatically from your arrival date — you don't need to check in every day to keep that accurate.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+            {/* Primary stat — Days in Canada */}
+      <Card className="mb-6 rounded-2xl border-2 border-[#0B1F3A] bg-[#0B1F3A] text-white">
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Days in Canada</p>
+              <p className="mt-1 text-6xl font-bold">{daysInCanada}</p>
+              <p className="mt-2 text-sm text-slate-300">
+                {presence.arrivalDate
+                  ? `${daysSinceArrival} days since arrival${travelDays > 0 ? ` − ${travelDays} days abroad` : ''}`
+                  : 'Set your arrival date above to calculate'}
+              </p>
+            </div>
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/10">
+              <CalendarCheck className="h-6 w-6 text-white" />
+            </div>
+          </div>
+          {travelDays > 0 && (
+            <div className="mt-4 rounded-xl bg-white/10 px-4 py-2 text-xs text-slate-300">
+              {presence.travelLog.length} trip{presence.travelLog.length !== 1 ? 's' : ''} logged &nbsp;·&nbsp; {travelDays} day{travelDays !== 1 ? 's' : ''} subtracted from your total
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Arrival date — this drives everything */}
       <Card className="mb-6 rounded-2xl border-slate-200 bg-white">
         <CardContent className="p-5">
@@ -128,31 +189,6 @@ export default function DaysPage() {
             <p className="mt-2 text-xs text-slate-400">
               {daysSinceArrival} calendar days since arrival &nbsp;·&nbsp; {travelDays} day{travelDays !== 1 ? 's' : ''} abroad logged
             </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Primary stat — Days in Canada */}
-      <Card className="mb-6 rounded-2xl border-2 border-[#0B1F3A] bg-[#0B1F3A] text-white">
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Days in Canada</p>
-              <p className="mt-1 text-6xl font-bold">{daysInCanada}</p>
-              <p className="mt-2 text-sm text-slate-300">
-                {presence.arrivalDate
-                  ? `${daysSinceArrival} days since arrival${travelDays > 0 ? ` − ${travelDays} days abroad` : ''}`
-                  : 'Set your arrival date above to calculate'}
-              </p>
-            </div>
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/10">
-              <CalendarCheck className="h-6 w-6 text-white" />
-            </div>
-          </div>
-          {travelDays > 0 && (
-            <div className="mt-4 rounded-xl bg-white/10 px-4 py-2 text-xs text-slate-300">
-              {presence.travelLog.length} trip{presence.travelLog.length !== 1 ? 's' : ''} logged &nbsp;·&nbsp; {travelDays} day{travelDays !== 1 ? 's' : ''} subtracted from your total
-            </div>
           )}
         </CardContent>
       </Card>
@@ -200,42 +236,6 @@ export default function DaysPage() {
           </div>
         </div>
       )}
-
-      {/* Streak + check-in */}
-      <Card className="mb-6 rounded-2xl border-slate-200 bg-white">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Flame className={cn('h-4 w-4', presence.streak > 0 ? 'text-orange-500' : 'text-slate-300')} />
-            <p className="text-sm font-semibold text-[#0B1F3A]">Daily check-in streak</p>
-            {presence.streak > 0 && (
-              <span className="ml-auto text-2xl font-bold text-orange-500">{presence.streak} day{presence.streak !== 1 ? 's' : ''}</span>
-            )}
-          </div>
-          {presence.longestStreak > 1 && (
-            <p className="mb-3 text-xs text-slate-400">Personal best: {presence.longestStreak} days</p>
-          )}
-          {checkedIn ? (
-            <div className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 px-4 py-3">
-              <CalendarCheck className="h-5 w-5 text-green-600" />
-              <p className="text-sm font-semibold text-green-800">Checked in for today — come back tomorrow.</p>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between rounded-xl border border-dashed border-slate-200 px-4 py-3">
-              <p className="text-sm text-slate-600">Are you in Canada today?</p>
-              <Button onClick={handleCheckIn} size="sm" className="gap-1.5 bg-[#D62828] text-white hover:bg-[#B91C1C]">
-                <CalendarCheck className="h-4 w-4" />
-                Yes, I'm here
-              </Button>
-            </div>
-          )}
-          <div className="mt-3 flex items-start gap-2 rounded-xl bg-slate-50 px-3 py-2">
-            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
-            <p className="text-xs text-slate-400">
-              The streak is for your engagement. Your <strong>Days in Canada</strong> count above is calculated automatically from your arrival date — you don't need to check in every day to keep that accurate.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Travel log — always visible, critical for accuracy */}
       <Card className="rounded-2xl border-slate-200 bg-white">
