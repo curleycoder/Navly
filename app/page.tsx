@@ -4,33 +4,33 @@ import {
   CheckCircle2,
   FileText,
   MessageSquare,
-  ShieldCheck,
-  ListChecks,
+  CalendarCheck,
+  Target,
 } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { NavlyLogo } from "@/components/ui/NavlyLogo";
 
 const features = [
   {
     title: "Smart intake",
-    desc: "Collect immigration profile details in a clear step-by-step flow.",
+    desc: "Answer a guided set of questions to build a complete immigration profile.",
     icon: FileText,
   },
   {
-    title: "Document checklist",
-    desc: "Track missing, ready, and expiring documents before a consultation.",
-    icon: ListChecks,
+    title: "Pathway screening",
+    desc: "See your strongest PR pathways, estimated CRS score, and what you're missing.",
+    icon: Target,
   },
   {
     title: "AI assistant",
-    desc: "Answer repeated questions in simple language with safe legal reminders.",
+    desc: "Ask immigration questions in plain language. Always with safe legal reminders.",
     icon: MessageSquare,
   },
   {
-    title: "Consultation prep",
-    desc: "Create a clean summary before speaking with a licensed professional.",
-    icon: ShieldCheck,
+    title: "Canada days tracker",
+    desc: "Log daily presence, track trips abroad, and monitor your physical presence count.",
+    icon: CalendarCheck,
   },
 ];
 
@@ -57,12 +57,12 @@ export default function Home() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              className="text-[#0B1F3A] hover:bg-slate-100 hover:text-[#0B1F3A]"
+            <Link
+              href="/dashboard"
+              className={buttonVariants({ variant: "ghost", className: "text-[#0B1F3A] hover:bg-slate-100 hover:text-[#0B1F3A]" })}
             >
               Log in
-            </Button>
+            </Link>
             <Link
               href="/onboarding"
               className={buttonVariants({ className: "bg-[#D62828] text-white hover:bg-[#B91C1C]" })}
@@ -90,9 +90,9 @@ export default function Home() {
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600">
-              Navly helps users organize their immigration profile, documents,
-              tasks, and consultation questions before speaking with a licensed
-              professional.
+              Navly helps you understand possible Canadian PR pathways based on
+              the information you enter. For legal advice or application review,
+              connect with a certified Canadian immigration consultant.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -145,11 +145,11 @@ export default function Home() {
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                  <p className="text-sm text-slate-500">Documents</p>
+                  <p className="text-sm text-slate-500">Estimated CRS score</p>
                   <div className="mt-3 h-2 rounded-full bg-slate-100">
-                    <div className="h-2 w-2/3 rounded-full bg-[#D62828]" />
+                    <div className="h-2 w-3/5 rounded-full bg-[#D62828]" />
                   </div>
-                  <p className="mt-2 text-sm text-slate-600">8 of 12 ready</p>
+                  <p className="mt-2 text-sm text-slate-600">438 pts — Canadian Experience Class possible</p>
                 </div>
 
                 <div className="rounded-2xl border border-[#0B1F3A]/15 bg-[#0B1F3A]/5 p-4">
@@ -225,22 +225,19 @@ export default function Home() {
 
           <div className="grid gap-6 md:grid-cols-3">
             {[
-              "Create your immigration profile",
-              "Organize documents and tasks",
-              "Prepare a consultation summary",
+              { title: "Answer a few questions", desc: "Tell us your current status, language scores, education, and work history. Takes about 5 minutes." },
+              { title: "See your pathway estimate", desc: "Get an estimated CRS score, strongest PR pathways, and exactly what you are missing." },
+              { title: "Track and improve", desc: "Log your Canada presence daily, monitor permit expiry, and get next-action guidance." },
             ].map((step, index) => (
               <div
-                key={step}
+                key={step.title}
                 className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm"
               >
                 <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-[#D62828] text-sm font-bold text-white">
                   {index + 1}
                 </div>
-                <h3 className="text-xl font-bold text-[#0B1F3A]">{step}</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-600">
-                  Keep the process simple and organized so nothing important
-                  gets missed.
-                </p>
+                <h3 className="text-xl font-bold text-[#0B1F3A]">{step.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -257,31 +254,31 @@ export default function Home() {
             Pricing
           </p>
           <h2 className="mt-3 text-4xl font-bold tracking-tight text-[#0B1F3A]">
-            Start small. Upgrade when it saves time.
+            Start free. Upgrade when you need more.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-slate-600">
-            First version should prove value before adding complex payments or
-            advanced automation.
+            Navly is free to start. Pay only when you want a full personalized
+            report or ongoing tracking.
           </p>
 
           <div className="mx-auto mt-10 grid max-w-4xl gap-6 md:grid-cols-3">
             {[
-              ["Free", "$0", "Basic intake and checklist"],
-              ["Starter", "$49/mo", "For solo consultants"],
-              ["Pro", "$149/mo", "For busy consultants"],
-            ].map(([name, price, desc]) => (
+              { name: "Free", price: "$0", desc: "Profile screening and pathway overview", href: "/onboarding" },
+              { name: "Report", price: "$29", desc: "Full personalized report with gap analysis", href: "/pricing" },
+              { name: "Monthly", price: "$14/mo", desc: "Ongoing tracking, alerts, and AI access", href: "/pricing" },
+            ].map(({ name, price, desc, href }) => (
               <Card
                 key={name}
                 className={`rounded-2xl bg-white ${
-                  name === "Starter"
+                  name === "Report"
                     ? "border-[#D62828] shadow-xl shadow-red-100"
                     : "border-slate-200"
                 }`}
               >
                 <CardContent className="p-6">
-                  {name === "Starter" && (
+                  {name === "Report" && (
                     <div className="mb-4 rounded-full bg-[#D62828]/10 px-3 py-1 text-xs font-bold text-[#D62828]">
-                      Best first plan
+                      Most popular
                     </div>
                   )}
                   <h3 className="text-xl font-bold text-[#0B1F3A]">{name}</h3>
@@ -290,19 +287,24 @@ export default function Home() {
                   </p>
                   <p className="mt-3 text-sm text-slate-600">{desc}</p>
                   <Link
-                    href="/onboarding"
+                    href={href}
                     className={buttonVariants({
-                      variant: name === "Starter" ? "default" : "outline",
-                      className: name === "Starter"
+                      variant: name === "Report" ? "default" : "outline",
+                      className: name === "Report"
                         ? "mt-6 w-full bg-[#D62828] text-white hover:bg-[#B91C1C]"
                         : "mt-6 w-full border-[#0B1F3A] text-[#0B1F3A] hover:bg-[#0B1F3A] hover:text-white",
                     })}
                   >
-                    Choose {name}
+                    {name === "Free" ? "Get started" : `Choose ${name}`}
                   </Link>
                 </CardContent>
               </Card>
             ))}
+          </div>
+          <div className="mt-6 text-center">
+            <Link href="/pricing" className="text-sm font-semibold text-[#D62828] hover:underline">
+              See full feature comparison →
+            </Link>
           </div>
         </div>
       </section>
@@ -312,11 +314,11 @@ export default function Home() {
         <div className="mx-auto max-w-5xl rounded-3xl bg-[#0B1F3A] px-8 py-14 text-center text-white">
           <CheckCircle2 className="mx-auto mb-5 h-10 w-10 text-[#D62828]" />
           <h2 className="text-4xl font-bold tracking-tight">
-            Build the first version. Test with real users.
+            Your clearest path to Canadian PR starts here.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-slate-300">
-            Navly should start as a focused intake, checklist, and consultation
-            prep tool. That is enough to test demand.
+            See your estimated CRS score, strongest pathways, and exactly what
+            you need to improve — before spending money on a consultant.
           </p>
           <Link
             href="/onboarding"

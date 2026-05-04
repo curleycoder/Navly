@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, LogOut } from 'lucide-react'
@@ -8,10 +8,19 @@ import { Sheet, SheetContent, SheetClose } from '@/components/ui/sheet'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { navItems } from '@/components/dashboard/Sidebar'
 import { cn } from '@/lib/utils'
+import { loadProfile } from '@/lib/profile'
 
 export function MobileNav() {
   const [open, setOpen] = useState(false)
+  const [isOutside, setIsOutside] = useState(false)
   const pathname = usePathname()
+
+  useEffect(() => {
+    const profile = loadProfile()
+    setIsOutside(profile?.locationStatus === 'outside')
+  }, [])
+
+  const visibleItems = navItems.filter((item) => !isOutside || item.outsideOk)
 
   return (
     <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 md:hidden">
@@ -33,8 +42,8 @@ export function MobileNav() {
             <NavlyLogo size="sm" />
           </div>
 
-          <nav className="flex flex-1 flex-col gap-1 p-3">
-            {navItems.map(({ href, label, icon: Icon }) => {
+          <nav aria-label="Main navigation" className="flex flex-1 flex-col gap-1 p-3">
+            {visibleItems.map(({ href, label, icon: Icon }) => {
               const active = pathname === href
               return (
                 <SheetClose
@@ -42,6 +51,7 @@ export function MobileNav() {
                   render={
                     <Link
                       href={href}
+                      aria-current={active ? 'page' : undefined}
                       className={cn(
                         'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors',
                         active
@@ -51,7 +61,7 @@ export function MobileNav() {
                     />
                   }
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
+                  <Icon aria-hidden="true" className="h-4 w-4 shrink-0" />
                   {label}
                 </SheetClose>
               )
@@ -59,7 +69,13 @@ export function MobileNav() {
           </nav>
 
           <div className="border-t border-slate-200 p-3">
-            <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-[#0B1F3A]">
+            <button
+              onClick={() => {
+                localStorage.clear()
+                window.location.href = '/'
+              }}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-[#0B1F3A]"
+            >
               <LogOut className="h-4 w-4 shrink-0" />
               Log out
             </button>

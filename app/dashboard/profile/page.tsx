@@ -14,6 +14,9 @@ const statusOptions = [
   { value: 'student', label: 'International student', desc: 'Currently studying in Canada' },
   { value: 'work-permit', label: 'Work permit holder', desc: 'Currently working in Canada' },
   { value: 'visitor', label: 'Visitor / tourist', desc: 'Visiting on a temporary visa' },
+  { value: 'refugee', label: 'Refugee / protected person', desc: 'Refugee claim or protected person status' },
+  { value: 'family-member', label: 'Spouse / family of Canadian or PR', desc: 'In Canada under family sponsorship' },
+  { value: 'out-of-status', label: 'Out of status', desc: 'Permit expired or overstayed' },
   { value: 'pr', label: 'Permanent resident', desc: 'Already have PR status' },
   { value: 'other', label: 'Other', desc: 'None of the above' },
 ]
@@ -23,14 +26,9 @@ const goalOptions = [
   { value: 'work-permit', label: 'Extend or change work permit', desc: 'PGWP, LMIA, or employer-specific permits' },
   { value: 'study-permit', label: 'Extend or change study permit', desc: 'Continue or change your studies' },
   { value: 'citizenship', label: 'Apply for citizenship', desc: 'Become a Canadian citizen' },
+  { value: 'family', label: 'Join family in Canada', desc: 'Family sponsorship or reunification' },
+  { value: 'compare', label: 'Compare my options', desc: 'Not sure yet — explore what applies to me' },
   { value: 'other', label: 'Other / not sure yet', desc: 'I want to explore my options' },
-]
-
-const timelineOptions = [
-  { value: 'urgent', label: 'Urgent', desc: 'Within 3 months' },
-  { value: 'soon', label: 'Soon', desc: '3–6 months from now' },
-  { value: 'planning', label: 'Planning ahead', desc: '6+ months away' },
-  { value: 'unsure', label: 'Not sure', desc: "I haven't decided yet" },
 ]
 
 const selectClass =
@@ -52,9 +50,11 @@ function OptionCard({
   return (
     <button
       type="button"
+      role="radio"
+      aria-checked={selected}
       onClick={onClick}
       className={cn(
-        'w-full rounded-2xl border-2 p-4 text-left transition-all',
+        'w-full rounded-2xl border-2 p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D62828] focus-visible:ring-offset-1',
         selected
           ? 'border-[#D62828] bg-[#D62828]/5'
           : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'
@@ -66,8 +66,9 @@ function OptionCard({
           <p className="mt-0.5 text-sm text-slate-500">{desc}</p>
         </div>
         <div
+          aria-hidden="true"
           className={cn(
-            'h-5 w-5 shrink-0 rounded-full border-2 transition-all',
+            'ml-3 h-5 w-5 shrink-0 rounded-full border-2 transition-all',
             selected ? 'border-[#D62828] bg-[#D62828]' : 'border-slate-300'
           )}
         />
@@ -130,7 +131,7 @@ export default function ProfilePage() {
   const inCanada = data.currentCountry === 'Canada'
 
   function canSave() {
-    const base = !!data.status && !!data.originCountry && !!data.currentCountry && !!data.goal && !!data.timeline
+    const base = !!data.status && !!data.originCountry && !!data.currentCountry && !!data.goal
     if (inCanada) return base && !!data.province
     return base
   }
@@ -161,9 +162,9 @@ export default function ProfilePage() {
 
       <div className="flex flex-col gap-10">
         {/* Status */}
-        <section>
-          <h2 className="mb-3 text-base font-bold text-[#0B1F3A]">Current immigration status</h2>
-          <div className="flex flex-col gap-3">
+        <section aria-labelledby="status-heading">
+          <h2 id="status-heading" className="mb-3 text-base font-bold text-[#0B1F3A]">Current immigration status</h2>
+          <div role="radiogroup" aria-labelledby="status-heading" className="flex flex-col gap-3">
             {statusOptions.map((opt) => (
               <OptionCard
                 key={opt.value}
@@ -250,9 +251,9 @@ export default function ProfilePage() {
         </section>
 
         {/* Goal */}
-        <section>
-          <h2 className="mb-3 text-base font-bold text-[#0B1F3A]">Main immigration goal</h2>
-          <div className="flex flex-col gap-3">
+        <section aria-labelledby="goal-heading">
+          <h2 id="goal-heading" className="mb-3 text-base font-bold text-[#0B1F3A]">Main immigration goal</h2>
+          <div role="radiogroup" aria-labelledby="goal-heading" className="flex flex-col gap-3">
             {goalOptions.map((opt) => (
               <OptionCard
                 key={opt.value}
@@ -265,21 +266,6 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Timeline */}
-        <section>
-          <h2 className="mb-3 text-base font-bold text-[#0B1F3A]">Timeline</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {timelineOptions.map((opt) => (
-              <OptionCard
-                key={opt.value}
-                label={opt.label}
-                desc={opt.desc}
-                selected={data.timeline === opt.value}
-                onClick={() => setData((d) => ({ ...d, timeline: opt.value }))}
-              />
-            ))}
-          </div>
-        </section>
       </div>
 
       {/* Save */}

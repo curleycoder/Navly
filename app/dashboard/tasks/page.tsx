@@ -91,10 +91,10 @@ export default function TasksPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10 animate-fade-in">
       <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#D62828]">Checklist</p>
-        <h1 className="mt-1 text-3xl font-bold text-[#0B1F3A]">Settlement & Immigration Tasks</h1>
+        <p className="text-sm font-semibold uppercase tracking-wide text-[#D62828]">Action plan</p>
+        <h1 className="mt-1 text-3xl font-bold text-[#0B1F3A]">Your Settlement & PR Checklist</h1>
         <p className="mt-2 text-slate-500">
-          Your personalized guide to settling in Canada. Expand items to learn exactly how and where to complete them.
+          Step-by-step tasks generated from your profile. Tap any item for specific instructions on how and where to complete it.
         </p>
       </div>
 
@@ -103,7 +103,7 @@ export default function TasksPage() {
         <CardContent className="p-5">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-sm font-semibold text-[#0B1F3A]">
-              {done} of {total} complete
+              {done} of {total} tasks complete
             </p>
             <span className="text-sm font-bold text-[#D62828]">{progress}%</span>
           </div>
@@ -118,11 +118,14 @@ export default function TasksPage() {
 
       {/* Pending Categories */}
       {Array.from(pendingByCategory.entries()).map(([category, catTasks]) => (
-        <div key={category} className="mb-8 pl-1">
-           <h2 className="mb-4 text-xs font-bold uppercase tracking-wide text-slate-400 flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#D62828]"></div>
-              {category}
-           </h2>
+        <div key={category} className="mb-8">
+           <div className="mb-4 flex items-center justify-between">
+             <h2 className="text-xs font-bold uppercase tracking-wide text-slate-400 flex items-center gap-2">
+               <div className="w-1.5 h-1.5 rounded-full bg-[#D62828]"></div>
+               {category}
+             </h2>
+             <span className="text-xs font-semibold text-slate-400">{catTasks.length} remaining</span>
+           </div>
            <div className="flex flex-col">
               {catTasks.map(task => (
                  <TaskRow key={task.id} task={task} onToggle={toggle} onRemove={remove} />
@@ -134,10 +137,13 @@ export default function TasksPage() {
       {/* Completed tasks */}
       {completedTasks.length > 0 && (
         <div className="mb-8">
-          <h2 className="mb-4 text-xs font-bold uppercase tracking-wide text-green-600 flex items-center gap-2">
-             <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-             Completed History
-          </h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wide text-green-600 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+              Completed
+            </h2>
+            <span className="text-xs font-semibold text-green-600">{completedTasks.length} done</span>
+          </div>
           <div className="flex flex-col opacity-60 hover:opacity-100 transition-opacity">
             {completedTasks.map((task) => (
               <TaskRow key={task.id} task={task} onToggle={toggle} onRemove={remove} />
@@ -153,7 +159,7 @@ export default function TasksPage() {
           </div>
           <p className="mt-4 font-semibold text-[#0B1F3A]">No tasks yet</p>
           <p className="mt-1 max-w-xs text-sm text-slate-500">
-            Add your first custom task below.
+            Complete your profile in onboarding to generate a personalised checklist, or add a custom task below.
           </p>
         </div>
       )}
@@ -163,7 +169,7 @@ export default function TasksPage() {
       {/* Add task Input */}
       <div className="flex gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-200 shadow-inner mt-4">
         <Input
-          placeholder="Add a custom task to your checklist…"
+          placeholder="Add a custom task (e.g. 'Book English test', 'Update NOC description')…"
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addTask()}
@@ -254,7 +260,7 @@ function TaskRow({
       </div>
 
       {expanded && task.details && (
-        <div className="px-[3.25rem] pb-5 pt-1 animate-fade-in text-sm text-slate-600 leading-relaxed bg-slate-50/50">
+        <div className="px-13 pb-5 pt-1 animate-fade-in text-sm text-slate-600 leading-relaxed bg-slate-50/50">
           <div className="p-4 bg-[#0B1F3A]/5 rounded-xl border border-[#0B1F3A]/10 text-[#0B1F3A]">
             <div className="flex gap-2 items-start">
                <MapPin className="h-4 w-4 shrink-0 mt-0.5 text-[#D62828]" />

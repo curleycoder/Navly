@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Copy, Check, Printer, AlertTriangle, ShieldCheck, Tag } from 'lucide-react'
+import { Copy, Check, Printer, AlertTriangle, ShieldCheck, Tag, Mail, Download } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
-import { loadProfile, statusLabels, goalLabels, timelineLabels } from '@/lib/profile'
+import { loadProfile, statusLabels, goalLabels } from '@/lib/profile'
 import { loadTasks } from '@/lib/tasks'
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
 import { loadPresence, type PresenceData } from '@/lib/presence'
@@ -34,8 +34,7 @@ function buildSummaryText(
     `Country of origin: ${profile?.originCountry || 'Not provided'}`,
     `Currently in:      ${profile?.currentCountry || 'Not provided'}`,
     `Main goal:         ${profile ? (goalLabels[profile.goal] ?? profile.goal) : 'Not provided'}`,
-    `Timeline:          ${profile ? (timelineLabels[profile.timeline] ?? profile.timeline) : 'Not provided'}`,
-  ]
+    ]
 
   if (score?.hasEnoughData && score.crs) {
     lines.push('', 'PR SCORE ESTIMATE')
@@ -80,10 +79,11 @@ function buildSummaryText(
 export default function PrepPage() {
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
-  const [presence, setPresence] = useState<PresenceData>({ totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null })
+  const [presence, setPresence] = useState<PresenceData>({ totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null, arrivalDate: null, travelLog: [] })
   const [tasks, setTasks] = useState<Task[]>([])
   const [notes, setNotes] = useState('')
   const [copied, setCopied] = useState(false)
+  const [shared, setShared] = useState(false)
 
   useEffect(() => {
     const p = loadProfile()
@@ -107,6 +107,26 @@ export default function PrepPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  function shareByEmail() {
+    const text = buildSummaryText(profile, score, presence, tasks, notes)
+    const subject = encodeURIComponent('My Immigration Profile — Navly Summary')
+    const body = encodeURIComponent(text)
+    window.location.href = `mailto:?subject=${subject}&body=${body}`
+    setShared(true)
+    setTimeout(() => setShared(false), 3000)
+  }
+
+  function downloadTxt() {
+    const text = buildSummaryText(profile, score, presence, tasks, notes)
+    const blob = new Blob([text], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'navly-consultation-summary.txt'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   function print() {
     window.print()
   }
@@ -126,7 +146,7 @@ export default function PrepPage() {
         </p>
       </div>
 
-      <div className="mb-8 mt-4 flex gap-3 print:hidden">
+      <div className="mb-8 mt-4 flex flex-wrap gap-3 print:hidden">
         <Button
           onClick={copyToClipboard}
           variant="outline"
@@ -134,6 +154,22 @@ export default function PrepPage() {
         >
           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           {copied ? 'Copied!' : 'Copy summary'}
+        </Button>
+        <Button
+          onClick={shareByEmail}
+          variant="outline"
+          className="gap-2 border-[#0B1F3A] text-[#0B1F3A] hover:bg-[#0B1F3A] hover:text-white"
+        >
+          {shared ? <Check className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
+          {shared ? 'Email opened!' : 'Share by email'}
+        </Button>
+        <Button
+          onClick={downloadTxt}
+          variant="outline"
+          className="gap-2 border-[#0B1F3A] text-[#0B1F3A] hover:bg-[#0B1F3A] hover:text-white"
+        >
+          <Download className="h-4 w-4" />
+          Download .txt
         </Button>
         <Button
           onClick={print}
@@ -157,7 +193,6 @@ export default function PrepPage() {
                 <Row label="Country of origin" value={profile.originCountry || '—'} />
                 <Row label="Currently in" value={profile.currentCountry || '—'} />
                 <Row label="Main goal" value={goalLabels[profile.goal] ?? profile.goal} />
-                <Row label="Timeline" value={timelineLabels[profile.timeline] ?? profile.timeline} />
               </dl>
             ) : (
               <p className="text-sm text-slate-400">

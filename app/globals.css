@@ -119,15 +119,68 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Visible focus ring using brand color — never suppressed */
+  :focus-visible {
+    outline: 2.5px solid #d62828;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Minimum touch target size via padding on interactive elements */
+  button, [role="button"], a, input, select, textarea {
+    min-height: 44px;
+  }
+
+  /* Tighter minimum for icon-only and inline elements */
+  button[data-icon-only], .icon-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Better text selection */
+  ::selection {
+    background-color: #d62828;
+    color: #fff;
+  }
+
+  /* Styled scrollbar (Chrome/Safari) */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
   }
 }
+
 :root {
   --navly-navy: #0b1f3a;
   --navly-red: #d62828;
@@ -138,4 +191,43 @@
 
 body {
   font-family: var(--font-sans), sans-serif;
+}
+
+/* Skip to content link — visible only on focus */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 9999;
+  background: #d62828;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0 0 8px 8px;
+  text-decoration: none;
+  transition: top 0.15s;
+}
+.skip-link:focus {
+  top: 0;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out both;
+}
+
+/* Skeleton pulse */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+.skeleton {
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  background-color: #e2e8f0;
+  border-radius: 8px;
 }

@@ -4,24 +4,24 @@ import { useEffect, useState } from 'react'
 import { mockConsultants, getClaimedCodes, claimPromoCode, type ConsultantListing } from '@/lib/consultants'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ShieldCheck, MapPin, Globe, Briefcase, ExternalLink, Star } from 'lucide-react'
 
 export default function ConsultantsPage() {
   const [claimed, setClaimed] = useState<Record<string, string>>({})
+  const [claiming, setClaiming] = useState<string | null>(null)
+  const [initial, setInitial] = useState('')
 
   useEffect(() => {
     setClaimed(getClaimedCodes())
   }, [])
 
   const handleClaim = (consultant: ConsultantListing) => {
-    const userInput = window.prompt("To generate your unique code, please enter your first initial (e.g. 'J'):")
-    if (userInput === null) return; // User cancelled
-    
-    // Make sure we have at least 'A' if they just pressed enter
-    const initial = userInput.trim() ? userInput.trim() : 'A'
-    const code = claimPromoCode(consultant.id, consultant.agencyCode, initial)
-    
+    const letter = initial.trim() ? initial.trim()[0] : 'A'
+    const code = claimPromoCode(consultant.id, consultant.agencyCode, letter)
     setClaimed(prev => ({ ...prev, [consultant.id]: code }))
+    setClaiming(null)
+    setInitial('')
   }
 
   return (
@@ -85,18 +85,40 @@ export default function ConsultantsPage() {
                            <div className="rounded-lg bg-slate-800 text-white font-mono font-bold py-2.5 px-3 tracking-wider text-sm select-all">
                              {claimed[c.id]}
                            </div>
-                           <Button asChild className="w-full bg-[#0B1F3A] hover:bg-[#1f375a]">
-                             <a href={c.bookingLink} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2">
-                               Book Now <ExternalLink className="h-4 w-4" />
-                             </a>
-                           </Button>
+                           <a
+                             href={c.bookingLink}
+                             target="_blank"
+                             rel="noreferrer"
+                             className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0B1F3A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1f375a]"
+                           >
+                             Book Now <ExternalLink className="h-4 w-4" />
+                           </a>
+                         </div>
+                       ) : claiming === c.id ? (
+                         <div className="flex w-full flex-col gap-2">
+                           <span className="text-xs font-semibold text-slate-500">Enter your first initial (e.g. J)</span>
+                           <Input
+                             maxLength={1}
+                             placeholder="Your initial"
+                             value={initial}
+                             onChange={(e) => setInitial(e.target.value)}
+                             className="rounded-xl border-slate-200 text-center text-lg font-bold uppercase"
+                           />
+                           <div className="flex gap-2">
+                             <Button onClick={() => handleClaim(c)} className="flex-1 bg-[#D62828] text-white hover:bg-[#B91C1C]">
+                               Get Code
+                             </Button>
+                             <Button variant="outline" onClick={() => { setClaiming(null); setInitial('') }} className="flex-1">
+                               Cancel
+                             </Button>
+                           </div>
                          </div>
                        ) : (
                          <div className="flex w-full flex-col items-stretch text-center gap-2">
-                            <span className="text-xs font-semibold text-slate-500">Consultation discount</span>
-                            <Button onClick={() => handleClaim(c)} className="w-full bg-[#D62828] text-white hover:bg-[#B91C1C]">
-                              Get 20% Off Code
-                            </Button>
+                           <span className="text-xs font-semibold text-slate-500">Consultation discount</span>
+                           <Button onClick={() => setClaiming(c.id)} className="w-full bg-[#D62828] text-white hover:bg-[#B91C1C]">
+                             Get 20% Off Code
+                           </Button>
                          </div>
                        )}
                     </div>

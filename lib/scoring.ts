@@ -1,4 +1,5 @@
 import type { IntakeData } from './profile'
+import { getRequiredFunds } from './profile'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -8,6 +9,7 @@ export type CRSBreakdown = {
   age: number
   education: number
   firstLanguage: number
+  spouseFactors: number
   canadianExperience: number
   skillTransferability: number
   additional: number
@@ -18,6 +20,7 @@ export type FSWResult = {
   score: number
   eligible: boolean
   meetsWorkRequirement: boolean
+  meetsMinFunds: boolean
   breakdown: {
     language: number
     education: number
@@ -41,17 +44,23 @@ export type Improvement = {
   action: string
 }
 
+export type RiskFlag = {
+  level: 'warning' | 'critical'
+  message: string
+}
+
 export type ScoreResult = {
   clb: CLBScores | null
   crs: CRSBreakdown | null
   fsw: FSWResult | null
   pathways: PathwayStatus[]
   improvements: Improvement[]
+  riskFlags: RiskFlag[]
   hasEnoughData: boolean
   missingFields: string[]
 }
 
-// ─── CLB Conversion ───────────────────────────────────────────────────────────
+// ─── CLB Conversion — English tests ───────────────────────────────────────────
 
 function ieltsToCLB(scores: CLBScores): CLBScores {
   const tables: Record<keyof CLBScores, [number, number][]> = {
@@ -61,16 +70,13 @@ function ieltsToCLB(scores: CLBScores): CLBScores {
     s: [[7.5,10],[7.0,9],[6.5,8],[6.0,7],[5.5,6],[5.0,5],[4.0,4]],
   }
   function convert(score: number, skill: keyof CLBScores): number {
-    for (const [min, clb] of tables[skill]) {
-      if (score >= min) return clb
-    }
+    for (const [min, clb] of tables[skill]) if (score >= min) return clb
     return 3
   }
   return { r: convert(scores.r,'r'), w: convert(scores.w,'w'), l: convert(scores.l,'l'), s: convert(scores.s,'s') }
 }
 
 function celpipToCLB(scores: CLBScores): CLBScores {
-  // CELPIP score directly equals CLB level, capped at 10
   const cap = (n: number) => Math.min(Math.max(Math.floor(n), 3), 10)
   return { r: cap(scores.r), w: cap(scores.w), l: cap(scores.l), s: cap(scores.s) }
 }
@@ -99,6 +105,60 @@ function pteToCLB(scores: CLBScores): CLBScores {
   return { r: reading(scores.r), w: writing(scores.w), l: listening(scores.l), s: speaking(scores.s) }
 }
 
+// ─── CLB Conversion — French tests ────────────────────────────────────────────
+// Source: IRCC official CLB equivalency charts for TEF Canada and TCF Canada
+
+function tefToCLB(scores: CLBScores): CLBScores {
+  // TEF Canada scale: Listening(CO) 0-360, Speaking(EO) 0-450, Reading(CE) 0-248, Writing(EE) 0-450
+  function listening(s: number) { // CO
+    if (s >= 316) return 10; if (s >= 298) return 9; if (s >= 280) return 8
+    if (s >= 249) return 7;  if (s >= 217) return 6; if (s >= 181) return 5
+    if (s >= 145) return 4;  return 3
+  }
+  function speaking(s: number) { // EO
+    if (s >= 393) return 10; if (s >= 349) return 9; if (s >= 310) return 8
+    if (s >= 271) return 7;  if (s >= 226) return 6; if (s >= 181) return 5
+    if (s >= 151) return 4;  return 3
+  }
+  function reading(s: number) { // CE
+    if (s >= 206) return 10; if (s >= 181) return 9; if (s >= 151) return 8
+    if (s >= 121) return 7;  if (s >= 91)  return 6; if (s >= 71)  return 5
+    if (s >= 60)  return 4;  return 3
+  }
+  function writing(s: number) { // EE
+    if (s >= 393) return 10; if (s >= 349) return 9; if (s >= 310) return 8
+    if (s >= 271) return 7;  if (s >= 226) return 6; if (s >= 181) return 5
+    if (s >= 151) return 4;  return 3
+  }
+  // scores.l = Listening (CO), scores.s = Speaking (EO), scores.r = Reading (CE), scores.w = Writing (EE)
+  return { r: reading(scores.r), w: writing(scores.w), l: listening(scores.l), s: speaking(scores.s) }
+}
+
+function tcfToCLB(scores: CLBScores): CLBScores {
+  // TCF Canada: Listening(CO) 0-699, Speaking(EO) 0-20, Reading(CE) 0-699, Writing(EE) 0-20
+  function listening(s: number) { // CO
+    if (s >= 549) return 10; if (s >= 523) return 9; if (s >= 503) return 8
+    if (s >= 458) return 7;  if (s >= 398) return 6; if (s >= 369) return 5
+    if (s >= 331) return 4;  return 3
+  }
+  function speaking(s: number) { // EO (scored 0–20)
+    if (s >= 16) return 10; if (s >= 14) return 9; if (s >= 12) return 8
+    if (s >= 10) return 7;  if (s >= 7)  return 6; if (s >= 6)  return 5
+    if (s >= 4)  return 4;  return 3
+  }
+  function reading(s: number) { // CE
+    if (s >= 549) return 10; if (s >= 524) return 9; if (s >= 499) return 8
+    if (s >= 453) return 7;  if (s >= 406) return 6; if (s >= 375) return 5
+    if (s >= 342) return 4;  return 3
+  }
+  function writing(s: number) { // EE (scored 0–20)
+    if (s >= 16) return 10; if (s >= 14) return 9; if (s >= 12) return 8
+    if (s >= 10) return 7;  if (s >= 7)  return 6; if (s >= 6)  return 5
+    if (s >= 4)  return 4;  return 3
+  }
+  return { r: reading(scores.r), w: writing(scores.w), l: listening(scores.l), s: speaking(scores.s) }
+}
+
 export function convertToCLB(testType: string, scores: CLBScores): CLBScores | null {
   if (!testType || testType === 'none') return null
   const { r, w, l, s } = scores
@@ -106,6 +166,8 @@ export function convertToCLB(testType: string, scores: CLBScores): CLBScores | n
   if (testType === 'ielts-general') return ieltsToCLB(scores)
   if (testType === 'celpip') return celpipToCLB(scores)
   if (testType === 'pte') return pteToCLB(scores)
+  if (testType === 'tef') return tefToCLB(scores)
+  if (testType === 'tcf') return tcfToCLB(scores)
   return null
 }
 
@@ -149,21 +211,11 @@ function agePts(age: number, spouseComing: boolean): number {
 
 // ─── CRS — Education Points ───────────────────────────────────────────────────
 
-function educationPts(level: string, spouseComing: boolean): number {
-  // Same table for both spouse/no-spouse in principal applicant core factor
+function educationPts(level: string): number {
   const map: Record<string, number> = {
     'less-than-secondary': 0, secondary: 28,
     '1-year': 84, '2-year': 91, bachelors: 112,
     'two-credentials': 119, masters: 126, doctoral: 140,
-  }
-  if (spouseComing) {
-    // With spouse, principal applicant education cap is lower
-    const spouseMap: Record<string, number> = {
-      'less-than-secondary': 0, secondary: 28,
-      '1-year': 84, '2-year': 91, bachelors: 112,
-      'two-credentials': 119, masters: 126, doctoral: 140,
-    }
-    return spouseMap[level] ?? 0
   }
   return map[level] ?? 0
 }
@@ -175,6 +227,60 @@ function canadianWorkPts(months: number, spouseComing: boolean): number {
   const noSpouse = [0, 40, 53, 64, 72, 80]
   const withSpouse = [0, 35, 46, 56, 63, 70]
   return (spouseComing ? withSpouse : noSpouse)[years]
+}
+
+// ─── CRS — Spouse Factors ─────────────────────────────────────────────────────
+
+function spouseLangPts(clb: number): number {
+  if (clb >= 9) return 5; if (clb === 8) return 4; if (clb === 7) return 3
+  if (clb === 6) return 2; if (clb >= 4) return 1; return 0
+}
+
+function spouseEducationPts(level: string): number {
+  const map: Record<string, number> = {
+    'less-than-secondary': 0, secondary: 2,
+    '1-year': 5, '2-year': 6, bachelors: 7,
+    'two-credentials': 7, masters: 8, doctoral: 10,
+  }
+  return map[level] ?? 0
+}
+
+function spouseCanadianWorkPts(months: number): number {
+  const years = Math.floor(months / 12)
+  if (years >= 5) return 10; if (years >= 3) return 9
+  if (years >= 2) return 7;  if (years >= 1) return 5
+  return 0
+}
+
+function calculateSpouseFactors(profile: IntakeData): number {
+  if (profile.spouseComing !== 'yes') return 0
+
+  let pts = 0
+
+  // Spouse language contribution (max 20)
+  const rawSpouseLang: CLBScores = {
+    r: parseFloat(profile.spouseLangReading),
+    w: parseFloat(profile.spouseLangWriting),
+    l: parseFloat(profile.spouseLangListening),
+    s: parseFloat(profile.spouseLangSpeaking),
+  }
+  const spouseClb = convertToCLB(profile.spouseLangTestType, rawSpouseLang)
+  if (spouseClb) {
+    const langPts = spouseLangPts(spouseClb.r) + spouseLangPts(spouseClb.w) +
+                    spouseLangPts(spouseClb.l) + spouseLangPts(spouseClb.s)
+    pts += Math.min(langPts, 20)
+  }
+
+  // Spouse education contribution (max 10)
+  if (profile.spouseEducationLevel) {
+    pts += Math.min(spouseEducationPts(profile.spouseEducationLevel), 10)
+  }
+
+  // Spouse Canadian work experience (max 10)
+  const spouseCanMonths = parseFloat(profile.spouseCanadianWorkMonths) || 0
+  pts += Math.min(spouseCanadianWorkPts(spouseCanMonths), 10)
+
+  return Math.min(pts, 40) // spouse factors cap at 40
 }
 
 // ─── CRS — Skill Transferability ─────────────────────────────────────────────
@@ -235,6 +341,7 @@ function additionalPts(
   hasJobOffer: boolean,
   teerLevel: string,
   canadianEducation: string,
+  canadianSibling: string,
 ): number {
   let pts = 0
   if (hasJobOffer) {
@@ -244,6 +351,7 @@ function additionalPts(
   }
   if (canadianEducation === '3-plus-year') pts += 30
   else if (canadianEducation === '1-2-year') pts += 15
+  if (canadianSibling === 'yes') pts += 15
   return pts
 }
 
@@ -252,7 +360,7 @@ function additionalPts(
 function fswLangPts(clb: CLBScores | null): number {
   if (!clb) return 0
   const minCLB = Math.min(clb.r, clb.w, clb.l, clb.s)
-  if (minCLB < 7) return 0 // CLB 7 minimum in all 4 skills
+  if (minCLB < 7) return 0
   const per = (c: number) => c >= 9 ? 6 : c === 8 ? 5 : 4
   return per(clb.r) + per(clb.w) + per(clb.l) + per(clb.s)
 }
@@ -280,6 +388,35 @@ function fswAgePts(age: number): number {
   return 0
 }
 
+// ─── Risk Flags ───────────────────────────────────────────────────────────────
+
+function buildRiskFlags(profile: IntakeData): RiskFlag[] {
+  const flags: RiskFlag[] = []
+
+  if (profile.lostStatus === 'yes') {
+    flags.push({
+      level: 'critical',
+      message: 'You reported a previous loss of status or overstay. This is a serious risk factor that can result in a refusal or inadmissibility finding. You should consult a licensed RCIC or immigration lawyer before submitting any application.',
+    })
+  }
+
+  if (profile.previousRefusals === 'yes') {
+    flags.push({
+      level: 'warning',
+      message: 'You reported a previous refusal. Refusals must be disclosed in new applications. A licensed RCIC or lawyer can help you understand how this affects your eligibility and how to address it.',
+    })
+  }
+
+  if (profile.status === 'visitor' && profile.goal === 'pr') {
+    flags.push({
+      level: 'warning',
+      message: 'Visitors inside Canada generally cannot directly apply for PR without first obtaining a temporary resident status (work or study permit). Express Entry requires a valid job offer or Canadian work/study experience. A consultant can help you map a transition path.',
+    })
+  }
+
+  return flags
+}
+
 // ─── Main Score Calculator ────────────────────────────────────────────────────
 
 export function calculateScore(profile: IntakeData): ScoreResult {
@@ -304,14 +441,17 @@ export function calculateScore(profile: IntakeData): ScoreResult {
 
   if (!profile.educationLevel) missing.push('Education level')
 
+  const riskFlags = buildRiskFlags(profile)
+
   if (missing.length > 0) {
-    return { clb, crs: null, fsw: null, pathways: [], improvements: [], hasEnoughData: false, missingFields: missing }
+    return { clb, crs: null, fsw: null, pathways: [], improvements: [], riskFlags, hasEnoughData: false, missingFields: missing }
   }
 
   const foreignYears = parseFloat(profile.foreignWorkYears) || 0
   const canMonths = parseFloat(profile.canadianWorkMonths) || 0
   const teer = profile.teerLevel
   const jobOffer = profile.hasJobOffer === 'yes'
+  const minCLB = clb ? Math.min(clb.r, clb.w, clb.l, clb.s) : 0
 
   // ── CRS Core ──
   const langTotal = clb!
@@ -319,20 +459,22 @@ export function calculateScore(profile: IntakeData): ScoreResult {
       firstLangPts(clb!.l, spouseComing) + firstLangPts(clb!.s, spouseComing)
     : 0
 
+  const spouseFactors = calculateSpouseFactors(profile)
+
   const breakdown: CRSBreakdown = {
     age: agePts(age, spouseComing),
-    education: educationPts(profile.educationLevel, spouseComing),
+    education: educationPts(profile.educationLevel),
     firstLanguage: langTotal,
+    spouseFactors,
     canadianExperience: canadianWorkPts(canMonths, spouseComing),
     skillTransferability: skillTransferabilityPts(profile.educationLevel, clb, foreignYears, canMonths),
-    additional: additionalPts(jobOffer, teer, profile.canadianEducation),
+    additional: additionalPts(jobOffer, teer, profile.canadianEducation, profile.canadianSibling),
     total: 0,
   }
   breakdown.total = breakdown.age + breakdown.education + breakdown.firstLanguage +
-    breakdown.canadianExperience + breakdown.skillTransferability + breakdown.additional
+    breakdown.spouseFactors + breakdown.canadianExperience + breakdown.skillTransferability + breakdown.additional
 
   // ── FSW 67/100 ──
-  const minCLB = clb ? Math.min(clb.r, clb.w, clb.l, clb.s) : 0
   const fswLang = fswLangPts(clb)
   const fswEdu = fswEduPts(profile.educationLevel)
   const fswWork = fswWorkPts(foreignYears)
@@ -342,10 +484,17 @@ export function calculateScore(profile: IntakeData): ScoreResult {
   const fswTotal = fswLang + fswEdu + fswWork + fswAge + fswJob + fswAdapt
   const meetsWorkReq = foreignYears >= 1 && (teer === '0' || teer === '1' || teer === '2' || teer === '3')
 
+  // Settlement funds check
+  const familySize = parseInt(profile.familySize) || 1
+  const funds = parseFloat(profile.settlementFunds) || 0
+  const requiredFunds = getRequiredFunds(familySize)
+  const meetsMinFunds = !profile.settlementFunds || funds >= requiredFunds
+
   const fsw: FSWResult = {
     score: fswTotal,
-    eligible: meetsWorkReq && minCLB >= 7 && fswTotal >= 67,
+    eligible: meetsWorkReq && minCLB >= 7 && fswTotal >= 67 && meetsMinFunds,
     meetsWorkRequirement: meetsWorkReq,
+    meetsMinFunds,
     breakdown: { language: fswLang, education: fswEdu, workExperience: fswWork, age: fswAge, jobOffer: fswJob, adaptability: fswAdapt },
   }
 
@@ -377,6 +526,8 @@ export function calculateScore(profile: IntakeData): ScoreResult {
       ? 'Need 1+ year of TEER 0/1/2/3 skilled work experience.'
       : minCLB < 7
       ? 'Language must be CLB 7+ in all 4 skills.'
+      : !meetsMinFunds && profile.settlementFunds
+      ? `Settlement funds below the minimum required ($${requiredFunds.toLocaleString()} for family of ${familySize}).`
       : `${fswTotal}/100 — below 67-point pass mark.`,
   })
 
@@ -384,8 +535,8 @@ export function calculateScore(profile: IntakeData): ScoreResult {
     id: 'pnp',
     name: 'Provincial Nominee Program',
     status: 'possible',
-    reason: profile.intendedProvince
-      ? `Check ${profile.intendedProvince} PNP streams for your NOC and work profile.`
+    reason: profile.intendedProvince && profile.intendedProvince !== 'Any'
+      ? `Check ${profile.intendedProvince} PNP streams for your NOC${profile.noc ? ` (${profile.noc})` : ''} and work profile.`
       : 'Depends on target province, job offer, and occupation.',
   })
 
@@ -407,15 +558,21 @@ export function calculateScore(profile: IntakeData): ScoreResult {
 
   if (clb) {
     const minL = Math.min(clb.r, clb.w, clb.l, clb.s)
-    if (minL < 9) {
+    if (minL < 7) {
+      improvements.push({
+        label: 'Reach CLB 7 in all four language skills',
+        impact: 'Required for FSW and most PNP streams',
+        action: 'CLB 7 is the minimum threshold for Express Entry. On IELTS General, this means roughly R:6.0 W:6.0 L:6.0 S:6.0.',
+      })
+    } else if (minL < 9) {
       const current = langTotal
       const projected = [9,9,9,9].reduce((s,c) => s + firstLangPts(c, spouseComing), 0)
       const gain = projected - current
       if (gain > 0) {
         improvements.push({
-          label: 'Improve language to CLB 9',
+          label: 'Improve language to CLB 9 in all skills',
           impact: `+${gain} CRS`,
-          action: 'Retake your test targeting CLB 9 in all 4 skills. Each skill is scored independently.',
+          action: 'Retake your test targeting CLB 9 in all 4 skills. Each skill is scored independently — focus on your weakest one first.',
         })
       }
     } else if (minL === 9) {
@@ -423,9 +580,9 @@ export function calculateScore(profile: IntakeData): ScoreResult {
       const projected = [10,10,10,10].reduce((s,c) => s + firstLangPts(c, spouseComing), 0)
       const gain = projected - current
       improvements.push({
-        label: 'Push language to CLB 10',
+        label: 'Push language to CLB 10 in all skills',
         impact: `+${gain} CRS`,
-        action: 'You are already at CLB 9. Pushing all 4 skills to CLB 10 gives the maximum language score.',
+        action: 'You are at CLB 9. Pushing all 4 skills to CLB 10 earns the maximum language score.',
       })
     }
   }
@@ -449,25 +606,39 @@ export function calculateScore(profile: IntakeData): ScoreResult {
     improvements.push({
       label: 'Complete 3 years of Canadian skilled work',
       impact: `+${gain} CRS`,
-      action: 'Reaching 3 years adds more Canadian experience points.',
+      action: 'Reaching 3 years adds more Canadian experience points toward your CRS.',
     })
   }
 
   if (!jobOffer && teer && ['1','2','3'].includes(teer)) {
     improvements.push({
-      label: 'Secure a valid job offer',
+      label: 'Secure a valid Canadian job offer',
       impact: '+50 CRS',
-      action: 'A permanent offer from a Canadian employer (LMIA-backed or LMIA-exempt) adds 50 points for TEER 1–3.',
+      action: 'A permanent, full-time, non-seasonal offer from a Canadian employer (LMIA-backed or LMIA-exempt) adds 50 points for TEER 1–3 roles.',
     })
   }
 
   if (profile.canadianEducation === 'none' || !profile.canadianEducation) {
     improvements.push({
-      label: 'Add Canadian education credential',
+      label: 'Add a Canadian education credential',
       impact: '+15 to +30 CRS',
-      action: 'A 1–2 year Canadian program adds 15 points; a 3+ year program or graduate degree adds 30 points.',
+      action: 'A 1–2 year Canadian program adds 15 CRS points; a 3+ year program or graduate degree adds 30 points.',
     })
   }
 
-  return { clb, crs: breakdown, fsw, pathways, improvements, hasEnoughData: true, missingFields: [] }
+  if (!profile.settlementFunds && profile.goal === 'pr') {
+    improvements.push({
+      label: 'Confirm your settlement funds',
+      impact: 'FSW eligibility',
+      action: `Federal Skilled Worker requires proof of settlement funds. For a family of ${familySize}, you need at least $${requiredFunds.toLocaleString()} CAD. Update your profile with your available funds.`,
+    })
+  } else if (profile.settlementFunds && !meetsMinFunds) {
+    improvements.push({
+      label: 'Increase settlement funds',
+      impact: 'Required for FSW',
+      action: `You need at least $${requiredFunds.toLocaleString()} CAD for a family of ${familySize}. Current amount does not meet the FSW minimum. This does not affect CEC or PNP.`,
+    })
+  }
+
+  return { clb, crs: breakdown, fsw, pathways, improvements, riskFlags, hasEnoughData: true, missingFields: [] }
 }

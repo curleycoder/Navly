@@ -9,9 +9,41 @@ const ibmPlexSans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Navly | Immigration intake made clearer",
+  metadataBase: new URL('https://navly.ca'),
+  title: {
+    default: 'Navly — Canadian PR Pathway Planner',
+    template: '%s | Navly',
+  },
   description:
-    "Navly helps users organize immigration profiles, documents, tasks, and consultation questions.",
+    'Estimate your CRS score, track days in Canada, and understand your best path to permanent residence. Free PR pathway screening for immigrants.',
+  keywords: ['Canada PR', 'Express Entry', 'CRS score', 'immigration', 'permanent residence', 'Canada days tracker', 'IRCC'],
+  authors: [{ name: 'Navly' }],
+  openGraph: {
+    title: 'Navly — Canadian PR Pathway Planner',
+    description: 'Estimate your CRS score, track days in Canada, and understand your best path to permanent residence.',
+    url: 'https://navly.ca',
+    siteName: 'Navly',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: 'Navly — Canadian PR Pathway Planner',
+      },
+    ],
+    locale: 'en_CA',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Navly — Canadian PR Pathway Planner',
+    description: 'Estimate your CRS score, track days in Canada, and understand your best path to permanent residence.',
+    images: ['/opengraph-image'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -22,6 +54,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${ibmPlexSans.variable} font-sans antialiased`}>
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
         {children}
       </body>
     </html>
