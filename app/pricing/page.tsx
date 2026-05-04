@@ -11,63 +11,63 @@ import { cn } from '@/lib/utils'
 const tiers = [
   {
     id: 'free',
-    name: 'Free',
+    name: 'Free Check',
     price: '$0',
     period: 'forever',
-    desc: 'Everything you need to understand your options.',
+    desc: 'Start with a basic immigration readiness check.',
     icon: BarChart3,
     cta: 'Start free',
     href: '/onboarding',
     highlight: false,
     features: [
-      'Inside/outside Canada intake flow',
-      'CRS score estimate',
+      'Inside/outside Canada intake',
+      'Basic CRS score estimate',
       'FSW 67-point grid check',
-      'Pathway eligibility overview',
+      'Basic pathway overview',
       'Settlement task checklist',
-      'AI assistant (general questions)',
-      'Consultation prep summary',
       'Find a certified consultant',
     ],
   },
   {
     id: 'report',
-    name: 'Report',
+    name: 'Personalized Report',
     price: '$29',
     period: 'one-time',
-    desc: 'A full personalized gap analysis you can act on.',
+    desc: 'Get a personalized snapshot of your immigration readiness, score gaps, possible pathways, and next steps.',
     icon: Zap,
     cta: 'Get my report',
     href: null,
     highlight: true,
+    badge: 'Most popular',
     features: [
-      'Everything in Free',
-      'Detailed gap analysis PDF',
-      'Top 3 pathways with point breakdown',
+      'Everything in Free Check',
+      'Detailed readiness report PDF',
+      'CRS and FSW score breakdown',
+      'Top 3 possible PR pathways',
       'Score improvement roadmap',
-      'Province-by-province PNP match',
-      'Shareable summary for your consultant',
-      'Priority email support',
+      'Province-by-province PNP overview',
+      'Consultant-ready summary',
     ],
   },
   {
-    id: 'monthly',
-    name: 'Monthly',
+    id: 'tracker',
+    name: 'PR Tracker',
     price: '$14',
     period: 'per month',
-    desc: 'Stay on top of your immigration plan every month.',
+    desc: 'Includes your readiness report plus tools to track deadlines, Canada days, score changes, and monthly progress.',
     icon: CalendarCheck,
     cta: 'Start tracking',
     href: null,
     highlight: false,
     features: [
-      'Everything in Report',
-      'Canada days tracker with streak',
+      'First readiness report included',
+      'Canada physical presence days tracker',
       'Permit expiry reminders',
       'Express Entry draw alerts',
-      'Monthly score re-calculation',
-      'Unlimited AI assistant access',
-      'Profile update nudges',
+      'Monthly CRS recalculation',
+      'Profile update reminders',
+      'Saved progress history',
+      'General immigration information assistant',
     ],
   },
 ]
@@ -177,9 +177,9 @@ export default function PricingPage() {
                     : 'border-slate-200 shadow-sm'
                 )}
               >
-                {tier.highlight && (
+                {'badge' in tier && tier.badge && (
                   <div className="mb-4 inline-flex w-fit items-center rounded-full bg-[#D62828]/10 px-3 py-1 text-xs font-bold text-[#D62828]">
-                    Most popular
+                    {tier.badge}
                   </div>
                 )}
 

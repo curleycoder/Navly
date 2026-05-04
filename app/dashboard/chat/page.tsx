@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { loadProfile, statusLabels, goalLabels, type IntakeData } from '@/lib/profile'
 import { calculateScore } from '@/lib/scoring'
 import { MarkdownMessage } from '@/components/ui/MarkdownMessage'
+import { UpgradeBanner } from '@/components/ui/UpgradeBanner'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -317,6 +318,8 @@ export default function ChatPage() {
                 <span className="font-semibold text-[#0B1F3A]">Educational use only. </span>
                 General immigration information — not legal advice. Consult a licensed RCIC or lawyer for your specific case.
               </div>
+
+              <UpgradeBanner plan="tracker" className="mb-5" />
 
               {/* What I know about you */}
               {profileLines.length > 0 && (

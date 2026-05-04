@@ -193,10 +193,10 @@ body {
   font-family: var(--font-sans), sans-serif;
 }
 
-/* Skip to content link — visible only on focus */
+/* Skip to content link — invisible until keyboard focus */
 .skip-link {
-  position: absolute;
-  top: -100%;
+  position: fixed;
+  top: -9999px;
   left: 1rem;
   z-index: 9999;
   background: #d62828;
@@ -206,9 +206,8 @@ body {
   padding: 0.5rem 1rem;
   border-radius: 0 0 8px 8px;
   text-decoration: none;
-  transition: top 0.15s;
 }
-.skip-link:focus {
+.skip-link:focus-visible {
   top: 0;
 }
 

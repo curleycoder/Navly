@@ -30,6 +30,7 @@ import { RequirementCard } from '@/components/dashboard/RequirementCard'
 import { ActionableScoreSheet, type CategoryKey } from '@/components/dashboard/ActionableScoreSheet'
 import { ScoreTimelineChart } from '@/components/dashboard/ScoreTimelineChart'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
+import { UpgradeBanner } from '@/components/ui/UpgradeBanner'
 
 const allQuickActions = [
   { href: '/dashboard/days', label: 'Days in Canada', desc: 'Confirm your presence daily and protect your streak', icon: Flame, outsideOk: false },
@@ -518,6 +519,9 @@ export default function DashboardPage() {
       {profile && profile.goal === 'pr' && (
         <EEDrawsCard crs={score?.crs?.total ?? 0} />
       )}
+
+      {/* Upgrade prompt — detailed report is a paid feature */}
+      {profile && <UpgradeBanner plan="report" className="mb-8" />}
 
       {/* Outside Canada planning — replaces days widget for outside users */}
       {isOutside && profile && <OutsidePlanningCard profile={profile} />}

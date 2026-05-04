@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { loadProfile } from '@/lib/profile'
+import { UpgradeBanner } from '@/components/ui/UpgradeBanner'
 import {
   loadPresence,
   checkIn,
@@ -103,6 +104,7 @@ export default function DaysPage() {
           Your Days in Canada count is calculated automatically from your arrival date minus any days spent abroad.
           Log every trip to keep the number accurate.
         </p>
+        <UpgradeBanner plan="tracker" className="mt-4" />
       </div>
 
       {/* Streak + check-in */}

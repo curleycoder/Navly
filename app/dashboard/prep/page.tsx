@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { loadProfile, statusLabels, goalLabels } from '@/lib/profile'
+import { UpgradeBanner } from '@/components/ui/UpgradeBanner'
 import { loadTasks } from '@/lib/tasks'
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
 import { loadPresence, type PresenceData } from '@/lib/presence'
@@ -144,6 +145,7 @@ export default function PrepPage() {
         <p className="mt-2 text-slate-500">
           A clean overview of your situation to bring to a licensed immigration consultant or lawyer.
         </p>
+        <UpgradeBanner plan="report" className="mt-4" />
       </div>
 
       <div className="mb-8 mt-4 flex flex-wrap gap-3 print:hidden">

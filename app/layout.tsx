@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans } from "next/font/google";
+import { LocaleProvider } from "@/lib/i18n";
 import "./globals.css";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -54,10 +55,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${ibmPlexSans.variable} font-sans antialiased`}>
-        <a href="#main-content" className="skip-link">
-          Skip to main content
-        </a>
-        {children}
+        <LocaleProvider>
+          <a href="#main-content" className="skip-link">
+            Skip to main content
+          </a>
+          {children}
+        </LocaleProvider>
       </body>
     </html>
   );
