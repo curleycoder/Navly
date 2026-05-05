@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, LogOut } from 'lucide-react'
+import { Menu, LogOut, UserCircle } from 'lucide-react'
 import { Sheet, SheetContent, SheetClose } from '@/components/ui/sheet'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { navItems } from '@/components/dashboard/Sidebar'
@@ -69,6 +69,24 @@ export function MobileNav() {
           </nav>
 
           <div className="border-t border-slate-200 p-3">
+            <SheetClose
+              render={
+                <Link
+                  href="/dashboard/profile"
+                  aria-current={pathname === '/dashboard/profile' ? 'page' : undefined}
+                  className={cn(
+                    'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors',
+                    pathname === '/dashboard/profile'
+                      ? 'bg-[#0B1F3A] text-white'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-[#0B1F3A]'
+                  )}
+                />
+              }
+            >
+              <UserCircle className="h-4 w-4 shrink-0" />
+              Edit Profile
+            </SheetClose>
+            <div className="my-2 border-t border-slate-100" />
             <button
               onClick={() => {
                 localStorage.clear()
@@ -79,6 +97,10 @@ export function MobileNav() {
               <LogOut className="h-4 w-4 shrink-0" />
               Log out
             </button>
+            <div className="mt-2 flex gap-3 px-3 pb-1">
+              <Link href="/privacy" className="text-xs text-slate-400 hover:text-slate-600">Privacy</Link>
+              <Link href="/terms" className="text-xs text-slate-400 hover:text-slate-600">Terms</Link>
+            </div>
           </div>
         </SheetContent>
       </Sheet>

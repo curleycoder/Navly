@@ -243,6 +243,7 @@ const goalOptions = [
   { value: 'pr', label: 'Become a permanent resident', desc: 'Express Entry, PNP, or other PR pathways' },
   { value: 'study-permit', label: 'Study in Canada', desc: 'Find a program and get a study permit' },
   { value: 'work-permit', label: 'Work in Canada', desc: 'Get or extend a work permit' },
+  { value: 'business', label: 'Start or expand a business', desc: 'Entrepreneur programs, investor streams, or self-employment' },
   { value: 'family', label: 'Join family in Canada', desc: 'Spousal sponsorship or family reunification' },
   { value: 'citizenship', label: 'Apply for citizenship', desc: 'Become a Canadian citizen' },
   { value: 'compare', label: 'Compare my options', desc: 'I want to understand all pathways before deciding' },
@@ -300,7 +301,7 @@ const maritalOptions = [
 ]
 
 function StepPersonal({ data, onChange }: {
-  data: Pick<IntakeData, 'age' | 'originCountry' | 'currentCountry' | 'maritalStatus' | 'spouseComing' | 'canadianSibling' | 'locationStatus'>
+  data: Pick<IntakeData, 'firstName' | 'lastName' | 'gender' | 'age' | 'originCountry' | 'currentCountry' | 'maritalStatus' | 'spouseComing' | 'canadianSibling' | 'locationStatus'>
   onChange: (fields: Partial<IntakeData>) => void
 }) {
   const hasPartner = data.maritalStatus === 'married' || data.maritalStatus === 'common-law'
@@ -309,11 +310,46 @@ function StepPersonal({ data, onChange }: {
       <h1 className="text-3xl font-bold text-[#0B1F3A]">Personal details</h1>
       <p className="mt-2 text-slate-500">Age, marital status, and family ties directly affect your CRS score and pathway options.</p>
       <div className="mt-8 flex flex-col gap-8">
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="firstName" className="text-sm font-semibold text-[#0B1F3A]">First name</Label>
+            <Input id="firstName" placeholder="e.g. Amara" value={data.firstName}
+              onChange={(e) => onChange({ firstName: e.target.value })}
+              className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="lastName" className="text-sm font-semibold text-[#0B1F3A]">Last name</Label>
+            <Input id="lastName" placeholder="e.g. Osei" value={data.lastName}
+              onChange={(e) => onChange({ lastName: e.target.value })}
+              className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+          </div>
+        </div>
+
         <div className="flex flex-col gap-2">
           <Label htmlFor="age" className="text-sm font-semibold text-[#0B1F3A]">Your age</Label>
           <Input id="age" type="number" min={18} max={80} placeholder="e.g. 29" value={data.age}
             onChange={(e) => onChange({ age: e.target.value })}
             className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="gender" className="text-sm font-semibold text-[#0B1F3A]">
+            Gender
+            <span className="ml-1.5 text-xs font-normal text-slate-400">Optional</span>
+          </Label>
+          <div className="relative max-w-xs">
+            <select id="gender" value={data.gender}
+              onChange={(e) => onChange({ gender: e.target.value })}
+              className={cn(selectClass, !data.gender && 'text-slate-400')}>
+              <option value="">Prefer not to say</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="non-binary">Non-binary</option>
+              <option value="prefer-not">Prefer not to say</option>
+            </select>
+            <ChevronDownIcon />
+          </div>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -993,7 +1029,10 @@ function StepSignUp({ onComplete }: { onComplete: () => void }) {
               <label className="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-[#D62828]" />
                 <p className="text-sm leading-6 text-slate-600">
-                  I understand that Navly is a planning and information tool only. Navly does not provide legal advice or immigration consulting. For legal advice, I should contact a certified Canadian immigration consultant or lawyer.
+                  I understand that Navly is a planning and information tool only — not legal advice or immigration consulting. By creating an account I agree to the{' '}
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#D62828] hover:underline">Terms of Service</a>
+                  {' '}and{' '}
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#D62828] hover:underline">Privacy Policy</a>.
                 </p>
               </label>
             </div>

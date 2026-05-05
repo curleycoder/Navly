@@ -1,4 +1,10 @@
 export type IntakeData = {
+  // Identity
+  firstName: string
+  lastName: string
+  email: string
+  gender: string        // 'male' | 'female' | 'non-binary' | 'prefer-not' | ''
+
   // Phase 1 — always collected
   locationStatus: string  // 'inside' | 'outside' — primary split
   plannedEntry: string    // for outside users: 'study-permit' | 'work-permit' | 'visitor' | 'express-entry' | 'family' | 'business' | 'unsure'
@@ -7,7 +13,7 @@ export type IntakeData = {
   currentCountry: string
   province: string
   city: string
-  goal: string          // 'pr' | 'work-permit' | 'study-permit' | 'citizenship' | 'family' | 'compare' | 'other'
+  goal: string          // 'pr' | 'work-permit' | 'study-permit' | 'citizenship' | 'family' | 'business' | 'compare' | 'other'
   timeline: string      // 'urgent' | 'soon' | 'planning' | 'unsure'
   arrivalDate: string   // 'YYYY-MM-DD' — when user arrived in Canada (empty if outside Canada)
   visaExpiryDate: string // 'YYYY-MM-DD' — visa/permit expiry for reminders
@@ -70,6 +76,10 @@ export type IntakeData = {
 }
 
 export const EMPTY_PROFILE: IntakeData = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  gender: '',
   locationStatus: '',
   plannedEntry: '',
   status: '',
@@ -153,6 +163,7 @@ export const goalLabels: Record<string, string> = {
   'study-permit': 'Study permit',
   citizenship: 'Citizenship',
   family: 'Join family in Canada',
+  business: 'Start or expand a business',
   compare: 'Compare options',
   other: 'Not sure yet',
 }
@@ -215,4 +226,30 @@ export const plannedEntryLabels: Record<string, string> = {
   family: 'Family sponsorship',
   business: 'Business / investment',
   unsure: 'Not sure yet',
+}
+
+// ─── Supabase sync ────────────────────────────────────────────────────────────
+
+export async function saveProfileToSupabase(userId: string, data: IntakeData): Promise<void> {
+  const { supabase } = await import('./supabase/client')
+  await supabase.from('profiles').upsert({
+    id: userId,
+    profile_data: data,
+    updated_at: new Date().toISOString(),
+  })
+}
+
+export async function loadProfileFromSupabase(userId: string): Promise<IntakeData | null> {
+  const { supabase } = await import('./supabase/client')
+  const { data } = await supabase
+    .from('profiles')
+    .select('profile_data')
+    .eq('id', userId)
+    .single()
+  if (data?.profile_data) {
+    const profile = { ...EMPTY_PROFILE, ...(data.profile_data as Partial<IntakeData>) }
+    saveProfile(profile)
+    return profile
+  }
+  return null
 }
