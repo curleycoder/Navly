@@ -472,6 +472,8 @@ export default function PRTrackerPage() {
 
       {profile && score && <ScoreTracker profile={profile} score={score} />}
 
+      {pnpStreams.length > 0 && <PNPStreamsCard streams={pnpStreams} />}
+
       {profile && profile.goal === 'pr' && (
         <EEDrawsCard crs={score?.crs?.total ?? 0} />
       )}

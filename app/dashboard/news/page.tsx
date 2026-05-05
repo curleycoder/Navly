@@ -1,11 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ExternalLink, Bell } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Bell, Loader2 } from 'lucide-react'
 import {
-  getUpdates,
   categoryLabels,
   categoryColors,
   importanceDot,
@@ -14,7 +12,6 @@ import {
   type NewsUpdate,
 } from '@/lib/news'
 import { loadProfile } from '@/lib/profile'
-import { getPersonalizedUpdates } from '@/lib/news'
 import { cn } from '@/lib/utils'
 
 const categories: { value: NewsCategory | 'all'; label: string }[] = [
@@ -84,23 +81,34 @@ function UpdateCard({ update, highlight }: { update: NewsUpdate; highlight?: boo
 
 export default function NewsPage() {
   const [activeCategory, setActiveCategory] = useState<NewsCategory | 'all'>('all')
+  const [allUpdates, setAllUpdates] = useState<NewsUpdate[]>([])
   const [personalizedIds, setPersonalizedIds] = useState<Set<string>>(new Set())
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const profile = loadProfile()
-    if (profile?.status || profile?.goal) {
-      const personalized = getPersonalizedUpdates(profile.status, profile.goal)
-      setPersonalizedIds(new Set(personalized.map((u) => u.id)))
-    }
+    fetch('/api/news')
+      .then((r) => r.json())
+      .then((data: NewsUpdate[]) => {
+        setAllUpdates(data)
+        const profile = loadProfile()
+        if (profile?.status || profile?.goal) {
+          const userTags = [profile.status, profile.goal].filter(Boolean)
+          const ids = data
+            .filter((u) => u.affectedUsers.some((tag) => userTags.includes(tag)))
+            .map((u) => u.id)
+          setPersonalizedIds(new Set(ids))
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [])
 
   const updates = activeCategory === 'all'
-    ? getUpdates()
-    : getUpdates({ category: activeCategory })
+    ? allUpdates
+    : allUpdates.filter((u) => u.category === activeCategory)
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10">
-      {/* Header */}
       <div className="mb-8">
         <Link href="/dashboard" className="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#0B1F3A]">
           <ArrowLeft className="h-3.5 w-3.5" /> Back to dashboard
@@ -116,7 +124,6 @@ export default function NewsPage() {
         </p>
       </div>
 
-      {/* Category tabs */}
       <div className="mb-6 flex flex-wrap gap-2">
         {categories.map(({ value, label }) => (
           <button
@@ -134,24 +141,28 @@ export default function NewsPage() {
         ))}
       </div>
 
-      {/* Update cards */}
-      <div className="flex flex-col gap-4">
-        {updates.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-500">
-            No updates in this category yet.
-          </div>
-        ) : (
-          updates.map((update) => (
-            <UpdateCard
-              key={update.id}
-              update={update}
-              highlight={personalizedIds.has(update.id)}
-            />
-          ))
-        )}
-      </div>
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-slate-300" />
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {updates.length === 0 ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-500">
+              No updates in this category yet.
+            </div>
+          ) : (
+            updates.map((update) => (
+              <UpdateCard
+                key={update.id}
+                update={update}
+                highlight={personalizedIds.has(update.id)}
+              />
+            ))
+          )}
+        </div>
+      )}
 
-      {/* Source disclaimer */}
       <p className="mt-8 text-center text-xs text-slate-400">
         All updates are sourced from official Canadian government channels. Summaries are provided for educational purposes only and are not legal advice. Always verify at canada.ca.
       </p>
