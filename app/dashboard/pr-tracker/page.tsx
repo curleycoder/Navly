@@ -26,6 +26,7 @@ import { ActionableScoreSheet, type CategoryKey } from '@/components/dashboard/A
 import { ScoreTimelineChart } from '@/components/dashboard/ScoreTimelineChart'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import { UpgradeBanner } from '@/components/ui/UpgradeBanner'
+import { matchPNPStreams, pnpStatusLabels, pnpStatusColors, type PNPStream } from '@/lib/pnp'
 
 // ─── Score Tracker ────────────────────────────────────────────────────────────
 
@@ -308,6 +309,53 @@ function OutsidePlanningCard({ profile }: { profile: IntakeData }) {
   )
 }
 
+// ─── PNP Streams Card ────────────────────────────────────────────────────────
+
+function PNPStreamsCard({ streams }: { streams: PNPStream[] }) {
+  if (streams.length === 0) return null
+  const province = streams[0].province
+  const program = streams[0].programName
+
+  return (
+    <Card className="mb-8 rounded-2xl border-slate-200 bg-white">
+      <CardContent className="p-5">
+        <div className="mb-4 flex items-center gap-2">
+          <Award className="h-4 w-4 text-[#0B1F3A]" />
+          <p className="text-sm font-bold text-[#0B1F3A]">
+            {program} — {province}
+          </p>
+        </div>
+        <div className="flex flex-col gap-3">
+          {streams.map((s) => (
+            <div key={s.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+              <div className="mb-1.5 flex items-center justify-between gap-3">
+                <span className="font-semibold text-sm text-[#0B1F3A]">{s.streamName}</span>
+                <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${pnpStatusColors[s.status]}`}>
+                  {pnpStatusLabels[s.status]}
+                </span>
+              </div>
+              <p className="text-sm text-slate-600">{s.reason}</p>
+              {s.missingItems.length > 0 && (
+                <ul className="mt-2 flex flex-col gap-1">
+                  {s.missingItems.map((item, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-slate-500">
+                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 text-xs text-slate-400">
+          PNP stream requirements change frequently. Always verify eligibility at the official provincial website before applying.
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
+
 // ─── EE Draws Card ────────────────────────────────────────────────────────────
 
 const recentDraws = [
@@ -365,12 +413,16 @@ function EEDrawsCard({ crs }: { crs: number }) {
 export default function PRTrackerPage() {
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
+  const [pnpStreams, setPnpStreams] = useState<PNPStream[]>([])
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     const p = loadProfile()
     setProfile(p)
-    if (p) setScore(calculateScore(p))
+    if (p) {
+      setScore(calculateScore(p))
+      setPnpStreams(matchPNPStreams(p))
+    }
     setLoaded(true)
   }, [])
 
