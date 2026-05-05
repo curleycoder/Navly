@@ -997,6 +997,21 @@ function StepSignUp({ onComplete }: { onComplete: () => void }) {
     setLoading(true)
     setError('')
 
+    // Check phone uniqueness first
+    if (phone.trim()) {
+      const res = await fetch('/api/auth/check-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone.trim() }),
+      })
+      const { taken } = await res.json()
+      if (taken) {
+        setError('An account already exists with this phone number. Please log in instead.')
+        setLoading(false)
+        return
+      }
+    }
+
     const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
