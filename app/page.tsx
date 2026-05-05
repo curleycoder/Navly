@@ -59,7 +59,7 @@ export default function Home() {
 
           <div className="flex items-center gap-3">
             <Link
-              href="/dashboard"
+              href="/login"
               className={buttonVariants({ variant: "ghost", className: "text-[#0B1F3A] hover:bg-slate-100 hover:text-[#0B1F3A]" })}
             >
               Log in

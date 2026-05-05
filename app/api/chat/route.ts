@@ -1,8 +1,8 @@
-import Anthropic from '@anthropic-ai/sdk'
+import Groq from 'groq-sdk'
 import type { IntakeData } from '@/lib/profile'
 import { calculateScore, convertToCLB } from '@/lib/scoring'
 
-const client = new Anthropic()
+const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
 const BASE_SYSTEM = `You are Navly's immigration information assistant. You help users understand Canadian immigration concepts, pathways, and terminology in plain, clear language.
 
@@ -53,7 +53,6 @@ function buildProfileContext(profile: IntakeData): string {
   if (profile.lostStatus === 'yes') lines.push('- Has reported previous loss of status or overstay')
   if (profile.familySize) lines.push(`- Family size: ${profile.familySize}`)
 
-  // Add score summary if possible
   try {
     const score = calculateScore(profile)
     if (score.hasEnoughData && score.crs) {
@@ -85,19 +84,21 @@ export async function POST(request: Request) {
     ? `${BASE_SYSTEM}\n\n${buildProfileContext(profile)}`
     : BASE_SYSTEM
 
-  const stream = client.messages.stream({
-    model: 'claude-haiku-4-5-20251001',
+  const stream = await client.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
     max_tokens: 2048,
-    system: systemPrompt,
-    messages: trimmed as Anthropic.MessageParam[],
+    messages: [
+      { role: 'system', content: systemPrompt },
+      ...trimmed as { role: 'user' | 'assistant'; content: string }[],
+    ],
+    stream: true,
   })
 
   const readableStream = new ReadableStream({
     async start(controller) {
       for await (const chunk of stream) {
-        if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-          controller.enqueue(new TextEncoder().encode(chunk.delta.text))
-        }
+        const text = chunk.choices[0]?.delta?.content
+        if (text) controller.enqueue(new TextEncoder().encode(text))
       }
       controller.close()
     },

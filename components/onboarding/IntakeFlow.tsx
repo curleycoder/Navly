@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, CheckCircle2, Eye, EyeOff, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CheckCircle2, Eye, EyeOff, AlertTriangle, Loader2 } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -982,102 +983,135 @@ function StepRisk({ data, onChange }: {
 
 // ─── Step: Sign Up ─────────────────────────────────────────────────────────────
 
-const DEMO_OTP = '123456'
-
 function StepSignUp({ onComplete }: { onComplete: () => void }) {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [otpSent, setOtpSent] = useState(false)
-  const [otp, setOtp] = useState('')
-  const [otpError, setOtpError] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [consent, setConsent] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [done, setDone] = useState(false)
+
+  async function handleSignUp() {
+    setLoading(true)
+    setError('')
+
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { phone } },
+    })
+
+    if (signUpError) {
+      setError(
+        signUpError.message.toLowerCase().includes('already registered')
+          ? 'An account with this email already exists. Please log in instead.'
+          : signUpError.message
+      )
+      setLoading(false)
+      return
+    }
+
+    setDone(true)
+    setLoading(false)
+  }
+
+  if (done) {
+    return (
+      <div>
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100">
+          <CheckCircle2 className="h-6 w-6 text-green-600" />
+        </div>
+        <h1 className="text-3xl font-bold text-[#0B1F3A]">Check your email</h1>
+        <p className="mt-2 text-slate-500">
+          We sent a confirmation link to <span className="font-semibold text-[#0B1F3A]">{email}</span>.
+          Click the link to activate your account.
+        </p>
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-sm text-slate-600">
+            Your profile is saved. You can continue to your dashboard now and confirm your email later.
+            Log in after confirming to sync your data across devices.
+          </p>
+        </div>
+        <Button
+          onClick={onComplete}
+          className="mt-6 gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C]"
+        >
+          Continue to dashboard <ArrowRight className="h-4 w-4" />
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div>
       <h1 className="text-3xl font-bold text-[#0B1F3A]">Create your account</h1>
-      <p className="mt-2 text-slate-500">Save your profile and unlock your full dashboard. Phone verification prevents duplicate accounts.</p>
+      <p className="mt-2 text-slate-500">Save your profile and access your dashboard from any device.</p>
       <div className="mt-8 flex flex-col gap-6">
-        {!otpSent ? (
-          <>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="email" className="text-sm font-semibold text-[#0B1F3A]">Email address</Label>
-              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)}
-                className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="phone" className="text-sm font-semibold text-[#0B1F3A]">
-                Phone number
-                <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">One-time verification code. One phone number = one account.</span>
-              </Label>
-              <Input id="phone" type="tel" placeholder="+1 416 555 0100" value={phone} onChange={(e) => setPhone(e.target.value)}
-                className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="password" className="text-sm font-semibold text-[#0B1F3A]">Password</Label>
-              <div className="relative">
-                <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="At least 8 characters"
-                  value={password} onChange={(e) => setPassword(e.target.value)}
-                  className="rounded-xl border-slate-200 bg-white px-4 py-3 pr-11 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
-                <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600">
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-[#D62828]" />
-                <p className="text-sm leading-6 text-slate-600">
-                  I understand that Navly is a planning and information tool only — not legal advice or immigration consulting. By creating an account I agree to the{' '}
-                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#D62828] hover:underline">Terms of Service</a>
-                  {' '}and{' '}
-                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#D62828] hover:underline">Privacy Policy</a>.
-                </p>
-              </label>
-            </div>
-            <Button onClick={() => { setOtpSent(true); setOtpError(false) }}
-              disabled={!email || !phone || password.length < 8 || !consent}
-              className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40">
-              Send verification code <ArrowRight className="h-4 w-4" />
-            </Button>
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-              <p className="text-xs text-amber-800"><span className="font-semibold">Demo mode:</span> SMS not active. Use code <span className="font-mono font-bold">123456</span>.</p>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
-              <p className="text-sm font-semibold text-green-800">Verification code sent to {phone}</p>
-              <p className="mt-0.5 text-sm text-green-700">Demo code: <span className="font-mono font-bold">123456</span></p>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="otp" className="text-sm font-semibold text-[#0B1F3A]">6-digit verification code</Label>
-              <Input id="otp" type="text" inputMode="numeric" maxLength={6} placeholder="123456"
-                value={otp} onChange={(e) => { setOtp(e.target.value); setOtpError(false) }}
-                className={cn('max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828] tracking-widest text-lg', otpError && 'border-red-400')} />
-              {otpError && <p className="text-sm text-red-600">Incorrect code. Try again.</p>}
-            </div>
-            <div className="flex gap-3">
-              <Button
-                onClick={() => {
-                  if (otp === DEMO_OTP) {
-                    if (typeof window !== 'undefined') {
-                      localStorage.setItem('navly_auth', JSON.stringify({ email, phone, verified: true, createdAt: new Date().toISOString() }))
-                    }
-                    onComplete()
-                  } else {
-                    setOtpError(true)
-                  }
-                }}
-                disabled={otp.length !== 6}
-                className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40">
-                Verify and create account <ArrowRight className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" onClick={() => setOtpSent(false)} className="text-slate-500">Change number</Button>
-            </div>
-          </>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="su-email" className="text-sm font-semibold text-[#0B1F3A]">Email address</Label>
+          <Input id="su-email" type="email" placeholder="you@example.com" value={email}
+            onChange={(e) => { setEmail(e.target.value); setError('') }}
+            className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="su-phone" className="text-sm font-semibold text-[#0B1F3A]">
+            Phone number
+            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Stored on your profile. One phone number per account.</span>
+          </Label>
+          <Input id="su-phone" type="tel" placeholder="+1 416 555 0100" value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="su-password" className="text-sm font-semibold text-[#0B1F3A]">Password</Label>
+          <div className="relative">
+            <Input id="su-password" type={showPassword ? 'text' : 'password'} placeholder="At least 8 characters"
+              value={password} onChange={(e) => setPassword(e.target.value)}
+              className="rounded-xl border-slate-200 bg-white px-4 py-3 pr-11 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+            <button type="button" onClick={() => setShowPassword((v) => !v)}
+              className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600">
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-[#D62828]" />
+            <p className="text-sm leading-6 text-slate-600">
+              I understand that Navly is a planning and information tool only — not legal advice or immigration consulting.
+              By creating an account I agree to the{' '}
+              <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#D62828] hover:underline">Terms of Service</a>
+              {' '}and{' '}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#D62828] hover:underline">Privacy Policy</a>.
+            </p>
+          </label>
+        </div>
+        {error && (
+          <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+            <p className="text-sm text-red-700">{error}{' '}
+              {error.includes('already exists') && (
+                <Link href="/login" className="font-semibold underline">Log in →</Link>
+              )}
+            </p>
+          </div>
         )}
+        <Button
+          onClick={handleSignUp}
+          disabled={!email || !phone || password.length < 8 || !consent || loading}
+          className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
+        >
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {loading ? 'Creating account…' : 'Create account'}
+          {!loading && <ArrowRight className="h-4 w-4" />}
+        </Button>
+        <p className="text-center text-sm text-slate-500">
+          Already have an account?{' '}
+          <Link href="/login" className="font-semibold text-[#D62828] hover:underline">Log in →</Link>
+        </p>
       </div>
     </div>
   )

@@ -2,9 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Check, Zap, BarChart3, CalendarCheck } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { ArrowLeft, Check, Zap, BarChart3, CalendarCheck, Loader2 } from 'lucide-react'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { cn } from '@/lib/utils'
 
@@ -72,72 +70,51 @@ const tiers = [
   },
 ]
 
-const WAITLIST_KEY = 'navly_waitlist_email'
+function CheckoutButton({ tierId, cta, highlight }: { tierId: string; cta: string; highlight: boolean }) {
+  const [loading, setLoading] = useState(false)
 
-function WaitlistForm({ tier, onCancel }: { tier: string; onCancel: () => void }) {
-  const [email, setEmail] = useState('')
-  const [done, setDone] = useState(false)
-  const [error, setError] = useState('')
-
-  function submit() {
-    if (!email.includes('@')) {
-      setError('Please enter a valid email address.')
-      return
+  async function startCheckout() {
+    setLoading(true)
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: tierId }),
+    })
+    const { url, error } = await res.json()
+    if (url) {
+      window.location.href = url
+    } else {
+      console.error('Checkout error:', error)
+      setLoading(false)
     }
-    const existing = JSON.parse(localStorage.getItem(WAITLIST_KEY) || '[]') as string[]
-    if (!existing.includes(email)) {
-      localStorage.setItem(WAITLIST_KEY, JSON.stringify([...existing, email]))
-    }
-    setDone(true)
-  }
-
-  if (done) {
-    return (
-      <div className="mt-4 rounded-xl bg-green-50 p-4 text-sm text-green-800">
-        <p className="font-bold">You&apos;re on the list!</p>
-        <p className="mt-1">We&apos;ll email you at <span className="font-semibold">{email}</span> when {tier} launches.</p>
-      </div>
-    )
   }
 
   return (
-    <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-      <p className="mb-3 text-sm font-semibold text-[#0B1F3A]">Join the waitlist for {tier}</p>
-      <div className="flex gap-2">
-        <Input
-          type="email"
-          placeholder="your@email.com"
-          value={email}
-          onChange={(e) => { setEmail(e.target.value); setError('') }}
-          className="rounded-xl border-slate-200 bg-white text-sm"
-        />
-        <Button onClick={submit} className="shrink-0 bg-[#D62828] text-white hover:bg-[#B91C1C]">
-          Notify me
-        </Button>
-      </div>
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
-      <button onClick={onCancel} className="mt-2 text-xs text-slate-400 hover:text-slate-600">
-        Cancel
-      </button>
-    </div>
+    <button
+      onClick={startCheckout}
+      disabled={loading}
+      className={cn(
+        'mt-auto flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-60',
+        highlight
+          ? 'bg-[#D62828] text-white hover:bg-[#B91C1C]'
+          : 'border border-[#0B1F3A] text-[#0B1F3A] hover:bg-[#0B1F3A] hover:text-white'
+      )}
+    >
+      {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+      {loading ? 'Redirecting…' : cta}
+    </button>
   )
 }
 
 export default function PricingPage() {
-  const [waitlist, setWaitlist] = useState<string | null>(null)
-
   return (
     <main className="min-h-screen bg-[#F8FAFC] text-[#0B1F3A]">
-      {/* Navbar */}
       <header className="border-b border-slate-200 bg-white px-6 py-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <Link href="/">
             <NavlyLogo size="sm" />
           </Link>
-          <Link
-            href="/onboarding"
-            className="text-sm font-semibold text-[#D62828] hover:underline"
-          >
+          <Link href="/onboarding" className="text-sm font-semibold text-[#D62828] hover:underline">
             Start free →
           </Link>
         </div>
@@ -165,8 +142,6 @@ export default function PricingPage() {
         <div className="grid gap-6 md:grid-cols-3">
           {tiers.map((tier) => {
             const Icon = tier.icon
-            const showingWaitlist = waitlist === tier.id
-
             return (
               <div
                 key={tier.id}
@@ -208,34 +183,19 @@ export default function PricingPage() {
                     href={tier.href}
                     className={cn(
                       'mt-auto flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors',
-                      tier.highlight
-                        ? 'bg-[#D62828] text-white hover:bg-[#B91C1C]'
-                        : 'border border-[#0B1F3A] text-[#0B1F3A] hover:bg-[#0B1F3A] hover:text-white'
+                      'border border-[#0B1F3A] text-[#0B1F3A] hover:bg-[#0B1F3A] hover:text-white'
                     )}
                   >
                     {tier.cta}
                   </Link>
-                ) : showingWaitlist ? (
-                  <WaitlistForm tier={tier.name} onCancel={() => setWaitlist(null)} />
                 ) : (
-                  <button
-                    onClick={() => setWaitlist(tier.id)}
-                    className={cn(
-                      'mt-auto flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors',
-                      tier.highlight
-                        ? 'bg-[#D62828] text-white hover:bg-[#B91C1C]'
-                        : 'border border-[#0B1F3A] text-[#0B1F3A] hover:bg-[#0B1F3A] hover:text-white'
-                    )}
-                  >
-                    {tier.cta}
-                  </button>
+                  <CheckoutButton tierId={tier.id} cta={tier.cta} highlight={tier.highlight} />
                 )}
               </div>
             )
           })}
         </div>
 
-        {/* Legal note */}
         <p className="mt-10 text-center text-xs text-slate-400">
           Navly is an educational planning tool. It does not provide legal immigration advice.
           For legal review, connect with a certified RCIC or immigration lawyer.
