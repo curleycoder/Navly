@@ -1000,6 +1000,7 @@ function StepSignUp({ onComplete }: { onComplete: (phone: string) => void }) {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [consent, setConsent] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -1060,6 +1061,16 @@ function StepSignUp({ onComplete }: { onComplete: (phone: string) => void }) {
 
     setPhase('details')
     setLoading(false)
+  }
+
+  // ── Phase 2.5: forgot password ─────────────────────────────────────────────
+  async function handleForgotPassword() {
+    if (!email) { setError('Enter your email address first.'); return }
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/dashboard`,
+    })
+    setResetSent(true)
+    setError('')
   }
 
   // ── Phase 3: add email + password to the phone-authed account ─────────────
@@ -1232,7 +1243,16 @@ function StepSignUp({ onComplete }: { onComplete: (phone: string) => void }) {
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="su-password" className="text-sm font-semibold text-[#0B1F3A]">Password</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="su-password" className="text-sm font-semibold text-[#0B1F3A]">Password</Label>
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              className="text-xs text-slate-400 hover:text-[#D62828]"
+            >
+              {resetSent ? 'Reset email sent ✓' : 'Forgot password?'}
+            </button>
+          </div>
           <div className="relative">
             <Input
               id="su-password"

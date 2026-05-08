@@ -9,6 +9,7 @@ import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { navItems } from '@/components/dashboard/Sidebar'
 import { cn } from '@/lib/utils'
 import { loadProfile } from '@/lib/profile'
+import { supabase } from '@/lib/supabase/client'
 
 export function MobileNav() {
   const [open, setOpen] = useState(false)
@@ -88,7 +89,8 @@ export function MobileNav() {
             </SheetClose>
             <div className="my-2 border-t border-slate-100" />
             <button
-              onClick={() => {
+              onClick={async () => {
+                await supabase.auth.signOut()
                 localStorage.clear()
                 window.location.href = '/'
               }}

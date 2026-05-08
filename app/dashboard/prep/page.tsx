@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Copy, Check, Printer, AlertTriangle, ShieldCheck, Tag, Mail, Download } from 'lucide-react'
+import { Copy, Check, Printer, AlertTriangle, ShieldCheck, Mail, Download } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -320,13 +320,9 @@ export default function PrepPage() {
             </div>
           </div>
           <div className="flex shrink-0 flex-col items-stretch sm:items-end mt-2 sm:mt-0">
-             <div className="mb-3 inline-flex items-center justify-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-emerald-300 backdrop-blur">
-               <Tag className="h-4 w-4" /> 
-               Choose a consultant for your unique 20% off code
-             </div>
-             <Link href="/dashboard/consultants" className="w-full sm:w-auto">
+             <Link href="/dashboard/consultants" className="w-full sm:w-auto mt-2">
                <Button className="w-full bg-[#D62828] text-white shadow-md hover:bg-[#B91C1C]">
-                  View directory matches
+                  View consultant directory
                </Button>
              </Link>
           </div>

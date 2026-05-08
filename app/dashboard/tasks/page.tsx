@@ -28,7 +28,9 @@ export default function TasksPage() {
       const profile = loadProfile()
       if (profile) {
         const score = calculateScore(profile)
-        setTasks(generateTasks(profile, score))
+        const generated = generateTasks(profile, score)
+        setTasks(generated)
+        saveTasks(generated) // persist so dashboard and other pages see profile-driven tasks
       } else {
         setTasks(loadTasks())
       }

@@ -18,6 +18,7 @@ import {
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { cn } from '@/lib/utils'
 import { loadProfile } from '@/lib/profile'
+import { supabase } from '@/lib/supabase/client'
 
 const allNavItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, outsideOk: true },
@@ -90,7 +91,8 @@ export function Sidebar() {
         </Link>
         <div className="my-2 border-t border-slate-100" />
         <button
-          onClick={() => {
+          onClick={async () => {
+            await supabase.auth.signOut()
             localStorage.clear()
             window.location.href = '/'
           }}
