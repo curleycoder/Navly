@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, Check, Zap, BarChart3, CalendarCheck, Loader2 } from 'lucide-react'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase/client'
 
 const tiers = [
   {
@@ -75,6 +76,13 @@ function CheckoutButton({ tierId, cta, highlight }: { tierId: string; cta: strin
 
   async function startCheckout() {
     setLoading(true)
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      window.location.href = '/login?redirect=/pricing'
+      return
+    }
+
     const res = await fetch('/api/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

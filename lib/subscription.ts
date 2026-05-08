@@ -32,8 +32,10 @@ export function usePlan(): { plan: Plan; loading: boolean } {
   return { plan, loading }
 }
 
-/** Check whether a user's active plan covers the required feature plan. */
+/** Check whether a user's active plan covers the required feature plan.
+ *  'tracker' is the highest tier and includes everything in 'report'. */
 export function hasPlan(userPlan: Plan, required: 'report' | 'tracker'): boolean {
   if (!userPlan) return false
+  if (userPlan === 'tracker') return true  // tracker includes report
   return userPlan === required
 }

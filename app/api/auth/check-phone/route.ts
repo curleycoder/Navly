@@ -16,13 +16,20 @@ export async function POST(req: Request) {
 
   const supabase = getAdminClient()
 
-  // Check profiles table (phone stored in profile_data JSONB)
-  const { data } = await supabase
+  // Check 1: profiles table (completed signups)
+  const { data: profileMatch } = await supabase
     .from('profiles')
     .select('id')
     .eq('profile_data->>phone', phone.trim())
     .limit(1)
     .maybeSingle()
 
-  return Response.json({ taken: !!data })
+  if (profileMatch) return Response.json({ taken: true })
+
+  // Check 2: auth.users table — catches phone numbers from abandoned signups
+  // (OTP verified but email/password step never completed)
+  const { data: authUsers } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
+  const phoneInAuth = authUsers?.users?.some((u) => u.phone === phone.trim())
+
+  return Response.json({ taken: !!phoneInAuth })
 }

@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import {
   loadProfile,
   saveProfile,
+  saveProfileToSupabase,
   goalLabels,
   educationLabels,
   plannedEntryLabels,
@@ -1487,10 +1488,15 @@ export function IntakeFlow() {
     }
   }
 
-  function handleSignUpComplete(phone: string) {
-    const withPhone = { ...data, phone }
+  async function handleSignUpComplete(phone: string) {
+    const withPhone = { ...data, phone, phoneVerified: 'yes' }
     setData(withPhone)
     saveProfile(withPhone)
+    // Sync to Supabase — user is authenticated at this point (phone OTP + email/password set)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await saveProfileToSupabase(user.id, withPhone)
+    }
     setDone(true)
   }
 
