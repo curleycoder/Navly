@@ -1,6 +1,12 @@
+import type { Metadata } from 'next'
 import { Sidebar } from '@/components/dashboard/Sidebar'
 import { MobileNav } from '@/components/dashboard/MobileNav'
 import { AuthGuard } from '@/components/dashboard/AuthGuard'
+
+// Dashboard pages are behind auth — prevent search engine indexing
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 export default function DashboardLayout({
   children,

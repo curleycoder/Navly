@@ -9,6 +9,7 @@ import { loadProfile, statusLabels, goalLabels, type IntakeData } from '@/lib/pr
 import { calculateScore } from '@/lib/scoring'
 import { MarkdownMessage } from '@/components/ui/MarkdownMessage'
 import { UpgradeBanner } from '@/components/ui/UpgradeBanner'
+import { PlanGate } from '@/components/ui/PlanGate'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -319,8 +320,6 @@ export default function ChatPage() {
                 General immigration information — not legal advice. Consult a licensed RCIC or lawyer for your specific case.
               </div>
 
-              <UpgradeBanner plan="tracker" className="mb-5" />
-
               {/* What I know about you */}
               {profileLines.length > 0 && (
                 <div className="mb-5 rounded-2xl border border-slate-200 bg-white px-4 py-3">
@@ -404,35 +403,41 @@ export default function ChatPage() {
 
       {/* Input */}
       <div className="border-t border-slate-200 bg-white px-6 py-4">
-        <div className="mx-auto flex max-w-2xl gap-3">
-          <Textarea
-            ref={inputRef}
-            placeholder="Ask an immigration question…"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                send()
-              }
-            }}
-            rows={1}
-            aria-label="Your message"
-            className="min-h-0 resize-none rounded-xl border-slate-200 bg-white px-4 py-3 text-sm text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
-          />
-          <Button
-            onClick={() => send()}
-            disabled={!input.trim() || loading}
-            aria-label="Send message"
-            className="gap-2 self-end bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
-          >
-            <Send className="h-4 w-4" aria-hidden="true" />
-            Send
-          </Button>
-        </div>
-        <p className="mx-auto mt-2 max-w-2xl text-center text-xs text-slate-400">
-          Enter to send · Shift+Enter for new line · Conversation saved automatically
-        </p>
+        <PlanGate plan="tracker" fallback={
+          <div className="mx-auto max-w-2xl">
+            <UpgradeBanner plan="tracker" />
+          </div>
+        }>
+          <div className="mx-auto flex max-w-2xl gap-3">
+            <Textarea
+              ref={inputRef}
+              placeholder="Ask an immigration question…"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  send()
+                }
+              }}
+              rows={1}
+              aria-label="Your message"
+              className="min-h-0 resize-none rounded-xl border-slate-200 bg-white px-4 py-3 text-sm text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
+            />
+            <Button
+              onClick={() => send()}
+              disabled={!input.trim() || loading}
+              aria-label="Send message"
+              className="gap-2 self-end bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
+            >
+              <Send className="h-4 w-4" aria-hidden="true" />
+              Send
+            </Button>
+          </div>
+          <p className="mx-auto mt-2 max-w-2xl text-center text-xs text-slate-400">
+            Enter to send · Shift+Enter for new line · Conversation saved automatically
+          </p>
+        </PlanGate>
       </div>
     </div>
   )

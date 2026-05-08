@@ -12,6 +12,20 @@
  *   1. Create lib/locales/xx.ts satisfying LocaleDict
  *   2. Add it to the `locales` map below
  *   3. Add it to the LanguageSwitcher options
+ *
+ * i18n coverage status (update as pages are wired):
+ *   ✅ components/dashboard/Sidebar.tsx
+ *   ✅ components/dashboard/MobileNav.tsx
+ *   ✅ components/dashboard/AuthGuard.tsx (common.disclaimer)
+ *   ✅ app/dashboard/page.tsx (common.disclaimer, dashboard.findConsultant)
+ *   ⬜ app/dashboard/pr-tracker/page.tsx
+ *   ⬜ app/dashboard/days/page.tsx
+ *   ⬜ app/dashboard/chat/page.tsx
+ *   ⬜ app/dashboard/profile/page.tsx
+ *   ⬜ app/dashboard/prep/page.tsx
+ *   ⬜ app/dashboard/news/page.tsx
+ *   ⬜ app/dashboard/tasks/page.tsx
+ *   ⬜ app/dashboard/consultants/page.tsx
  */
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'

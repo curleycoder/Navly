@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { loadProfile, statusLabels, goalLabels } from '@/lib/profile'
+import { PlanGate } from '@/components/ui/PlanGate'
 import { UpgradeBanner } from '@/components/ui/UpgradeBanner'
 import { loadTasks } from '@/lib/tasks'
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
@@ -145,8 +146,17 @@ export default function PrepPage() {
         <p className="mt-2 text-slate-500">
           A clean overview of your situation to bring to a licensed immigration consultant or lawyer.
         </p>
-        <UpgradeBanner plan="report" className="mt-4" />
       </div>
+
+      <PlanGate plan="report" fallback={
+        <div className="mt-4">
+          <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center">
+            <p className="mb-1 font-semibold text-[#0B1F3A]">Unlock your consultation summary</p>
+            <p className="mb-4 text-sm text-slate-500">The full summary — with score breakdown, pathway analysis, and print/export — is included in the Personalized Report.</p>
+            <div className="mx-auto max-w-md"><UpgradeBanner plan="report" /></div>
+          </div>
+        </div>
+      }>
 
       <div className="mb-8 mt-4 flex flex-wrap gap-3 print:hidden">
         <Button
@@ -332,6 +342,7 @@ export default function PrepPage() {
           and does not replace a licensed immigration consultant or lawyer.
         </p>
       </div>
+      </PlanGate>
     </div>
   )
 }

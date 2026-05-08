@@ -3,6 +3,7 @@ export type IntakeData = {
   firstName: string
   lastName: string
   email: string
+  phone: string
   gender: string        // 'male' | 'female' | 'non-binary' | 'prefer-not' | ''
 
   // Phase 1 — always collected
@@ -58,6 +59,16 @@ export type IntakeData = {
   // Family ties in Canada
   canadianSibling: string  // 'yes' | 'no' | ''
 
+  // Second official language (French)
+  frenchTestType: string   // 'tef' | 'tcf' | 'none'
+  frenchReading: string
+  frenchWriting: string
+  frenchListening: string
+  frenchSpeaking: string
+
+  // Provincial nomination
+  pnpNomination: string    // 'yes' | 'no' | ''
+
   // Risk flags
   previousRefusals: string // 'yes' | 'no' | ''
   lostStatus: string       // 'yes' | 'no' | '' (overstay or out-of-status)
@@ -70,15 +81,35 @@ export type IntakeData = {
   // Worker-specific
   workPermitType: string
   permitExpiry: string     // 'YYYY-MM'
+  wage: string             // hourly CAD
+  hoursPerWeek: string
+  workStartDate: string    // 'YYYY-MM-DD'
 
   // Province targeting
   intendedProvince: string
+
+  // Quebec intent (separate from province/intendedProvince)
+  quebecIntent: string     // 'yes' | 'no' | ''
+
+  // Family ties
+  parentOrChildSponsor: string // 'yes' | 'no' | ''
+
+  // Student-specific budget
+  studyBudget: string      // CAD per year
+
+  // Formal citizenship (legal nationality — originCountry used as fallback)
+  citizenship: string
+
+  // Account state (set by auth flow, not user-editable)
+  phoneVerified: string    // 'yes' | 'no' | ''
+  duplicateStatus: string  // 'clean' | 'duplicate' | ''
 }
 
 export const EMPTY_PROFILE: IntakeData = {
   firstName: '',
   lastName: '',
   email: '',
+  phone: '',
   gender: '',
   locationStatus: '',
   plannedEntry: '',
@@ -117,6 +148,12 @@ export const EMPTY_PROFILE: IntakeData = {
   familySize: '',
   settlementFunds: '',
   canadianSibling: '',
+  frenchTestType: '',
+  frenchReading: '',
+  frenchWriting: '',
+  frenchListening: '',
+  frenchSpeaking: '',
+  pnpNomination: '',
   previousRefusals: '',
   lostStatus: '',
   programLevel: '',
@@ -124,7 +161,16 @@ export const EMPTY_PROFILE: IntakeData = {
   graduationDate: '',
   workPermitType: '',
   permitExpiry: '',
+  wage: '',
+  hoursPerWeek: '',
+  workStartDate: '',
   intendedProvince: '',
+  quebecIntent: '',
+  parentOrChildSponsor: '',
+  studyBudget: '',
+  citizenship: '',
+  phoneVerified: '',
+  duplicateStatus: '',
 }
 
 const KEY = 'navly_profile'

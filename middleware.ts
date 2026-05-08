@@ -23,8 +23,17 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh session if expired — required for Server Components
-  await supabase.auth.getUser()
+  // Refresh session — required for Server Components
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Protect dashboard and admin routes — redirect unauthenticated users to /login
+  const { pathname } = request.nextUrl
+  if (!user && (pathname.startsWith('/dashboard') || pathname.startsWith('/admin'))) {
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = '/login'
+    loginUrl.searchParams.set('redirect', pathname)
+    return NextResponse.redirect(loginUrl)
+  }
 
   return supabaseResponse
 }

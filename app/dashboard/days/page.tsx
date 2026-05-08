@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { loadProfile } from '@/lib/profile'
-import { UpgradeBanner } from '@/components/ui/UpgradeBanner'
+import { PlanGate } from '@/components/ui/PlanGate'
 import {
   loadPresence,
   checkIn,
@@ -104,8 +104,9 @@ export default function DaysPage() {
           Your Days in Canada count is calculated automatically from your arrival date minus any days spent abroad.
           Log every trip to keep the number accurate.
         </p>
-        <UpgradeBanner plan="tracker" className="mt-4" />
       </div>
+
+      <PlanGate plan="tracker">
 
       {/* Streak + check-in */}
       <Card className="mb-6 rounded-2xl border-slate-200 bg-white">
@@ -334,6 +335,7 @@ export default function DaysPage() {
       <p className="mt-4 text-xs text-slate-400">
         This tracker is for personal planning only. Final physical presence calculations depend on official government rules and records.
       </p>
+      </PlanGate>
     </div>
   )
 }

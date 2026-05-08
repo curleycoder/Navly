@@ -9,6 +9,7 @@ export type CRSBreakdown = {
   age: number
   education: number
   firstLanguage: number
+  secondLanguage: number
   spouseFactors: number
   canadianExperience: number
   skillTransferability: number
@@ -335,6 +336,20 @@ function skillTransferabilityPts(
   return Math.min(total, 100)
 }
 
+// ─── CRS — Second Official Language (French) ─────────────────────────────────
+// Source: IRCC — Additional 25 pts for French NCLC 7+; 50 pts if also English CLB 5+
+
+function secondLangPts(frenchClb: CLBScores | null, englishClb: CLBScores | null): number {
+  if (!frenchClb) return 0
+  const frenchMin = Math.min(frenchClb.r, frenchClb.w, frenchClb.l, frenchClb.s)
+  if (frenchMin < 7) return 0
+  if (englishClb) {
+    const englishMin = Math.min(englishClb.r, englishClb.w, englishClb.l, englishClb.s)
+    if (englishMin >= 5) return 50
+  }
+  return 25
+}
+
 // ─── CRS — Additional Points ──────────────────────────────────────────────────
 
 function additionalPts(
@@ -342,8 +357,10 @@ function additionalPts(
   teerLevel: string,
   canadianEducation: string,
   canadianSibling: string,
+  pnpNomination: boolean,
 ): number {
   let pts = 0
+  if (pnpNomination) pts += 600
   if (hasJobOffer) {
     if (teerLevel === '0') pts += 200
     else if (['1','2','3'].includes(teerLevel)) pts += 50
@@ -439,6 +456,14 @@ export function calculateScore(profile: IntakeData): ScoreResult {
   const clb = convertToCLB(profile.langTestType, rawLang)
   if (!clb) missing.push('Language test scores')
 
+  const rawFrench: CLBScores = {
+    r: parseFloat(profile.frenchReading),
+    w: parseFloat(profile.frenchWriting),
+    l: parseFloat(profile.frenchListening),
+    s: parseFloat(profile.frenchSpeaking),
+  }
+  const frenchClb = convertToCLB(profile.frenchTestType, rawFrench)
+
   if (!profile.educationLevel) missing.push('Education level')
 
   const riskFlags = buildRiskFlags(profile)
@@ -461,18 +486,22 @@ export function calculateScore(profile: IntakeData): ScoreResult {
 
   const spouseFactors = calculateSpouseFactors(profile)
 
+  const pnpNomination = profile.pnpNomination === 'yes'
+
   const breakdown: CRSBreakdown = {
     age: agePts(age, spouseComing),
     education: educationPts(profile.educationLevel),
     firstLanguage: langTotal,
+    secondLanguage: secondLangPts(frenchClb, clb),
     spouseFactors,
     canadianExperience: canadianWorkPts(canMonths, spouseComing),
     skillTransferability: skillTransferabilityPts(profile.educationLevel, clb, foreignYears, canMonths),
-    additional: additionalPts(jobOffer, teer, profile.canadianEducation, profile.canadianSibling),
+    additional: additionalPts(jobOffer, teer, profile.canadianEducation, profile.canadianSibling, pnpNomination),
     total: 0,
   }
   breakdown.total = breakdown.age + breakdown.education + breakdown.firstLanguage +
-    breakdown.spouseFactors + breakdown.canadianExperience + breakdown.skillTransferability + breakdown.additional
+    breakdown.secondLanguage + breakdown.spouseFactors + breakdown.canadianExperience +
+    breakdown.skillTransferability + breakdown.additional
 
   // ── FSW 67/100 ──
   const fswLang = fswLangPts(clb)
@@ -541,16 +570,94 @@ export function calculateScore(profile: IntakeData): ScoreResult {
   })
 
   if (profile.status === 'student') {
-    const pgwpLikely = ['college-diploma','bachelor','master','doctoral'].includes(profile.programLevel) &&
-      parseFloat(profile.programLengthMonths) >= 8
+    const programMonths = parseFloat(profile.programLengthMonths) || 0
+    const pgwpEligibleLevel = ['college-diploma','bachelor','master','doctoral'].includes(profile.programLevel)
+    const pgwpLikely = pgwpEligibleLevel && programMonths >= 8
+
     pathways.push({
       id: 'pgwp',
       name: 'PGWP → CEC pathway',
       status: pgwpLikely ? 'possible' : 'not-yet',
       reason: pgwpLikely
-        ? 'After graduation, 12 months of TEER 0–3 work qualifies you for CEC.'
-        : 'Confirm your program is PGWP-eligible (8+ months at a DLI).',
+        ? `PGWP length matches your program (${programMonths} months). After graduation, complete 12 months of TEER 0–3 work to qualify for CEC.`
+        : programMonths < 8
+        ? 'PGWP requires an 8+ month program at a designated learning institution (DLI). Programs under 8 months do not qualify.'
+        : 'Confirm your program level is PGWP-eligible (college diploma, bachelor, master, or doctoral).',
     })
+
+    // Study permit extension guidance
+    const gradDate = profile.graduationDate ? new Date(profile.graduationDate) : null
+    const today = new Date()
+    const monthsToGrad = gradDate ? Math.floor((gradDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)) : null
+    pathways.push({
+      id: 'study-permit-extension',
+      name: 'Study permit extension',
+      status: 'possible',
+      reason: monthsToGrad !== null && monthsToGrad <= 6
+        ? `Graduation in ~${monthsToGrad} month${monthsToGrad !== 1 ? 's' : ''}. Apply to extend at least 30 days before your current study permit expires. You may change DLIs but must notify IRCC.`
+        : 'Apply to extend your study permit at least 30 days before expiry. If changing schools, you need a new letter of acceptance and must update IRCC.',
+    })
+  }
+
+  // Visitor pathway guidance
+  if (profile.status === 'visitor') {
+    pathways.push({
+      id: 'change-of-status',
+      name: 'Change of status (visitor → worker/student)',
+      status: 'possible',
+      reason: 'Visitors inside Canada can apply to change status to a work or study permit without leaving. You must apply before your current status expires. A job offer (for work permit) or acceptance letter (for study permit) is required.',
+    })
+
+    pathways.push({
+      id: 'implied-status',
+      name: 'Implied status',
+      status: 'possible',
+      reason: 'If you applied to extend your visitor record before it expired and are still waiting for a decision, you are on implied status and may remain in Canada legally. Implied status ends when a decision is made.',
+    })
+
+    if (profile.goal === 'pr') {
+      pathways.push({
+        id: 'visitor-to-pr',
+        name: 'Visitor → PR pathway',
+        status: 'not-yet',
+        reason: 'Visitors cannot directly apply for PR. You must first obtain a work or study permit, build Canadian experience, and then apply through Express Entry (CEC or FSW) or a PNP stream. A valid job offer may accelerate this path.',
+      })
+    }
+  }
+
+  // Work permit extension and bridging
+  if (profile.status === 'work-permit') {
+    const expiry = profile.permitExpiry ? new Date(profile.permitExpiry + '-01') : null
+    const daysToExpiry = expiry ? Math.floor((expiry.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null
+
+    pathways.push({
+      id: 'work-permit-extension',
+      name: 'Work permit extension',
+      status: daysToExpiry !== null && daysToExpiry <= 90 ? 'not-yet' : 'possible',
+      reason: daysToExpiry !== null && daysToExpiry <= 90
+        ? `Your permit expires in ~${daysToExpiry} days. Apply to extend immediately to maintain legal status. File at least 30 days before expiry to trigger implied status protection.`
+        : profile.workPermitType === 'closed'
+        ? 'Closed work permits are employer-specific. To change employers, you need a new work permit. Consider switching to an open work permit if eligible.'
+        : 'Apply to extend your work permit before it expires. Filing 3+ months in advance is recommended due to processing times.',
+    })
+
+    if (cecEligible || canMonths >= 9) {
+      pathways.push({
+        id: 'bridging-owp',
+        name: 'Bridging Open Work Permit (BOWP)',
+        status: 'possible',
+        reason: 'If you have applied for PR and your work permit expires before a decision is made, you may qualify for a Bridging OWP. Eligible if: applied for PR under a CEC/FSW/FST class and your current permit expires within 4 months.',
+      })
+    }
+
+    if (profile.workPermitType === 'closed') {
+      pathways.push({
+        id: 'lmia-vs-exempt',
+        name: 'LMIA-exempt work permit options',
+        status: 'possible',
+        reason: 'Some work permits do not require an LMIA (Labour Market Impact Assessment). Check if your employer qualifies under CUSMA/USMCA, intra-company transfer (ICT), International Mobility Program (IMP), or if your NOC qualifies under a free trade agreement.',
+      })
+    }
   }
 
   // ── Improvements ──

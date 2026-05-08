@@ -25,7 +25,7 @@ import { RequirementCard } from '@/components/dashboard/RequirementCard'
 import { ActionableScoreSheet, type CategoryKey } from '@/components/dashboard/ActionableScoreSheet'
 import { ScoreTimelineChart } from '@/components/dashboard/ScoreTimelineChart'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
-import { UpgradeBanner } from '@/components/ui/UpgradeBanner'
+import { PlanGate } from '@/components/ui/PlanGate'
 import { matchPNPStreams, pnpStatusLabels, pnpStatusColors, type PNPStream } from '@/lib/pnp'
 
 // ─── Score Tracker ────────────────────────────────────────────────────────────
@@ -358,14 +358,21 @@ function PNPStreamsCard({ streams }: { streams: PNPStream[] }) {
 
 // ─── EE Draws Card ────────────────────────────────────────────────────────────
 
-const recentDraws = [
-  { date: 'Apr 23, 2026', type: 'All programs', cutoff: 491 },
-  { date: 'Apr 9, 2026', type: 'All programs', cutoff: 488 },
-  { date: 'Mar 26, 2026', type: 'Canadian Experience Class', cutoff: 504 },
-]
+type EEDraw = { date: string; type: string; cutoff: number; invited?: number }
 
 function EEDrawsCard({ crs }: { crs: number }) {
-  const latest = recentDraws[0]
+  const [draws, setDraws] = useState<EEDraw[]>([])
+
+  useEffect(() => {
+    fetch('/api/draws')
+      .then((r) => r.json())
+      .then((data: EEDraw[]) => setDraws(data))
+      .catch(() => {})
+  }, [])
+
+  if (draws.length === 0) return null
+
+  const latest = draws[0]
   const isCompetitive = crs > 0 && crs >= latest.cutoff
   const gap = crs > 0 ? latest.cutoff - crs : null
 
@@ -381,7 +388,7 @@ function EEDrawsCard({ crs }: { crs: number }) {
         </div>
 
         <div className="mb-4 flex flex-col gap-2">
-          {recentDraws.map((d) => (
+          {draws.map((d) => (
             <div key={d.date} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-2.5 text-sm">
               <div>
                 <span className="font-semibold text-[#0B1F3A]">{d.date}</span>
@@ -470,15 +477,15 @@ export default function PRTrackerPage() {
 
       {isOutside && profile && <OutsidePlanningCard profile={profile} />}
 
-      {profile && score && <ScoreTracker profile={profile} score={score} />}
+      <PlanGate plan="report">
+        {profile && score && <ScoreTracker profile={profile} score={score} />}
 
-      {pnpStreams.length > 0 && <PNPStreamsCard streams={pnpStreams} />}
+        {pnpStreams.length > 0 && <PNPStreamsCard streams={pnpStreams} />}
 
-      {profile && profile.goal === 'pr' && (
-        <EEDrawsCard crs={score?.crs?.total ?? 0} />
-      )}
-
-      <UpgradeBanner plan="report" className="mb-8" />
+        {profile && profile.goal === 'pr' && (
+          <EEDrawsCard crs={score?.crs?.total ?? 0} />
+        )}
+      </PlanGate>
 
       <div className="flex gap-3 rounded-2xl border border-[#0B1F3A]/15 bg-[#0B1F3A]/5 p-4">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#0B1F3A]" />

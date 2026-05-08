@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import Link from 'next/link'
+import { useLocale } from '@/lib/i18n'
 import { loadProfile, statusLabels, goalLabels, getPermitWarning, type IntakeData } from '@/lib/profile'
 import { loadPresence, isCheckedInToday, getDaysInCanada, type PresenceData } from '@/lib/presence'
 
@@ -60,6 +61,7 @@ function MiniGauge({ value, max, color }: { value: number; max: number; color: s
 // ─── Dashboard page ───────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const { t } = useLocale()
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
   const [presence, setPresence] = useState<PresenceData>({
@@ -287,8 +289,8 @@ export default function DashboardPage() {
 
       {/* Disclaimer */}
       <p className="text-center text-xs text-slate-400">
-        Navly gives general guidance based on your profile — not legal advice.{' '}
-        <Link href="/dashboard/consultants" className="hover:underline">Speak with a licensed RCIC →</Link>
+        {t('common.disclaimer')}{' '}
+        <Link href="/dashboard/consultants" className="hover:underline">{t('dashboard.findConsultant')} →</Link>
       </p>
     </div>
   )
