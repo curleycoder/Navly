@@ -33,7 +33,7 @@ const features = [
     desc: "Log daily presence, track trips abroad, and monitor your physical presence count.",
     icon: CalendarCheck,
   },
-];
+];  
 
 export default function Home() {
   return (
