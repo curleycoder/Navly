@@ -320,4 +320,7 @@ export const en = {
   },
 } as const
 
-export type LocaleDict = typeof en
+type DeepString<T> = {
+  [K in keyof T]: T[K] extends Record<string, unknown> ? DeepString<T[K]> : string
+}
+export type LocaleDict = DeepString<typeof en>
