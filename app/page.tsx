@@ -34,7 +34,9 @@ const features = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const updates = await getUpdates({ limit: 3 });
+
   return (
     <main className="min-h-screen bg-white pt-16 text-[#0B1F3A]">
 
@@ -188,10 +190,7 @@ export default function Home() {
       </section>
 
       {/* ── Latest IRCC Updates ── */}
-      {(() => {
-        const updates = getUpdates({ limit: 3 });
-        return (
-          <section className="bg-white px-6 py-14 md:py-20">
+      <section className="bg-white px-6 py-14 md:py-20">
             <div className="mx-auto max-w-7xl">
               <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
@@ -243,9 +242,7 @@ export default function Home() {
                 Updates are for educational purposes only — not legal advice. Always verify at canada.ca.
               </p>
             </div>
-          </section>
-        );
-      })()}
+      </section>
 
       {/* ── Pricing ── */}
       <section id="pricing" className="bg-[#F4F6F9] px-6 py-14 md:py-20">
