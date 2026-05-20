@@ -778,31 +778,101 @@ const programLevelOptions = [
   { value: 'other', label: 'Other', desc: 'Language school, certificate, or short program' },
 ]
 
+const teerJobExamples: Record<string, { title: string; examples: string[] }> = {
+  '0': {
+    title: 'Management occupations — usually require experience in a related field',
+    examples: ['Financial manager', 'HR manager', 'Restaurant manager', 'Construction manager', 'Operations manager', 'IT manager', 'Sales manager', 'Retail manager', 'Assistant manager (with full management duties)'],
+  },
+  '1': {
+    title: 'Require a university degree',
+    examples: ['Software engineer', 'Civil engineer', 'Registered nurse', 'Teacher', 'Accountant', 'Physician', 'Lawyer', 'Dentist', 'Pharmacist', 'Architect'],
+  },
+  '2': {
+    title: 'Require a college diploma or 2–3 years of apprenticeship',
+    examples: ['Electrician', 'Plumber', 'Paramedic', 'Dental hygienist', 'IT support technician', 'Chef / cook (Red Seal)', 'Welder', 'Industrial mechanic', 'Food service supervisor', 'Retail supervisor', 'Assistant manager (food service / retail)'],
+  },
+  '3': {
+    title: 'Require less than 2 years of college or on-the-job training',
+    examples: ['Baker', 'Security guard', 'Hairstylist', 'Pharmacy technician', 'Butcher / meat cutter', 'Early childhood educator', 'Truck driver'],
+  },
+  '4': {
+    title: 'Require a high school diploma or short job-specific training',
+    examples: ['Retail salesperson', 'Cashier', 'Bus driver', 'Administrative assistant', 'Food counter attendant', 'Hotel front desk clerk'],
+  },
+  '5': {
+    title: 'No formal education required',
+    examples: ['Fruit picker', 'General cleaner', 'Landscaping labourer', 'Construction labourer', 'Factory assembler'],
+  },
+}
+
+function TeerOptionCard({ opt, selected, onClick }: {
+  opt: typeof teerOptions[number]; selected: boolean; onClick: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const info = teerJobExamples[opt.value]
+  return (
+    <div className="flex flex-col">
+      <div className={cn(
+        'flex items-center justify-between rounded-2xl border-2 p-4 transition-all',
+        selected ? 'border-[#D62828] bg-[#D62828]/5' : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'
+      )}>
+        <button type="button" role="radio" aria-checked={selected} onClick={onClick} className="flex-1 text-left focus-visible:outline-none">
+          <p className={cn('font-semibold text-[#0B1F3A]', selected && 'text-[#D62828]')}>{opt.label}</p>
+          <p className="mt-0.5 text-sm text-slate-500">{opt.desc}</p>
+        </button>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setOpen((v) => !v) }}
+          className="ml-3 shrink-0 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none"
+          aria-label={`See ${opt.label} job examples`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+        </button>
+      </div>
+      {open && info && (
+        <div className="mt-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <p className="text-xs font-semibold text-slate-600 mb-2">{info.title}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {info.examples.map((ex) => (
+              <span key={ex} className="rounded-full bg-white border border-slate-200 px-2.5 py-0.5 text-xs text-slate-700">{ex}</span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function OccupationFields({ data, onChange, showForeignYears }: {
   data: IntakeData; onChange: (fields: Partial<IntakeData>) => void; showForeignYears: boolean
 }) {
+  const isSkilled = ['0', '1', '2', '3'].includes(data.teerLevel)
   return (
     <>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="noc" className="text-sm font-semibold text-[#0B1F3A]">
-          NOC code (if known)
-          <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">5-digit code from the National Occupational Classification. Improves PNP matching.</span>
-        </Label>
-        <Input id="noc" placeholder="e.g. 21231" value={data.noc} onChange={(e) => onChange({ noc: e.target.value })}
-          className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
-      </div>
       <div className="flex flex-col gap-3">
         <Label className="text-sm font-semibold text-[#0B1F3A]">
           TEER level of your main occupation
-          <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">TEER 0–3 are considered skilled occupations for Express Entry.</span>
+          <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Tap the <span className="font-semibold">ⓘ</span> on each option to see job examples. TEER 0–3 are skilled occupations for Express Entry.</span>
         </Label>
         <div className="flex flex-col gap-2">
           {teerOptions.map((opt) => (
-            <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.teerLevel === opt.value} onClick={() => onChange({ teerLevel: opt.value })} />
+            <TeerOptionCard key={opt.value} opt={opt} selected={data.teerLevel === opt.value} onClick={() => onChange({ teerLevel: opt.value, noc: '', foreignWorkYears: '' })} />
           ))}
         </div>
       </div>
-      {showForeignYears && (
+      {isSkilled && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="noc" className="text-sm font-semibold text-[#0B1F3A]">
+            NOC code (if known)
+            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">5-digit code from the National Occupational Classification. Improves PNP stream matching.</span>
+          </Label>
+          <Input id="noc" placeholder="e.g. 21231" value={data.noc} onChange={(e) => onChange({ noc: e.target.value })}
+            className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+        </div>
+      )}
+      {isSkilled && showForeignYears && (
         <div className="flex flex-col gap-2">
           <Label htmlFor="foreignYears" className="text-sm font-semibold text-[#0B1F3A]">
             Years of skilled work experience outside Canada (last 10 years)
@@ -828,7 +898,10 @@ function StepWork({ data, onChange }: { data: IntakeData; onChange: (fields: Par
         <p className="mt-2 text-slate-500">Determines your PGWP eligibility and timeline to PR through Canadian Experience Class.</p>
         <div className="mt-8 flex flex-col gap-8">
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">Program level</Label>
+            <Label className="text-sm font-semibold text-[#0B1F3A]">
+              Your current program level in Canada
+              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">This is your current enrollment — not your previously completed education. It determines your PGWP eligibility.</span>
+            </Label>
             {programLevelOptions.map((opt) => (
               <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.programLevel === opt.value} onClick={() => onChange({ programLevel: opt.value })} />
             ))}
@@ -843,18 +916,20 @@ function StepWork({ data, onChange }: { data: IntakeData; onChange: (fields: Par
             <div className="flex flex-col gap-2">
               <Label htmlFor="gradDate" className="text-sm font-semibold text-[#0B1F3A]">Expected graduation</Label>
               <Input id="gradDate" type="month" value={data.graduationDate} onChange={(e) => onChange({ graduationDate: e.target.value })}
-                className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]" />
+                className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]" />
             </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="canWork" className="text-sm font-semibold text-[#0B1F3A]">
-              Canadian skilled work experience so far (months)
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">TEER 0–3 jobs or co-ops. Enter 0 if none.</span>
-            </Label>
-            <Input id="canWork" type="number" min={0} max={120} placeholder="e.g. 6"
-              value={data.canadianWorkMonths} onChange={(e) => onChange({ canadianWorkMonths: e.target.value })}
-              className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
-          </div>
+          {['0','1','2','3'].includes(data.teerLevel) && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="canWork" className="text-sm font-semibold text-[#0B1F3A]">
+                Skilled Canadian work experience so far (months)
+                <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Co-ops and part-time work at TEER 0–3 count. Enter 0 if none.</span>
+              </Label>
+              <Input id="canWork" type="number" min={0} max={120} placeholder="e.g. 6"
+                value={data.canadianWorkMonths} onChange={(e) => onChange({ canadianWorkMonths: e.target.value })}
+                className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+            </div>
+          )}
           <OccupationFields data={data} onChange={onChange} showForeignYears={false} />
         </div>
       </div>
