@@ -1326,11 +1326,10 @@ function StepSignUp({ onComplete }: { onComplete: (phone: string) => void }) {
     setLoading(true)
     setError('')
 
-    const { error: updateError } = await supabase.auth.updateUser({
-      email,
-      password,
-      data: { phone: phone.trim() },
-    })
+    const { error: updateError } = await supabase.auth.updateUser(
+      { email, password, data: { phone: phone.trim() } },
+      { emailRedirectTo: `${window.location.origin}/dashboard` }
+    )
 
     if (updateError) {
       setError(
@@ -1362,25 +1361,48 @@ function StepSignUp({ onComplete }: { onComplete: (phone: string) => void }) {
   }
 
   if (done) {
+    const emailDomain = email.split('@')[1]?.toLowerCase() ?? ''
+    const emailLinks: { label: string; href: string; match: string[] }[] = [
+      { label: 'Open Gmail', href: 'https://mail.google.com', match: ['gmail.com'] },
+      { label: 'Open Outlook', href: 'https://outlook.live.com', match: ['outlook.com', 'hotmail.com', 'live.com', 'msn.com'] },
+      { label: 'Open Yahoo Mail', href: 'https://mail.yahoo.com', match: ['yahoo.com', 'yahoo.ca'] },
+      { label: 'Open iCloud Mail', href: 'https://www.icloud.com/mail', match: ['icloud.com', 'me.com', 'mac.com'] },
+    ]
+    const matchedLink = emailLinks.find(l => l.match.some(d => emailDomain.endsWith(d)))
+
     return (
       <div>
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100">
           <CheckCircle2 className="h-6 w-6 text-green-600" />
         </div>
-        <h1 className="text-3xl font-bold text-[#0B1F3A]">Check your email</h1>
+        <h1 className="text-3xl font-bold text-[#0B1F3A]">Verify your email</h1>
         <p className="mt-2 text-slate-500">
-          We sent a confirmation link to <span className="font-semibold text-[#0B1F3A]">{email}</span>.
-          Click the link to activate your account.
+          We sent a confirmation link to <span className="font-semibold text-[#0B1F3A]">{email}</span>. Open your email and click the link to activate your account.
         </p>
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+
+        <div className="mt-6 flex flex-col gap-3">
+          {matchedLink && (
+            <a href={matchedLink.href} target="_blank" rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 rounded-xl bg-[#D62828] px-4 py-3 text-sm font-semibold text-white hover:bg-[#B91C1C]">
+              {matchedLink.label} <ArrowRight className="h-4 w-4" />
+            </a>
+          )}
+          <a href={`https://${emailDomain}`} target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-[#0B1F3A] hover:bg-slate-50">
+            Open {emailDomain} <ArrowRight className="h-4 w-4" />
+          </a>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-sm text-slate-600">
-            Your profile is saved. You can continue to your dashboard now and confirm your email later.
-            Log in after confirming to sync your data across devices.
+            <span className="font-semibold">Do not see the email?</span> Check your spam or junk folder. The email comes from Navly.
           </p>
         </div>
-        <Button onClick={() => onComplete(phone.trim())} className="mt-6 gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C]">
-          Continue to dashboard <ArrowRight className="h-4 w-4" />
-        </Button>
+
+        <button type="button" onClick={() => onComplete(phone.trim())}
+          className="mt-5 text-sm text-slate-400 underline hover:text-slate-600">
+          Skip for now — go to dashboard
+        </button>
       </div>
     )
   }
@@ -1484,6 +1506,7 @@ function StepSignUp({ onComplete }: { onComplete: (phone: string) => void }) {
           <Input
             id="su-email"
             type="email"
+            autoComplete="email"
             placeholder="you@example.com"
             value={email}
             onChange={(e) => { setEmail(e.target.value); setError('') }}
@@ -1505,6 +1528,7 @@ function StepSignUp({ onComplete }: { onComplete: (phone: string) => void }) {
             <Input
               id="su-password"
               type={showPassword ? 'text' : 'password'}
+              autoComplete="new-password"
               placeholder="At least 8 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

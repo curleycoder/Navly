@@ -18,15 +18,29 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [unconfirmed, setUnconfirmed] = useState(false)
+  const [resentAt, setResentAt] = useState<number | null>(null)
+
+  async function handleResendVerification() {
+    await supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: `${window.location.origin}/dashboard` } })
+    setResentAt(Date.now())
+  }
 
   async function handleLogin() {
     setLoading(true)
     setError('')
+    setUnconfirmed(false)
 
     const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
 
     if (signInError) {
-      setError('Invalid email or password.')
+      const msg = signInError.message.toLowerCase()
+      if (msg.includes('email not confirmed') || msg.includes('not confirmed')) {
+        setUnconfirmed(true)
+        setLoading(false)
+        return
+      }
+      setError('Invalid email or password. Check your details and try again.')
       setLoading(false)
       return
     }
@@ -123,6 +137,21 @@ export default function LoginPage() {
               <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {error}
               </p>
+            )}
+
+            {unconfirmed && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                <p className="text-sm font-semibold text-amber-800">Your email is not verified yet.</p>
+                <p className="mt-1 text-sm text-amber-700">Check your inbox for the verification link we sent to <span className="font-semibold">{email}</span>. You must click it before you can log in.</p>
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={!!resentAt && Date.now() - resentAt < 60000}
+                  className="mt-2 text-sm font-semibold text-amber-800 underline disabled:opacity-50"
+                >
+                  {resentAt && Date.now() - resentAt < 60000 ? 'Verification email sent ✓' : 'Resend verification email'}
+                </button>
+              </div>
             )}
 
             <Button
