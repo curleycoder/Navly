@@ -1899,11 +1899,13 @@ export function IntakeFlow() {
               {!isSignupStep && (
                 <>
                   {stepIndex > 0 ? (
-                    <Button variant="ghost" onClick={back} className="gap-2 text-slate-600">
+                    <Button variant="outline" onClick={back} className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50">
                       <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back
                     </Button>
                   ) : (
-                    <Link href="/" className={buttonVariants({ variant: 'ghost', className: 'gap-2 text-slate-600' })}><ArrowLeft className="h-4 w-4" />Back to home</Link>
+                    <Link href="/" className={buttonVariants({ variant: 'outline', className: 'gap-2 border-slate-300 text-slate-700 hover:bg-slate-50' })}>
+                      <ArrowLeft className="h-4 w-4" />Back to home
+                    </Link>
                   )}
                   <div className="flex flex-col items-end gap-1">
                     <Button
@@ -1924,7 +1926,7 @@ export function IntakeFlow() {
                 </>
               )}
               {isSignupStep && (
-                <Button variant="ghost" onClick={back} className="gap-2 text-slate-500">
+                <Button variant="outline" onClick={back} className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50">
                   <ArrowLeft className="h-4 w-4" /> Back
                 </Button>
               )}
