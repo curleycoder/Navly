@@ -37,6 +37,7 @@ type StepId =
   | 'work'
   | 'settlement'
   | 'province'
+  | 'manitoba-family'
   | 'risk'
   | 'signup'
 
@@ -54,7 +55,9 @@ function getSteps(data: IntakeData): StepId[] {
   const hasSpouse = (data.maritalStatus === 'married' || data.maritalStatus === 'common-law') && data.spouseComing === 'yes'
   if (hasSpouse) steps.push('spouse-language')
 
-  steps.push('language', 'education', 'work', 'settlement', 'province', 'risk', 'signup')
+  steps.push('language', 'education', 'work', 'settlement', 'province')
+  if (data.intendedProvince === 'MB') steps.push('manitoba-family')
+  steps.push('risk', 'signup')
   return steps
 }
 
@@ -71,6 +74,7 @@ const stepTitles: Record<StepId, string> = {
   work: 'Work experience',
   settlement: 'Settlement funds',
   province: 'Province',
+  'manitoba-family': 'Family in Manitoba',
   risk: 'Immigration history',
   signup: 'Create account',
 }
@@ -914,6 +918,37 @@ function StepSettlement({ data, onChange }: {
   )
 }
 
+// ─── Step: Manitoba Family ─────────────────────────────────────────────────────
+
+const manitobaRelativeOptions = [
+  { value: 'parent', label: 'Parent', desc: 'Mother or father who is a Canadian citizen or PR living in Manitoba' },
+  { value: 'child', label: 'Son or daughter', desc: 'Adult child who is a Canadian citizen or PR living in Manitoba' },
+  { value: 'grandparent', label: 'Grandparent', desc: 'Grandparent who is a Canadian citizen or PR living in Manitoba' },
+  { value: 'sibling', label: 'Brother or sister', desc: 'Sibling who is a Canadian citizen or PR living in Manitoba' },
+  { value: 'none', label: 'None of the above', desc: 'I do not have a qualifying relative in Manitoba' },
+]
+
+function StepManitobaFamily({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <div>
+      <h1 className="text-3xl font-bold text-[#0B1F3A]">Family connections in Manitoba</h1>
+      <p className="mt-2 text-slate-500">Manitoba PNP has a Family Stream where having a close relative who is a Canadian citizen or permanent resident living in Manitoba can open a direct PR pathway.</p>
+      <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
+        <p className="text-sm text-blue-800">
+          <span className="font-semibold">To qualify, your relative must: </span>
+          be a Canadian citizen or permanent resident, have lived in Manitoba for at least 1 year, and be willing to support your application.
+        </p>
+      </div>
+      <p className="mt-5 text-sm font-semibold text-[#0B1F3A]">Do you have any of the following in Manitoba?</p>
+      <div className="mt-3 flex flex-col gap-3">
+        {manitobaRelativeOptions.map((opt) => (
+          <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={value === opt.value} onClick={() => onChange(opt.value)} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ─── Step: Province ────────────────────────────────────────────────────────────
 
 function StepProvince({ data, onChange }: {
@@ -1416,6 +1451,7 @@ function canContinue(stepId: StepId, data: IntakeData): boolean {
     case 'settlement': return !!data.familySize
     case 'risk': return !!data.previousRefusals && !!data.lostStatus
     case 'province': return !!data.intendedProvince && !!data.hasJobOffer
+    case 'manitoba-family': return !!data.manitobaFamilyRelative
     case 'signup': return false
     default: return false
   }
@@ -1614,6 +1650,9 @@ export function IntakeFlow() {
           )}
           {currentStep === 'province' && (
             <StepProvince data={data} onChange={update} />
+          )}
+          {currentStep === 'manitoba-family' && (
+            <StepManitobaFamily value={data.manitobaFamilyRelative} onChange={(v) => update({ manitobaFamilyRelative: v })} />
           )}
           {currentStep === 'risk' && (
             <StepRisk data={data} onChange={update} />

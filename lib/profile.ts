@@ -57,7 +57,8 @@ export type IntakeData = {
   settlementFunds: string  // numeric string (CAD)
 
   // Family ties in Canada
-  canadianSibling: string  // 'yes' | 'no' | ''
+  canadianSibling: string          // 'yes' | 'no' | ''
+  manitobaFamilyRelative: string   // 'parent' | 'child' | 'grandparent' | 'sibling' | 'none' | '' — Manitoba PNP Family Stream
 
   // Second official language (French)
   frenchTestType: string   // 'tef' | 'tcf' | 'none'
@@ -148,6 +149,7 @@ export const EMPTY_PROFILE: IntakeData = {
   familySize: '',
   settlementFunds: '',
   canadianSibling: '',
+  manitobaFamilyRelative: '',
   frenchTestType: '',
   frenchReading: '',
   frenchWriting: '',
