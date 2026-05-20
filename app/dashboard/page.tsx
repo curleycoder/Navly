@@ -18,7 +18,7 @@ import { loadPresence, isCheckedInToday, getDaysInCanada, type PresenceData } fr
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
 import { recordScoreSnapshot } from '@/lib/history'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
-import { getPersonalizedUpdates, importanceDot, formatDate } from '@/lib/news'
+import { getPersonalizedUpdates, importanceDot, formatDate, type NewsUpdate } from '@/lib/news'
 import { loadTasks } from '@/lib/tasks'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -60,7 +60,7 @@ function MiniGauge({ value, max, color }: { value: number; max: number; color: s
 
 // ─── Dashboard page ───────────────────────────────────────────────────────────
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
   const { t } = useLocale()
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
@@ -90,7 +90,7 @@ export default function DashboardPage() {
   const tasks = loadTasks()
   const nextTask = tasks.find((t) => !t.done)
   const topPathway = score?.pathways.find((p) => p.status === 'eligible' || p.status === 'possible')
-  const news = profile ? getPersonalizedUpdates(profile.status, profile.goal).slice(0, 2) : []
+  const news = profile ? (await getPersonalizedUpdates(profile.status, profile.goal)).slice(0, 2) : []
   const improvement = score?.improvements[0]
   const checkedInToday = isCheckedInToday(presence)
 
@@ -272,7 +272,7 @@ export default function DashboardPage() {
         </div>
         {news.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2">
-            {news.map((u) => (
+            {news.map((u: NewsUpdate) => (
               <div key={u.id} className="flex items-start gap-2.5">
                 <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${importanceDot[u.importance]}`} />
                 <div>

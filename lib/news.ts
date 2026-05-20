@@ -161,11 +161,18 @@ function rowToUpdate(row: Record<string, unknown>): NewsUpdate {
   }
 }
 
+function anonDb() {
+  const { createClient } = require('@supabase/supabase-js')
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+
 /** Returns the N most recent updates from Supabase, falling back to mock data. */
 export async function getUpdates(opts?: { limit?: number; category?: NewsCategory }): Promise<NewsUpdate[]> {
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    const db = await createClient()
+    const db = anonDb()
 
     let query = db
       .from('ircc_news')
@@ -193,8 +200,7 @@ export async function getUpdates(opts?: { limit?: number; category?: NewsCategor
 /** Returns updates relevant to a user's status and goal */
 export async function getPersonalizedUpdates(status: string, goal: string): Promise<NewsUpdate[]> {
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    const db = await createClient()
+    const db = anonDb()
 
     const { data, error } = await db
       .from('ircc_news')
@@ -204,12 +210,12 @@ export async function getPersonalizedUpdates(status: string, goal: string): Prom
 
     if (error || !data) throw new Error(error?.message ?? 'empty')
 
-    const all = data.map(rowToUpdate)
+    const all: NewsUpdate[] = data.map(rowToUpdate)
     const relevant = all.filter(
-      (u) => u.affectedUsers.includes(status) || u.affectedUsers.includes(goal)
+      (u: NewsUpdate) => u.affectedUsers.includes(status) || u.affectedUsers.includes(goal)
     )
     const general = all.filter(
-      (u) => u.category === 'general' && u.importance === 'high' && !relevant.includes(u)
+      (u: NewsUpdate) => u.category === 'general' && u.importance === 'high' && !relevant.includes(u)
     )
     return [...relevant, ...general]
   } catch {
