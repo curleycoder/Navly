@@ -240,30 +240,64 @@ function StepInsideStatus({ value, onChange }: { value: string; onChange: (v: st
 
 // ─── Step: Goal ────────────────────────────────────────────────────────────────
 
-const goalOptions = [
-  { value: 'pr', label: 'Become a permanent resident', desc: 'Express Entry, PNP, or other PR pathways' },
-  { value: 'study-permit', label: 'Study in Canada', desc: 'Find a program and get a study permit' },
-  { value: 'work-permit', label: 'Work in Canada', desc: 'Get or extend a work permit' },
-  { value: 'business', label: 'Start or expand a business', desc: 'Entrepreneur programs, investor streams, or self-employment' },
-  { value: 'family', label: 'Join family in Canada', desc: 'Spousal sponsorship or family reunification' },
-  { value: 'citizenship', label: 'Apply for citizenship', desc: 'Become a Canadian citizen' },
-  { value: 'compare', label: 'Compare my options', desc: 'I want to understand all pathways before deciding' },
-  { value: 'other', label: 'Not sure yet', desc: 'I will figure this out as I go' },
-]
+const goalOptionsByStatus: Record<string, { value: string; label: string; desc: string }[]> = {
+  outside: [
+    { value: 'pr', label: 'Become a permanent resident', desc: 'Express Entry, Federal Skilled Worker, or PNP from outside Canada' },
+    { value: 'study-permit', label: 'Study in Canada first', desc: 'Get a study permit, then explore PR through PGWP and CEC' },
+    { value: 'work-permit', label: 'Work in Canada first', desc: 'Get a job offer or work permit, then build toward PR' },
+    { value: 'family', label: 'Join family in Canada', desc: 'Be sponsored by a Canadian citizen or permanent resident' },
+    { value: 'compare', label: 'Compare my options', desc: 'I want to understand all pathways before deciding' },
+  ],
+  student: [
+    { value: 'pr', label: 'Become a permanent resident', desc: 'Use PGWP and Canadian Experience Class after graduation' },
+    { value: 'finish-degree', label: 'Finish my degree and stay in Canada', desc: 'Complete my studies, then get a PGWP and plan next steps' },
+    { value: 'work-permit', label: 'Get a post-graduation work permit', desc: 'Work in Canada after graduating to build CEC eligibility' },
+    { value: 'family', label: 'Sponsor or join family in Canada', desc: 'Bring a spouse or reunite with family' },
+    { value: 'compare', label: 'Compare my options', desc: 'I want to understand all pathways available to me' },
+  ],
+  'work-permit': [
+    { value: 'pr', label: 'Become a permanent resident', desc: 'Canadian Experience Class, PNP, or Express Entry' },
+    { value: 'extend-permit', label: 'Extend or change my work permit', desc: 'Stay in Canada longer while I plan next steps' },
+    { value: 'family', label: 'Sponsor or join family in Canada', desc: 'Bring a spouse or reunite with family' },
+    { value: 'compare', label: 'Compare my options', desc: 'I want to understand all pathways available to me' },
+  ],
+  pr: [
+    { value: 'citizenship', label: 'Apply for Canadian citizenship', desc: 'Meet the physical presence requirement and apply for citizenship' },
+    { value: 'family', label: 'Sponsor a family member', desc: 'Sponsor a spouse, child, or parent to become a PR' },
+    { value: 'compare', label: 'Understand my options as a PR', desc: 'Learn about citizenship timelines, travel documents, and rights' },
+  ],
+  visitor: [
+    { value: 'pr', label: 'Become a permanent resident', desc: 'Explore Express Entry or PNP pathways from inside Canada' },
+    { value: 'work-permit', label: 'Transition to a work permit', desc: 'Get a job offer or employer-specific permit while in Canada' },
+    { value: 'study-permit', label: 'Transition to a study permit', desc: 'Enroll in a program and get a study permit' },
+    { value: 'family', label: 'Join family in Canada', desc: 'Be sponsored by a Canadian citizen or permanent resident' },
+    { value: 'compare', label: 'Compare my options', desc: 'I want to understand all realistic pathways from visitor status' },
+  ],
+}
+
+function getGoalOptions(locationStatus: string, status: string) {
+  if (locationStatus === 'outside') return goalOptionsByStatus.outside
+  if (status === 'student') return goalOptionsByStatus.student
+  if (status === 'work-permit') return goalOptionsByStatus['work-permit']
+  if (status === 'pr') return goalOptionsByStatus.pr
+  if (status === 'visitor') return goalOptionsByStatus.visitor
+  return goalOptionsByStatus.outside
+}
 
 function StepGoal({ data, onChange }: {
   data: Pick<IntakeData, 'goal' | 'status' | 'locationStatus'>
   onChange: (v: string) => void
 }) {
-  const isVisitor = data.locationStatus === 'inside' && data.status === 'visitor'
-  const isOutsideVisitor = data.locationStatus === 'outside' && data.goal === 'pr'
+  const options = getGoalOptions(data.locationStatus, data.status)
+
+  const isVisitorGoingForPR = data.locationStatus === 'inside' && data.status === 'visitor' && data.goal === 'pr'
 
   return (
     <div>
       <h1 className="text-3xl font-bold text-[#0B1F3A]">What is your main goal?</h1>
       <p className="mt-2 text-slate-500">This helps us show the most relevant pathways and requirements for your situation.</p>
 
-      {isVisitor && data.goal === 'pr' && (
+      {isVisitorGoingForPR && (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
           <div className="flex gap-2">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
@@ -275,17 +309,8 @@ function StepGoal({ data, onChange }: {
         </div>
       )}
 
-      {isOutsideVisitor && (
-        <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
-          <p className="text-sm text-blue-800">
-            <span className="font-semibold">Good choice: </span>
-            Direct PR from outside Canada is possible through Federal Skilled Worker (Express Entry). You need qualifying language scores, education, and work experience.
-          </p>
-        </div>
-      )}
-
       <div className="mt-6 flex flex-col gap-3">
-        {goalOptions.map((opt) => (
+        {options.map((opt) => (
           <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.goal === opt.value} onClick={() => onChange(opt.value)} />
         ))}
       </div>
