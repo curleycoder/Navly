@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -72,111 +72,164 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#F8FAFC]">
-      <header className="border-b border-slate-200 bg-white px-6 py-4">
-        <div className="mx-auto max-w-md">
-          <Link href="/">
-            <NavlyLogo size="sm" />
-          </Link>
-        </div>
-      </header>
+    <main className="flex min-h-screen">
 
-      <div className="flex flex-1 items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-[#0B1F3A]">Welcome back</h1>
-            <p className="mt-2 text-slate-500">Log in to your Navly account to continue.</p>
+      {/* ── Left panel — brand (desktop only) ── */}
+      <div className="relative hidden flex-col justify-start overflow-hidden p-12 lg:flex lg:w-5/10">
+        {/* Background image */}
+        <img
+          src="/images/hero-group.jpg"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        />
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-[#0B1F3A]/75" />
+        <Link href="/" className="relative z-10">
+          <NavlyLogo size="sm" variant="light" />
+        </Link>
+
+        <div className="relative z-10 mt-12">
+          <h2 className="text-4xl font-bold leading-tight text-white">
+            Your Canadian PR journey, organized.
+          </h2>
+          <p className="mt-5 text-slate-200">
+            Log in to access your profile, track your Canada days, and see your strongest pathways.
+          </p>
+          <ul className="mt-10 flex flex-col gap-3 text-sm text-slate-200">
+            {[
+              'Estimated CRS score & gap analysis',
+              'Daily Canada presence tracker',
+              'Personalized pathway screening',
+              'AI assistant for immigration questions',
+            ].map((item) => (
+              <li key={item} className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#D62828]" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="relative mt-80 text-xs text-slate-200">
+          Educational tool only — not legal advice. Always consult a licensed RCIC or immigration lawyer.
+        </p>
+      </div>
+
+      {/* ── Right panel — form ── */}
+      <div className="flex flex-1 flex-col bg-[#F8FAFC]">
+        {/* Mobile header */}
+        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 lg:hidden">
+          <Link href="/"><NavlyLogo size="sm" /></Link>
+          <Link href="/" className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-[#0B1F3A]">
+            <ArrowLeft className="h-4 w-4" /> Home
+          </Link>
+        </header>
+
+        <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+          {/* Desktop back link */}
+          <div className="mb-8 hidden w-full max-w-md lg:block">
+            <Link href="/" className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-[#0B1F3A]">
+              <ArrowLeft className="h-4 w-4" /> Back to home
+            </Link>
           </div>
 
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="email" className="text-sm font-semibold text-[#0B1F3A]">Email address</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setError('') }}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
-              />
+          <div className="w-full max-w-md">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-[#0B1F3A]">Welcome back</h1>
+              <p className="mt-2 text-slate-500">Log in to your Navly account to continue.</p>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-semibold text-[#0B1F3A]">Password</Label>
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-xs text-slate-400 hover:text-[#D62828]"
-                >
-                  Forgot password?
-                </button>
-              </div>
-              <div className="relative">
+            <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="email" className="text-sm font-semibold text-[#0B1F3A]">Email address</Label>
                 <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Your password"
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); setError('') }}
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setError('') }}
                   onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                  className="rounded-xl border-slate-200 bg-white px-4 py-3 pr-11 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
+                  className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
               </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-sm font-semibold text-[#0B1F3A]">Password</Label>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-xs text-slate-400 hover:text-[#D62828]"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Your password"
+                    value={password}
+                    onChange={(e) => { setPassword(e.target.value); setError('') }}
+                    onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                    className="rounded-xl border-slate-200 bg-white px-4 py-3 pr-11 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {error}
+                </p>
+              )}
+
+              {unconfirmed && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <p className="text-sm font-semibold text-amber-800">Your email is not verified yet.</p>
+                  <p className="mt-1 text-sm text-amber-700">Check your inbox for the link we sent to <span className="font-semibold">{email}</span>.</p>
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={!!resentAt && Date.now() - resentAt < 60000}
+                    className="mt-2 text-sm font-semibold text-amber-800 underline disabled:opacity-50"
+                  >
+                    {resentAt && Date.now() - resentAt < 60000 ? 'Verification email sent ✓' : 'Resend verification email'}
+                  </button>
+                </div>
+              )}
+
+              <Button
+                onClick={handleLogin}
+                disabled={!email || !password || loading}
+                className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
+              >
+                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {loading ? 'Logging in…' : 'Log in'}
+                {!loading && <ArrowRight className="h-4 w-4" />}
+              </Button>
+
+              <p className="text-center text-sm text-slate-500">
+                Don&apos;t have an account?{' '}
+                <Link href="/onboarding" className="font-semibold text-[#D62828] hover:underline">
+                  Start free →
+                </Link>
+              </p>
             </div>
 
-            {error && (
-              <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
-              </p>
-            )}
-
-            {unconfirmed && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-                <p className="text-sm font-semibold text-amber-800">Your email is not verified yet.</p>
-                <p className="mt-1 text-sm text-amber-700">Check your inbox for the verification link we sent to <span className="font-semibold">{email}</span>. You must click it before you can log in.</p>
-                <button
-                  type="button"
-                  onClick={handleResendVerification}
-                  disabled={!!resentAt && Date.now() - resentAt < 60000}
-                  className="mt-2 text-sm font-semibold text-amber-800 underline disabled:opacity-50"
-                >
-                  {resentAt && Date.now() - resentAt < 60000 ? 'Verification email sent ✓' : 'Resend verification email'}
-                </button>
-              </div>
-            )}
-
-            <Button
-              onClick={handleLogin}
-              disabled={!email || !password || loading}
-              className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
-            >
-              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {loading ? 'Logging in…' : 'Log in'}
-              {!loading && <ArrowRight className="h-4 w-4" />}
-            </Button>
-
-            <p className="text-center text-sm text-slate-500">
-              Don&apos;t have an account?{' '}
-              <Link href="/onboarding" className="font-semibold text-[#D62828] hover:underline">
-                Start free →
-              </Link>
+            <p className="mt-10 text-center text-xs text-slate-400">
+              Navly provides general educational information only — not legal advice.
             </p>
           </div>
-
-          <p className="mt-10 text-center text-xs text-slate-400">
-            Navly provides general educational information only — not legal advice.
-          </p>
         </div>
       </div>
+
     </main>
   )
 }

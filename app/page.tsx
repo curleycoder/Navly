@@ -43,8 +43,19 @@ export default async function Home() {
       <Navbar />
 
       {/* ── Hero ── */}
-      <section className="bg-[#0B1F3A]">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-6 py-14 lg:grid-cols-2 lg:gap-16 lg:py-24">
+      <section className="relative overflow-hidden bg-[#0B1F3A] lg:h-175">
+        {/* Hero group photo — direct child of section so right-0 = viewport edge */}
+        <div className="absolute inset-y-0 right-0 hidden w-1/2 lg:block">
+          <img
+            src="/images/hero-group.jpg"
+            alt="Diverse group of immigrants with Canadian flag"
+            className="h-full w-full object-cover object-center"
+          />
+          <div className="absolute inset-y-0 left-0 w-32 bg-linear-to-r from-[#0B1F3A] to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-[#0B1F3A] to-transparent" />
+        </div>
+
+        <div className="relative z-10 mx-auto grid h-full max-w-7xl items-center gap-10 px-6 py-14 lg:grid-cols-2 lg:gap-0 lg:py-0">
 
           {/* Left */}
           <div>
@@ -78,46 +89,37 @@ export default async function Home() {
               </a>
             </div>
 
-            <p className="mt-6 text-xs text-slate-500">
+            {/* Social proof */}
+            <div className="mt-8 flex items-center gap-3">
+              <div className="flex -space-x-2.5">
+                {[
+                  '/images/avatar-1.jpg',
+                  '/images/avatar-2.jpg',
+                  '/images/avatar-3.jpg',
+                  '/images/avatar-4.jpg',
+                  '/images/avatar-5.jpg',
+                ].map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    className="h-9 w-9 rounded-full border-2 border-[#0B1F3A] object-cover"
+                  />
+                ))}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Immigrants across Canada</p>
+                <p className="text-xs text-slate-400">planning their PR journey with Navly</p>
+              </div>
+            </div>
+
+            <p className="mt-5 text-xs text-slate-500">
               Free to start. No documents required. No legal advice.
             </p>
           </div>
 
-          {/* Dashboard preview card */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#D62828]">Navly Dashboard</p>
-                <p className="mt-0.5 text-xl font-bold text-white">Profile overview</p>
-              </div>
-              <span className="rounded-full bg-[#D62828]/20 px-3 py-1 text-xs font-bold text-[#D62828]">
-                72% complete
-              </span>
-            </div>
-
-            <div className="grid gap-3">
-              <div className="rounded-xl bg-white/5 p-3.5">
-                <p className="text-xs text-slate-400">Current status</p>
-                <p className="mt-0.5 font-semibold text-white">International student</p>
-              </div>
-              <div className="rounded-xl bg-white/5 p-3.5">
-                <p className="text-xs text-slate-400">Main goal</p>
-                <p className="mt-0.5 font-semibold text-white">Prepare for PR options</p>
-              </div>
-              <div className="rounded-xl bg-white/5 p-3.5">
-                <p className="text-xs text-slate-400">Estimated CRS score</p>
-                <div className="mt-2 h-1.5 rounded-full bg-white/10">
-                  <div className="h-1.5 w-3/5 rounded-full bg-[#D62828]" />
-                </div>
-                <p className="mt-1.5 text-xs text-slate-400">438 pts — Canadian Experience Class possible</p>
-              </div>
-              <div className="rounded-xl bg-white/5 p-3.5">
-                <p className="text-xs font-semibold text-slate-300">
-                  Navly organizes your information. It does not replace a licensed immigration consultant or lawyer.
-                </p>
-              </div>
-            </div>
-          </div>
+          {/* empty right column — image is positioned above */}
+          <div className="hidden lg:block" />
         </div>
       </section>
 
@@ -330,7 +332,7 @@ export default async function Home() {
                 Educational immigration planning tool. Not a licensed immigration consultant or law firm.
               </p>
             </div>
-            <nav className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-400">
+            <nav className="flex pt-4 flex-wrap gap-x-6 gap-y-2 text-xs text-slate-400">
               <Link href="/pricing" className="transition hover:text-white">Pricing</Link>
               <Link href="/privacy" className="transition hover:text-white">Privacy Policy</Link>
               <Link href="/terms" className="transition hover:text-white">Terms of Service</Link>
