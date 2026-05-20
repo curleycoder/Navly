@@ -1,6 +1,7 @@
 type NavlyLogoProps = {
   showWordmark?: boolean;
   size?: "sm" | "md" | "lg";
+  variant?: "dark" | "light";
 };
 
 const sizes = {
@@ -18,7 +19,7 @@ const sizes = {
   },
 };
 
-export function NavlyLogo({ showWordmark = true, size = "md" }: NavlyLogoProps) {
+export function NavlyLogo({ showWordmark = true, size = "md", variant = "dark" }: NavlyLogoProps) {
   const currentSize = sizes[size];
 
   return (
@@ -64,7 +65,7 @@ export function NavlyLogo({ showWordmark = true, size = "md" }: NavlyLogoProps) 
             font-[700]
             leading-none
             tracking-[-0.075em]
-            text-[#0B1F3A]
+            ${variant === "light" ? "text-white" : "text-[#0B1F3A]"}
           `}
         >
           Navly
