@@ -1767,11 +1767,14 @@ export function IntakeFlow() {
     setData((d) => ({ ...d, ...fields }))
   }
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [stepIndex])
+
   function next() {
     const currentSteps = getSteps(data)
     if (stepIndex < currentSteps.length - 1) {
       setStepIndex((i) => i + 1)
-      window.scrollTo(0, 0)
     } else {
       saveProfile(data)
       setDone(true)
@@ -1781,7 +1784,6 @@ export function IntakeFlow() {
   function back() {
     if (stepIndex > 0) {
       setStepIndex((i) => i - 1)
-      window.scrollTo(0, 0)
     }
   }
 
@@ -1901,7 +1903,7 @@ export function IntakeFlow() {
                       <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back
                     </Button>
                   ) : (
-                    <Link href="/" className="text-sm text-slate-500 hover:text-[#0B1F3A]">Back to home</Link>
+                    <Link href="/" className={buttonVariants({ variant: 'ghost', className: 'gap-2 text-slate-600' })}><ArrowLeft className="h-4 w-4" />Back to home</Link>
                   )}
                   <div className="flex flex-col items-end gap-1">
                     <Button
