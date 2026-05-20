@@ -147,28 +147,82 @@ export const mockUpdates: NewsUpdate[] = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Returns the N most recent updates, optionally filtered by category */
-export function getUpdates(opts?: { limit?: number; category?: NewsCategory }): NewsUpdate[] {
-  let list = [...mockUpdates].sort(
-    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-  )
-  if (opts?.category) list = list.filter((u) => u.category === opts.category)
-  if (opts?.limit) list = list.slice(0, opts.limit)
-  return list
+function rowToUpdate(row: Record<string, unknown>): NewsUpdate {
+  return {
+    id:            row.id as string,
+    title:         row.title as string,
+    summary:       row.summary as string,
+    sourceUrl:     row.source_url as string,
+    sourceName:    row.source_name as NewsUpdate['sourceName'],
+    publishedAt:   (row.published_at as string).slice(0, 10),
+    category:      row.category as NewsCategory,
+    importance:    row.importance as NewsImportance,
+    affectedUsers: (row.affected_users as string[]) ?? [],
+  }
+}
+
+/** Returns the N most recent updates from Supabase, falling back to mock data. */
+export async function getUpdates(opts?: { limit?: number; category?: NewsCategory }): Promise<NewsUpdate[]> {
+  try {
+    const { createClient } = await import('@/lib/supabase/server')
+    const db = await createClient()
+
+    let query = db
+      .from('ircc_news')
+      .select('*')
+      .order('published_at', { ascending: false })
+      .limit(opts?.limit ?? 20)
+
+    if (opts?.category) query = query.eq('category', opts.category)
+
+    const { data, error } = await query
+    if (error || !data || data.length === 0) throw new Error(error?.message ?? 'empty')
+
+    return data.map(rowToUpdate)
+  } catch {
+    // Fall back to mock data if DB is unavailable or table not yet populated
+    let list = [...mockUpdates].sort(
+      (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    )
+    if (opts?.category) list = list.filter((u) => u.category === opts.category)
+    if (opts?.limit) list = list.slice(0, opts.limit)
+    return list
+  }
 }
 
 /** Returns updates relevant to a user's status and goal */
-export function getPersonalizedUpdates(status: string, goal: string): NewsUpdate[] {
-  const relevant = mockUpdates.filter(
-    (u) => u.affectedUsers.includes(status) || u.affectedUsers.includes(goal)
-  )
-  // Always include high-importance general updates
-  const general = mockUpdates.filter(
-    (u) => u.category === 'general' && u.importance === 'high' && !relevant.includes(u)
-  )
-  return [...relevant, ...general].sort(
-    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-  )
+export async function getPersonalizedUpdates(status: string, goal: string): Promise<NewsUpdate[]> {
+  try {
+    const { createClient } = await import('@/lib/supabase/server')
+    const db = await createClient()
+
+    const { data, error } = await db
+      .from('ircc_news')
+      .select('*')
+      .order('published_at', { ascending: false })
+      .limit(50)
+
+    if (error || !data) throw new Error(error?.message ?? 'empty')
+
+    const all = data.map(rowToUpdate)
+    const relevant = all.filter(
+      (u) => u.affectedUsers.includes(status) || u.affectedUsers.includes(goal)
+    )
+    const general = all.filter(
+      (u) => u.category === 'general' && u.importance === 'high' && !relevant.includes(u)
+    )
+    return [...relevant, ...general]
+  } catch {
+    const relevant = mockUpdates.filter(
+      (u) => u.affectedUsers.includes(status) || u.affectedUsers.includes(goal)
+    )
+    const general = mockUpdates.filter(
+      (u) => u.category === 'general' && u.importance === 'high' && !relevant.includes(u)
+    )
+    return [...relevant, ...general].sort(
+      (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    )
+  }
 }
 
 export function formatDate(iso: string): string {
