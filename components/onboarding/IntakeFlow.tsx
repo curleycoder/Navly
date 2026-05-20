@@ -218,7 +218,7 @@ const insideStatusOptions = [
   { value: 'student', label: 'International student', desc: 'Currently on a study permit' },
   { value: 'work-permit', label: 'Worker', desc: 'On a work permit, PGWP, or employer-specific permit' },
   { value: 'pr', label: 'Permanent resident', desc: 'Already have PR status' },
-  { value: 'visitor', label: 'Visitor', desc: 'On a visitor visa, eTA, or temporary resident permit', comingSoon: true },
+  { value: 'visitor', label: 'Visitor', desc: 'On a visitor visa, eTA, or temporary resident permit' },
   { value: 'family-member', label: 'Spouse or family of Canadian / PR', desc: 'In Canada through family sponsorship or family permit', comingSoon: true },
   { value: 'refugee', label: 'Refugee / protected person', desc: 'Under refugee protection or asylum claim', comingSoon: true },
   { value: 'out-of-status', label: 'Out of status', desc: 'Permit has expired or was not maintained', comingSoon: true },
