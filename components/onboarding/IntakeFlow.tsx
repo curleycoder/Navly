@@ -217,12 +217,11 @@ function StepPlannedEntry({ value, onChange }: { value: string; onChange: (v: st
 const insideStatusOptions = [
   { value: 'student', label: 'International student', desc: 'Currently on a study permit' },
   { value: 'work-permit', label: 'Worker', desc: 'On a work permit, PGWP, or employer-specific permit' },
-  { value: 'other', label: 'Not sure', desc: 'None of the above' },
+  { value: 'pr', label: 'Permanent resident', desc: 'Already have PR status' },
   { value: 'visitor', label: 'Visitor', desc: 'On a visitor visa, eTA, or temporary resident permit', comingSoon: true },
   { value: 'family-member', label: 'Spouse or family of Canadian / PR', desc: 'In Canada through family sponsorship or family permit', comingSoon: true },
   { value: 'refugee', label: 'Refugee / protected person', desc: 'Under refugee protection or asylum claim', comingSoon: true },
   { value: 'out-of-status', label: 'Out of status', desc: 'Permit has expired or was not maintained', comingSoon: true },
-  { value: 'pr', label: 'Permanent resident', desc: 'Already have PR status', comingSoon: true },
 ]
 
 function StepInsideStatus({ value, onChange }: { value: string; onChange: (v: string) => void }) {
