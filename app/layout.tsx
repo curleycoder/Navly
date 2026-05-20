@@ -45,6 +45,12 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  manifest: '/manifest.json',
+  icons: {
+    icon: '/icon.svg',
+    apple: '/apple-icon.svg',
+  },
+  themeColor: '#0B1F3A',
 };
 
 export default function RootLayout({
