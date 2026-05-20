@@ -370,10 +370,7 @@ function StepPersonal({ data, onChange }: {
               className="w-full rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="gender" className="text-sm font-semibold text-[#0B1F3A]">
-              Gender
-              <span className="ml-1.5 text-xs font-normal text-slate-400">Optional</span>
-            </Label>
+            <Label htmlFor="gender" className="text-sm font-semibold text-[#0B1F3A]">Gender</Label>
             <div className="relative">
               <select id="gender" value={data.gender}
                 onChange={(e) => onChange({ gender: e.target.value })}
@@ -487,7 +484,7 @@ function StepCanadaDates({ data, onChange }: {
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="visaExpiry" className="text-sm font-semibold text-[#0B1F3A]">
             Visa / permit expiry date
-            <span className="ml-1.5 text-xs font-normal text-slate-400">Optional — we will remind you before it expires</span>
+            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">We use this to send you renewal reminders at 90 and 30 days before expiry.</span>
           </Label>
           <Input id="visaExpiry" type="date" min={today} value={data.visaExpiryDate}
             onChange={(e) => onChange({ visaExpiryDate: e.target.value })}
@@ -1600,6 +1597,7 @@ function getValidationHint(stepId: StepId, data: IntakeData): string {
     case 'canada-dates': {
       if (!data.arrivalDate) return 'Enter your arrival date in Canada.'
       if (!data.province) return 'Select your province or territory.'
+      if (!data.visaExpiryDate) return 'Enter your visa or permit expiry date.'
       return ''
     }
     case 'spouse-language': {
@@ -1653,7 +1651,7 @@ function canContinue(stepId: StepId, data: IntakeData): boolean {
       if (!data.canadianSibling) return false
       return true
     }
-    case 'canada-dates': return !!data.arrivalDate && !!data.province
+    case 'canada-dates': return !!data.arrivalDate && !!data.province && !!data.visaExpiryDate
     case 'spouse-language': return !!data.spouseLangTestType && !!data.spouseEducationLevel
     case 'language': {
       if (!data.langTestType) return false
