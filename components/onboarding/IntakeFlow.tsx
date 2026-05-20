@@ -335,7 +335,7 @@ function StepPersonal({ data, onChange }: {
     <div>
       <h1 className="text-3xl font-bold text-[#0B1F3A]">Personal details</h1>
       <p className="mt-2 text-slate-500">Age, marital status, and family ties directly affect your CRS score and pathway options.</p>
-      <div className="mt-8 flex flex-col gap-8">
+      <div className="mt-6 flex flex-col gap-5">
 
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
@@ -1513,6 +1513,7 @@ export function IntakeFlow() {
     const currentSteps = getSteps(data)
     if (stepIndex < currentSteps.length - 1) {
       setStepIndex((i) => i + 1)
+      window.scrollTo(0, 0)
     } else {
       saveProfile(data)
       setDone(true)
@@ -1520,7 +1521,10 @@ export function IntakeFlow() {
   }
 
   function back() {
-    if (stepIndex > 0) setStepIndex((i) => i - 1)
+    if (stepIndex > 0) {
+      setStepIndex((i) => i - 1)
+      window.scrollTo(0, 0)
+    }
   }
 
   function handleLocationSplit(v: string) {
