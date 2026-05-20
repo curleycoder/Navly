@@ -1,0 +1,17 @@
+{
+  "name": "Navly — Canadian PR Pathway Planner",
+  "short_name": "Navly",
+  "description": "Estimate your CRS score, track days in Canada, and find your best path to permanent residence.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0B1F3A",
+  "icons": [
+    {
+      "src": "/apple-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
