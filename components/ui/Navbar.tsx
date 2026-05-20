@@ -14,7 +14,7 @@ export function Navbar() {
         <NavlyLogo size="sm" />
 
         {/* Desktop centered nav */}
-        <div className=" pt-5 pointer-events-none absolute inset-0 hidden items-center justify-center md:flex">
+        <div className=" pt-6 pointer-events-none absolute inset-0 hidden items-center justify-center md:flex">
           <nav className="pointer-events-auto flex items-center gap-12 text-sm font-medium text-slate-600">
             <a href="#features" className="transition hover:text-[#0B1F3A]">Features</a>
             <a href="#how" className="transition hover:text-[#0B1F3A]">How it works</a>
