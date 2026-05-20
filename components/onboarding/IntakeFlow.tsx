@@ -345,56 +345,57 @@ function StepPersonal({ data, onChange }: {
     <div>
       <h1 className="text-3xl font-bold text-[#0B1F3A]">Personal details</h1>
       <p className="mt-2 text-slate-500">Age, marital status, and family ties directly affect your CRS score and pathway options.</p>
-      <div className="mt-6 flex flex-col gap-5">
+      <div className="mt-4 flex flex-col gap-3">
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="firstName" className="text-sm font-semibold text-[#0B1F3A]">First name</Label>
             <Input id="firstName" placeholder="e.g. Amara" value={data.firstName}
               onChange={(e) => onChange({ firstName: e.target.value })}
-              className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+              className="w-full rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="lastName" className="text-sm font-semibold text-[#0B1F3A]">Last name</Label>
             <Input id="lastName" placeholder="e.g. Osei" value={data.lastName}
               onChange={(e) => onChange({ lastName: e.target.value })}
-              className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+              className="w-full rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="age" className="text-sm font-semibold text-[#0B1F3A]">Your age</Label>
-          <Input id="age" type="number" min={18} max={80} placeholder="e.g. 29" value={data.age}
-            onChange={(e) => onChange({ age: e.target.value })}
-            className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="gender" className="text-sm font-semibold text-[#0B1F3A]">
-            Gender
-            <span className="ml-1.5 text-xs font-normal text-slate-400">Optional</span>
-          </Label>
-          <div className="relative max-w-xs">
-            <select id="gender" value={data.gender}
-              onChange={(e) => onChange({ gender: e.target.value })}
-              className={cn(selectClass, !data.gender && 'text-slate-400')}>
-              <option value="">Prefer not to say</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="non-binary">Non-binary</option>
-              <option value="prefer-not">Prefer not to say</option>
-            </select>
-            <ChevronDownIcon />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="age" className="text-sm font-semibold text-[#0B1F3A]">Your age</Label>
+            <Input id="age" type="number" min={18} max={80} placeholder="e.g. 29" value={data.age}
+              onChange={(e) => onChange({ age: e.target.value })}
+              className="w-full rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="gender" className="text-sm font-semibold text-[#0B1F3A]">
+              Gender
+              <span className="ml-1.5 text-xs font-normal text-slate-400">Optional</span>
+            </Label>
+            <div className="relative">
+              <select id="gender" value={data.gender}
+                onChange={(e) => onChange({ gender: e.target.value })}
+                className={cn(selectClass, !data.gender && 'text-slate-400')}>
+                <option value="">Prefer not to say</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="non-binary">Non-binary</option>
+                <option value="prefer-not">Prefer not to say</option>
+              </select>
+              <ChevronDownIcon />
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="origin" className="text-sm font-semibold text-[#0B1F3A]">Country of citizenship</Label>
           <CountrySelect id="origin" value={data.originCountry} onChange={(v) => onChange({ originCountry: v })} placeholder="Select your country of citizenship…" />
         </div>
 
         {data.locationStatus === 'outside' && (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="currentCountry" className="text-sm font-semibold text-[#0B1F3A]">
               Country you are currently in
               <span className="ml-1.5 text-xs font-normal text-slate-400">Optional</span>
@@ -403,7 +404,7 @@ function StepPersonal({ data, onChange }: {
           </div>
         )}
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           <Label className="text-sm font-semibold text-[#0B1F3A]">Marital status</Label>
           {maritalOptions.map((opt) => (
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc}
@@ -1837,7 +1838,7 @@ export function IntakeFlow() {
         </div>
       </div>
 
-      <div className="flex flex-1 items-start justify-center px-6 py-6">
+      <div className="flex flex-1 items-start justify-center px-6 py-6 pb-28">
         <div className="w-full max-w-2xl">
           {currentStep === 'location-split' && (
             <StepLocationSplit value={data.locationStatus} onChange={handleLocationSplit} />
@@ -1885,51 +1886,52 @@ export function IntakeFlow() {
             <StepSignUp onComplete={(phone) => handleSignUpComplete(phone)} />
           )}
 
-          {!isSignupStep && (
-            <div className="mt-10">
-              {(() => {
-                const ok = canContinue(currentStep, data)
-                const hint = !ok ? getValidationHint(currentStep, data) : ''
-                return (
-                  <>
-                    <div className="flex items-center justify-between">
-                      {stepIndex > 0 ? (
-                        <Button variant="ghost" onClick={back} className="gap-2 text-slate-600">
-                          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back
-                        </Button>
-                      ) : (
-                        <Link href="/" className="text-sm text-slate-500 hover:text-[#0B1F3A]">Back to home</Link>
-                      )}
-                      <Button
-                        onClick={next}
-                        disabled={!ok}
-                        aria-describedby={!ok && hint ? 'step-hint' : undefined}
-                        className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
-                      >
-                        {stepIndex === steps.length - 2 ? 'Continue to account' : 'Continue'}
-                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                      </Button>
-                    </div>
+        </div>
+      </div>
+
+      {/* Fixed bottom nav */}
+      {(() => {
+        const ok = canContinue(currentStep, data)
+        const hint = !ok ? getValidationHint(currentStep, data) : ''
+        return (
+          <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-200 bg-white px-6 py-3" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
+            <div className="mx-auto flex max-w-2xl items-center justify-between">
+              {!isSignupStep && (
+                <>
+                  {stepIndex > 0 ? (
+                    <Button variant="ghost" onClick={back} className="gap-2 text-slate-600">
+                      <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back
+                    </Button>
+                  ) : (
+                    <Link href="/" className="text-sm text-slate-500 hover:text-[#0B1F3A]">Back to home</Link>
+                  )}
+                  <div className="flex flex-col items-end gap-1">
+                    <Button
+                      onClick={next}
+                      disabled={!ok}
+                      aria-describedby={!ok && hint ? 'step-hint' : undefined}
+                      className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
+                    >
+                      {stepIndex === steps.length - 2 ? 'Continue to account' : 'Continue'}
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </Button>
                     {!ok && hint && (
-                      <p id="step-hint" role="status" className="mt-3 text-right text-xs text-slate-400">
+                      <p id="step-hint" role="status" className="text-xs text-slate-400">
                         {hint}
                       </p>
                     )}
-                  </>
-                )
-              })()}
+                  </div>
+                </>
+              )}
+              {isSignupStep && (
+                <Button variant="ghost" onClick={back} className="gap-2 text-slate-500">
+                  <ArrowLeft className="h-4 w-4" /> Back
+                </Button>
+              )}
             </div>
-          )}
-
-          {isSignupStep && (
-            <div className="mt-6">
-              <Button variant="ghost" onClick={back} className="gap-2 text-slate-500">
-                <ArrowLeft className="h-4 w-4" /> Back
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
