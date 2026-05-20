@@ -142,7 +142,7 @@ export default async function Home() {
               return (
                 <div
                   key={feature.title}
-                  className="rounded-xl border border-slate-200 bg-white p-5 transition hover:border-[#0B1F3A]/20 hover:shadow-md"
+                  className="rounded-xl border border-slate-200 bg-white p-5"
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#0B1F3A]">
