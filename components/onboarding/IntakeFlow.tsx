@@ -55,7 +55,13 @@ function getSteps(data: IntakeData): StepId[] {
   const hasSpouse = (data.maritalStatus === 'married' || data.maritalStatus === 'common-law') && data.spouseComing === 'yes'
   if (hasSpouse) steps.push('spouse-language')
 
-  steps.push('language', 'education', 'work', 'settlement', 'province')
+  const canadianMonths = parseInt(data.canadianWorkMonths) || 0
+  const qualifiesForCEC = data.locationStatus === 'inside' && canadianMonths >= 12 && ['student', 'work-permit'].includes(data.status)
+  const isPR = data.status === 'pr'
+  const showSettlement = !qualifiesForCEC && !isPR
+  steps.push('language', 'education', 'work')
+  if (showSettlement) steps.push('settlement')
+  steps.push('province')
   if (data.intendedProvince === 'MB') steps.push('manitoba-family')
   steps.push('risk', 'signup')
   return steps
