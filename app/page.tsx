@@ -60,7 +60,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className={buttonVariants({ variant: "ghost", className: "text-[#0B1F3A] hover:bg-slate-100 hover:text-[#0B1F3A]" })}
+              className={buttonVariants({ variant: "ghost", className: "hidden sm:inline-flex text-[#0B1F3A] hover:bg-slate-100 hover:text-[#0B1F3A]" })}
             >
               Log in
             </Link>
@@ -80,13 +80,13 @@ export default function Home() {
         <div className="absolute left-0 top-0 h-72 w-72 rounded-full bg-[#D62828]/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-[#0B1F3A]/10 blur-3xl" />
 
-        <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-10 lg:grid-cols-2 lg:py-16">
+        <div className="mx-auto grid max-w-7xl items-center gap-8 px-6 py-8 lg:grid-cols-2 lg:gap-12 lg:py-16">
           <div className="relative z-10">
             <div className="mb-6 inline-flex rounded-full border border-[#D62828]/20 bg-[#D62828]/5 px-4 py-2 text-sm font-semibold text-[#D62828] shadow-sm">
               Educational immigration guidance — not legal advice
             </div>
 
-            <h1 className="max-w-3xl text-5xl font-bold tracking-tight text-[#0B1F3A] md:text-7xl">
+            <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-[#0B1F3A] sm:text-5xl lg:text-7xl">
               Immigration intake made clearer.
             </h1>
 
@@ -115,13 +115,13 @@ export default function Home() {
 
           {/* Dashboard Preview */}
           <Card className="relative z-10 rounded-3xl border-slate-200 bg-white shadow-2xl">
-            <CardContent className="p-6">
-              <div className="mb-6 flex items-center justify-between">
+            <CardContent className="p-4 md:p-6">
+              <div className="mb-4 flex items-center justify-between md:mb-6">
                 <div>
                   <p className="text-sm font-semibold text-[#D62828]">
                     Navly Dashboard
                   </p>
-                  <h2 className="text-3xl font-bold text-[#0B1F3A]">
+                  <h2 className="text-2xl font-bold text-[#0B1F3A] md:text-3xl">
                     Profile overview
                   </h2>
                 </div>
@@ -169,14 +169,14 @@ export default function Home() {
       {/* Features */}
       <section
         id="features"
-        className="border-y border-slate-200 bg-[#F8FAFC] px-6 py-20"
+        className="border-y border-slate-200 bg-[#F8FAFC] px-6 py-12 md:py-20"
       >
         <div className="mx-auto max-w-7xl">
-          <div className="mb-12 max-w-2xl">
+          <div className="mb-8 max-w-2xl md:mb-12">
             <p className="text-sm font-bold uppercase tracking-wide text-[#D62828]">
               Features
             </p>
-            <h2 className="mt-3 text-4xl font-bold tracking-tight text-[#0B1F3A]">
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
               Built for clarity, not confusion.
             </h2>
             <p className="mt-4 text-slate-600">
@@ -194,13 +194,15 @@ export default function Home() {
                   key={feature.title}
                   className="rounded-2xl border-slate-200 bg-white transition hover:-translate-y-1 hover:shadow-xl"
                 >
-                  <CardContent className="p-6">
-                    <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-[#0B1F3A] text-white">
-                      <Icon className="h-5 w-5" />
+                  <CardContent className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#0B1F3A] text-white">
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <h3 className="text-lg font-bold text-[#0B1F3A]">
+                        {feature.title}
+                      </h3>
                     </div>
-                    <h3 className="text-xl font-bold text-[#0B1F3A]">
-                      {feature.title}
-                    </h3>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
                       {feature.desc}
                     </p>
@@ -213,13 +215,13 @@ export default function Home() {
       </section>
 
       {/* How it works */}
-      <section id="how" className="bg-white px-6 py-20">
+      <section id="how" className="bg-white px-6 py-12 md:py-20">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-12 text-center">
+          <div className="mb-8 text-center md:mb-12">
             <p className="text-sm font-bold uppercase tracking-wide text-[#D62828]">
               How it works
             </p>
-            <h2 className="mx-auto mt-3 max-w-3xl text-4xl font-bold tracking-tight text-[#0B1F3A]">
+            <h2 className="mx-auto mt-3 max-w-3xl text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
               From messy information to a clear next step.
             </h2>
           </div>
@@ -232,12 +234,14 @@ export default function Home() {
             ].map((step, index) => (
               <div
                 key={step.title}
-                className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm"
+                className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
               >
-                <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-[#D62828] text-sm font-bold text-white">
-                  {index + 1}
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#D62828] text-sm font-bold text-white">
+                    {index + 1}
+                  </div>
+                  <h3 className="text-lg font-bold text-[#0B1F3A]">{step.title}</h3>
                 </div>
-                <h3 className="text-xl font-bold text-[#0B1F3A]">{step.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-slate-600">{step.desc}</p>
               </div>
             ))}
@@ -249,14 +253,14 @@ export default function Home() {
       {(() => {
         const updates = getUpdates({ limit: 3 })
         return (
-          <section className="bg-white px-6 py-20">
+          <section className="bg-white px-6 pb-12 pt-4 md:py-20">
             <div className="mx-auto max-w-7xl">
-              <div className="mb-10 flex items-end justify-between">
+              <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
                   <p className="text-sm font-bold uppercase tracking-wide text-[#D62828]">
                     Official Updates
                   </p>
-                  <h2 className="mt-3 text-4xl font-bold tracking-tight text-[#0B1F3A]">
+                  <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
                     Latest IRCC news.
                   </h2>
                   <p className="mt-3 text-slate-600">
@@ -265,7 +269,7 @@ export default function Home() {
                 </div>
                 <Link
                   href="/onboarding"
-                  className="hidden items-center gap-1 text-sm font-semibold text-[#D62828] hover:underline md:flex"
+                  className="flex items-center gap-1 text-sm font-semibold text-[#D62828] hover:underline md:flex-shrink-0"
                 >
                   Sign in to see updates relevant to you <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
@@ -310,13 +314,13 @@ export default function Home() {
       {/* Pricing Preview */}
       <section
         id="pricing"
-        className="border-t border-slate-200 bg-[#F8FAFC] px-6 py-20"
+        className="border-t border-slate-200 bg-[#F8FAFC] px-6 py-12 md:py-20"
       >
         <div className="mx-auto max-w-7xl text-center">
           <p className="text-sm font-bold uppercase tracking-wide text-[#D62828]">
             Pricing
           </p>
-          <h2 className="mt-3 text-4xl font-bold tracking-tight text-[#0B1F3A]">
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
             Start free. Upgrade when you need more.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-slate-600">
@@ -373,10 +377,10 @@ export default function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="bg-white px-6 py-20">
-        <div className="mx-auto max-w-5xl rounded-3xl bg-[#0B1F3A] px-8 py-14 text-center text-white">
+      <section className="bg-white px-6 py-12 md:py-20">
+        <div className="mx-auto max-w-5xl rounded-3xl bg-[#0B1F3A] px-6 py-10 text-center text-white md:px-8 md:py-14">
           <CheckCircle2 className="mx-auto mb-5 h-10 w-10 text-[#D62828]" />
-          <h2 className="text-4xl font-bold tracking-tight">
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
             Your clearest path to Canadian PR starts here.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-slate-300">
