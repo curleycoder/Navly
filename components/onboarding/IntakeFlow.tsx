@@ -1897,17 +1897,17 @@ export function IntakeFlow() {
           <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-200 bg-white px-6 py-3" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
             <div className="mx-auto flex max-w-2xl items-center justify-between">
               {!isSignupStep && (
-                <>
-                  {stepIndex > 0 ? (
-                    <Button variant="outline" onClick={back} className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50">
-                      <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back
-                    </Button>
-                  ) : (
-                    <Link href="/" className={buttonVariants({ variant: 'outline', className: 'gap-2 border-slate-300 text-slate-700 hover:bg-slate-50' })}>
-                      <ArrowLeft className="h-4 w-4" />Back to home
-                    </Link>
-                  )}
-                  <div className="flex flex-col items-end gap-1">
+                <div className="flex w-full flex-col gap-1">
+                  <div className="flex items-center justify-between">
+                    {stepIndex > 0 ? (
+                      <Button variant="outline" onClick={back} className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50">
+                        <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back
+                      </Button>
+                    ) : (
+                      <Link href="/" className={buttonVariants({ variant: 'outline', className: 'gap-2 border-slate-300 text-slate-700 hover:bg-slate-50' })}>
+                        <ArrowLeft className="h-4 w-4" />Back to home
+                      </Link>
+                    )}
                     <Button
                       onClick={next}
                       disabled={!ok}
@@ -1917,13 +1917,13 @@ export function IntakeFlow() {
                       {stepIndex === steps.length - 2 ? 'Continue to account' : 'Continue'}
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Button>
-                    {!ok && hint && (
-                      <p id="step-hint" role="status" className="text-xs text-slate-400">
-                        {hint}
-                      </p>
-                    )}
                   </div>
-                </>
+                  {!ok && hint && (
+                    <p id="step-hint" role="status" className="text-right text-xs text-slate-400">
+                      {hint}
+                    </p>
+                  )}
+                </div>
               )}
               {isSignupStep && (
                 <Button variant="outline" onClick={back} className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50">
