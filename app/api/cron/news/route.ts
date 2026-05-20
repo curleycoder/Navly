@@ -85,6 +85,75 @@ const IRCC_RSS_FEEDS = [
   'https://www.canada.ca/en/immigration-refugees-citizenship/news/notices/rss.xml',
 ]
 
+// ── Email helpers ────────────────────────────────────────────────────────────
+
+async function sendEmail(to: string, subject: string, html: string): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    console.log(`[news-notify] (no RESEND_API_KEY) Would send to ${to}: ${subject}`)
+    return
+  }
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: process.env.RESEND_FROM_EMAIL ?? 'Navly <no-reply@navly.ca>',
+      to,
+      subject,
+      html,
+    }),
+  })
+}
+
+type NewsItem = { title: string; summary: string; source_url: string; source_name: string; importance: string }
+
+function newsDigestHtml(items: NewsItem[]): string {
+  const importanceLabel: Record<string, string> = {
+    high: '🔴 High priority',
+    medium: '🟡 Update',
+  }
+  const rows = items.map((n) => `
+    <tr>
+      <td style="padding:16px 0;border-bottom:1px solid #E5E7EB;vertical-align:top">
+        <p style="margin:0 0 4px;font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.05em">
+          ${importanceLabel[n.importance] ?? n.importance} · ${n.source_name}
+        </p>
+        <a href="${n.source_url}" style="font-size:16px;font-weight:600;color:#0B1F3A;text-decoration:none">
+          ${n.title}
+        </a>
+        ${n.summary ? `<p style="margin:6px 0 0;font-size:14px;color:#374151;line-height:1.5">${n.summary.slice(0, 200)}${n.summary.length > 200 ? '…' : ''}</p>` : ''}
+      </td>
+    </tr>
+  `).join('')
+
+  return `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px">
+      <h2 style="color:#0B1F3A;margin-bottom:4px">New IRCC update${items.length > 1 ? 's' : ''}</h2>
+      <p style="color:#6B7280;margin-top:0;margin-bottom:24px">
+        ${items.length} new important immigration update${items.length > 1 ? 's' : ''} from the Canadian government.
+      </p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+        ${rows}
+      </table>
+      <div style="margin-top:24px;text-align:center">
+        <a href="https://navly.ca/dashboard" style="display:inline-block;background:#D62828;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">
+          View full update on Navly
+        </a>
+      </div>
+      <p style="margin-top:32px;font-size:12px;color:#9CA3AF;text-align:center">
+        Navly is a planning tool only — not legal advice.<br>
+        Consult a licensed RCIC or immigration lawyer for your specific situation.<br>
+        <a href="https://navly.ca/dashboard/settings" style="color:#9CA3AF">Manage notification preferences</a>
+      </p>
+    </div>
+  `
+}
+
+// ── Main cron handler ────────────────────────────────────────────────────────
+
 export async function GET(req: Request) {
   // Auth check
   const secret = process.env.CRON_SECRET
@@ -127,6 +196,7 @@ export async function GET(req: Request) {
           category,
           importance,
           affected_users: affectedUsers,
+          // notified_at is omitted — existing value is preserved on conflict
         }, { onConflict: 'id' })
 
         if (error) errors.push(`Upsert error: ${error.message}`)
@@ -137,9 +207,48 @@ export async function GET(req: Request) {
     }
   }
 
+  // ── Send notification emails for new high/medium items ──────────────────────
+  let emailsSent = 0
+
+  const { data: newItems } = await db
+    .from('ircc_news')
+    .select('id, title, summary, source_url, source_name, importance')
+    .in('importance', ['high', 'medium'])
+    .is('notified_at', null)
+    .order('published_at', { ascending: false })
+    .limit(10)
+
+  if (newItems && newItems.length > 0) {
+    // Fetch all user emails via service role
+    const { data: { users } } = await db.auth.admin.listUsers({ perPage: 1000 })
+
+    const subject = newItems.length === 1
+      ? `IRCC update: ${newItems[0].title.slice(0, 60)}${newItems[0].title.length > 60 ? '…' : ''}`
+      : `${newItems.length} new IRCC immigration updates`
+    const html = newsDigestHtml(newItems)
+
+    for (const user of users ?? []) {
+      if (!user.email) continue
+      try {
+        await sendEmail(user.email, subject, html)
+        emailsSent++
+      } catch (e) {
+        errors.push(`Email to ${user.id}: ${(e as Error).message}`)
+      }
+    }
+
+    // Mark all notified items so they are not re-sent on the next cron run
+    const ids = newItems.map((n: NewsItem & { id: string }) => n.id)
+    await db
+      .from('ircc_news')
+      .update({ notified_at: new Date().toISOString() })
+      .in('id', ids)
+  }
+
   return Response.json({
     ok: true,
     upserted: totalUpserted,
+    emailsSent,
     errors: errors.length > 0 ? errors : undefined,
   })
 }
