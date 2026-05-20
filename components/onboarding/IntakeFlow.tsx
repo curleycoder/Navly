@@ -81,7 +81,7 @@ const stepTitles: Record<StepId, string> = {
   settlement: 'Settlement funds',
   province: 'Province',
   'manitoba-family': 'Family in Manitoba',
-  risk: 'Immigration history',
+  risk: 'Background check',
   signup: 'Create account',
 }
 
@@ -1081,26 +1081,75 @@ function StepManitobaFamily({ value, onChange }: { value: string; onChange: (v: 
 // ─── Step: Province ────────────────────────────────────────────────────────────
 
 function StepProvince({ data, onChange }: {
-  data: Pick<IntakeData, 'intendedProvince' | 'hasJobOffer'>
+  data: Pick<IntakeData, 'intendedProvince' | 'hasJobOffer' | 'locationStatus' | 'province'>
   onChange: (fields: Partial<IntakeData>) => void
 }) {
+  const isInside = data.locationStatus === 'inside'
+  const currentProvinceLabel = CA_PROVINCES.find(p => p.value === data.province)?.label ?? data.province
+  const planningToMove = data.intendedProvince && data.intendedProvince !== data.province
+
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Where do you want to live in Canada?</h1>
-      <p className="mt-2 text-slate-500">Your target province determines PNP eligibility. Each province has its own streams and cutoffs.</p>
-      <div className="mt-8 flex flex-col gap-8">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="intProv" className="text-sm font-semibold text-[#0B1F3A]">Intended province / territory</Label>
-          <div className="relative">
-            <select id="intProv" value={data.intendedProvince} onChange={(e) => onChange({ intendedProvince: e.target.value })}
-              className={cn(selectClass, !data.intendedProvince && 'text-slate-400')}>
-              <option value="" disabled>Select a province or territory…</option>
-              <option value="Any">No preference — open to any province</option>
-              {CA_PROVINCES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-            </select>
-            <ChevronDownIcon />
+      <h1 className="text-3xl font-bold text-[#0B1F3A]">
+        {isInside ? 'Are you planning to stay or move for PR?' : 'Where do you want to live in Canada?'}
+      </h1>
+      <p className="mt-2 text-slate-500">
+        {isInside
+          ? 'Your province determines PNP eligibility. Some streams require you to live and work in that province.'
+          : 'Your target province determines PNP eligibility. Each province has its own streams and cutoffs.'}
+      </p>
+      <div className="mt-8 flex flex-col gap-6">
+
+        {isInside ? (
+          <div className="flex flex-col gap-3">
+            <Label className="text-sm font-semibold text-[#0B1F3A]">Where are you planning to settle for PR?</Label>
+            {[
+              { value: data.province, label: `Stay in ${currentProvinceLabel}`, desc: 'Apply through this province\'s PNP or CEC' },
+              { value: '__move__', label: 'Move to a different province', desc: 'Some PNP streams require living in that province' },
+            ].map((opt) => (
+              <OptionCard
+                key={opt.value}
+                label={opt.label}
+                desc={opt.desc}
+                selected={opt.value === '__move__' ? !!planningToMove : data.intendedProvince === data.province}
+                onClick={() => {
+                  if (opt.value === '__move__') onChange({ intendedProvince: '' })
+                  else onChange({ intendedProvince: data.province })
+                }}
+              />
+            ))}
+            {planningToMove !== false && data.intendedProvince === '' && (
+              <div className="flex flex-col gap-2 mt-1">
+                <Label htmlFor="intProv" className="text-sm font-semibold text-[#0B1F3A]">Which province?</Label>
+                <div className="relative">
+                  <select id="intProv" value={data.intendedProvince}
+                    onChange={(e) => onChange({ intendedProvince: e.target.value })}
+                    className={cn(selectClass, !data.intendedProvince && 'text-slate-400')}>
+                    <option value="" disabled>Select a province or territory…</option>
+                    {CA_PROVINCES.filter(p => p.value !== data.province).map(({ value, label }) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
+                  </select>
+                  <ChevronDownIcon />
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="intProv" className="text-sm font-semibold text-[#0B1F3A]">Intended province / territory</Label>
+            <div className="relative">
+              <select id="intProv" value={data.intendedProvince} onChange={(e) => onChange({ intendedProvince: e.target.value })}
+                className={cn(selectClass, !data.intendedProvince && 'text-slate-400')}>
+                <option value="" disabled>Select a province or territory…</option>
+                <option value="Any">No preference — open to any province</option>
+                {CA_PROVINCES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+              </select>
+              <ChevronDownIcon />
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col gap-3">
           <Label className="text-sm font-semibold text-[#0B1F3A]">
             Do you have a valid job offer from a Canadian employer?
@@ -1113,10 +1162,13 @@ function StepProvince({ data, onChange }: {
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.hasJobOffer === opt.value} onClick={() => onChange({ hasJobOffer: opt.value })} />
           ))}
         </div>
-        <div className="rounded-2xl border border-[#0B1F3A]/15 bg-[#0B1F3A]/5 p-4">
-          <p className="text-sm font-semibold text-[#0B1F3A]">Note on Quebec</p>
-          <p className="mt-1 text-sm leading-6 text-slate-600">Quebec has its own selection system (Arrima / PSTQ). Express Entry and most PNP pathways do not apply. You must obtain a Quebec Selection Certificate (CSQ) first.</p>
-        </div>
+
+        {(data.intendedProvince === 'QC' || (isInside && data.province === 'QC' && !planningToMove)) && (
+          <div className="rounded-2xl border border-[#0B1F3A]/15 bg-[#0B1F3A]/5 p-4">
+            <p className="text-sm font-semibold text-[#0B1F3A]">Note on Quebec</p>
+            <p className="mt-1 text-sm leading-6 text-slate-600">Quebec has its own selection system (Arrima / PSTQ). Express Entry and most PNP pathways do not apply. You must obtain a Quebec Selection Certificate (CSQ) first.</p>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -1130,38 +1182,46 @@ function StepRisk({ data, onChange }: {
 }) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Immigration history</h1>
-      <p className="mt-2 text-slate-500">These questions help flag situations that need professional legal review. All Canadian applications require honest disclosure.</p>
-      <div className="mt-8 flex flex-col gap-8">
+      <h1 className="text-3xl font-bold text-[#0B1F3A]">Any issues we should know about?</h1>
+      <p className="mt-2 text-slate-500">
+        These do not affect your CRS score. We use them to flag situations that may need professional legal review before you apply — and to make sure we show you realistic options.
+      </p>
+      <div className="mt-6 flex flex-col gap-6">
         <div className="flex flex-col gap-3">
           <Label className="text-sm font-semibold text-[#0B1F3A]">
             Have you ever been refused a visa, permit, or entry to Canada or any other country?
           </Label>
           {[
-            { value: 'no', label: 'No', desc: 'No previous refusals' },
+            { value: 'no', label: 'No', desc: 'No refusals on record' },
             { value: 'yes', label: 'Yes', desc: 'I have had at least one refusal' },
           ].map((opt) => (
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.previousRefusals === opt.value} onClick={() => onChange({ previousRefusals: opt.value })} />
           ))}
           {data.previousRefusals === 'yes' && (
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-              <p className="text-sm text-amber-800">Refusals must be disclosed in your application. A licensed RCIC or immigration lawyer can advise you on how to address them.</p>
+              <div className="flex gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                <p className="text-sm text-amber-800">Refusals do not automatically block your application, but they must be disclosed and can affect some PNP streams. A certified consultant can help you address them properly.</p>
+              </div>
             </div>
           )}
         </div>
         <div className="flex flex-col gap-3">
           <Label className="text-sm font-semibold text-[#0B1F3A]">
-            Have you ever overstayed a permit, lost status, or been out of status in Canada or another country?
+            Have you ever overstayed a permit or been out of status in Canada?
           </Label>
           {[
-            { value: 'no', label: 'No', desc: 'No history of status loss or overstay' },
-            { value: 'yes', label: 'Yes', desc: 'I have overstayed or lost status at some point' },
+            { value: 'no', label: 'No', desc: 'My status has always been maintained' },
+            { value: 'yes', label: 'Yes', desc: 'I have overstayed or had a gap in status' },
           ].map((opt) => (
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.lostStatus === opt.value} onClick={() => onChange({ lostStatus: opt.value })} />
           ))}
           {data.lostStatus === 'yes' && (
             <div className="rounded-xl border border-red-200 bg-red-50 p-3">
-              <p className="text-sm text-red-800">This is a serious issue that can affect admissibility. Consult a licensed RCIC or immigration lawyer before applying for anything.</p>
+              <div className="flex gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
+                <p className="text-sm text-red-800">An overstay or status gap can affect admissibility and some PR pathways. You may need to restore status or address this before applying. We strongly recommend speaking with a certified consultant.</p>
+              </div>
             </div>
           )}
         </div>
@@ -1545,7 +1605,7 @@ function getValidationHint(stepId: StepId, data: IntakeData): string {
       return ''
     }
     case 'province': {
-      if (!data.intendedProvince) return 'Select your intended province.'
+      if (!data.intendedProvince) return data.locationStatus === 'inside' ? 'Choose whether you are staying or moving province.' : 'Select your intended province.'
       if (!data.hasJobOffer) return 'Indicate whether you have a Canadian job offer.'
       return ''
     }
