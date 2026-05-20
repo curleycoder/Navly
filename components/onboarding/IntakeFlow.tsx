@@ -458,8 +458,8 @@ function StepCanadaDates({ data, onChange }: {
       <p className="mt-2 text-slate-500">
         Your arrival date is used to calculate your exact days in Canada for PR and citizenship planning. Your permit expiry is used to send you renewal reminders.
       </p>
-      <div className="mt-8 flex flex-col gap-8">
-        <div className="flex flex-col gap-2">
+      <div className="mt-4 flex flex-col gap-3">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="province" className="text-sm font-semibold text-[#0B1F3A]">
             Province / Territory you are in
             <span className="ml-1.5 text-xs font-normal text-[#D62828]">Required for PNP scoring</span>
@@ -474,24 +474,24 @@ function StepCanadaDates({ data, onChange }: {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="arrivalDate" className="text-sm font-semibold text-[#0B1F3A]">
             Date you arrived in Canada
           </Label>
           <Input id="arrivalDate" type="date" max={today} value={data.arrivalDate}
             onChange={(e) => onChange({ arrivalDate: e.target.value })}
-            className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]" />
+            className="w-full rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]" />
           <p className="text-xs text-slate-400">Your days in Canada are calculated from this date. Every trip abroad is subtracted automatically.</p>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="visaExpiry" className="text-sm font-semibold text-[#0B1F3A]">
             Visa / permit expiry date
             <span className="ml-1.5 text-xs font-normal text-slate-400">Optional — we will remind you before it expires</span>
           </Label>
           <Input id="visaExpiry" type="date" min={today} value={data.visaExpiryDate}
             onChange={(e) => onChange({ visaExpiryDate: e.target.value })}
-            className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]" />
+            className="w-full rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]" />
           <p className="text-xs text-slate-400">Applies to study permits, work permits, visitor visas, and TRPs. You will get a task reminder at 90 days and 30 days before expiry.</p>
         </div>
       </div>
