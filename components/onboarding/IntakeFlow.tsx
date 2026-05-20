@@ -495,11 +495,13 @@ function StepCanadaDates({ data, onChange }: {
 // ─── Step: Spouse Language ─────────────────────────────────────────────────────
 
 const langTestOptions = [
-  { value: 'ielts-general', label: 'IELTS General Training', desc: 'Scores 0.0–9.0' },
-  { value: 'celpip', label: 'CELPIP-General', desc: 'Scores 1–12' },
-  { value: 'pte', label: 'PTE Core', desc: 'Scores 10–90' },
-  { value: 'tef', label: 'TEF Canada (French)', desc: 'CO / EO / CE / EE scores' },
-  { value: 'tcf', label: 'TCF Canada (French)', desc: 'Scores 0–699 / 0–20' },
+  { value: 'ielts-general', label: 'IELTS General Training', desc: 'Accepted for Express Entry and most PNP streams — scores 0.0–9.0' },
+  { value: 'celpip', label: 'CELPIP-General', desc: 'Accepted for Express Entry — scores 1–12' },
+  { value: 'pte', label: 'PTE Core', desc: 'Accepted for Express Entry — scores 10–90' },
+  { value: 'tef', label: 'TEF Canada (French)', desc: 'French language test — CO / EO / CE / EE scores' },
+  { value: 'tcf', label: 'TCF Canada (French)', desc: 'French language test — scores 0–699 / 0–20' },
+  { value: 'other', label: 'Other (IELTS Academic, TOEFL, etc.)', desc: 'Not counted for Express Entry CRS — we will note it for PNP streams' },
+  { value: 'none', label: 'No English test taken yet', desc: 'I have not taken a language test' },
 ]
 
 const langConfig: Record<string, { min: number; max: number; step: number }> = {
@@ -616,26 +618,72 @@ function StepSpouseLanguage({ data, onChange }: {
 
 // ─── Step: Language ────────────────────────────────────────────────────────────
 
+function getTestDateStatus(dateStr: string): { valid: boolean; label: string; warning: boolean } | null {
+  if (!dateStr) return null
+  const [year, month] = dateStr.split('-').map(Number)
+  if (!year || !month) return null
+  const testDate = new Date(year, month - 1, 1)
+  const now = new Date()
+  const twoYearsAgo = new Date(now.getFullYear() - 2, now.getMonth(), 1)
+  const monthsOld = (now.getFullYear() - testDate.getFullYear()) * 12 + (now.getMonth() - testDate.getMonth())
+  if (testDate > now) return { valid: false, label: 'Date is in the future', warning: true }
+  if (testDate < twoYearsAgo) return { valid: false, label: `Score expired — taken ${monthsOld} months ago (max 24 months for Express Entry)`, warning: true }
+  const monthsLeft = 24 - monthsOld
+  return { valid: true, label: `Score valid — expires in ${monthsLeft} month${monthsLeft !== 1 ? 's' : ''}`, warning: monthsLeft <= 4 }
+}
+
 function StepLanguage({ data, onChange }: {
-  data: Pick<IntakeData, 'langTestType' | 'langReading' | 'langWriting' | 'langListening' | 'langSpeaking'>
+  data: Pick<IntakeData, 'langTestType' | 'langTestDate' | 'langReading' | 'langWriting' | 'langListening' | 'langSpeaking'>
   onChange: (fields: Partial<IntakeData>) => void
 }) {
+  const showScores = !!data.langTestType && langConfig[data.langTestType]
+  const isNone = data.langTestType === 'none'
+  const showDateField = !!data.langTestType && !isNone
+  const dateStatus = getTestDateStatus(data.langTestDate)
+
   return (
     <div>
       <h1 className="text-3xl font-bold text-[#0B1F3A]">Language test results</h1>
       <p className="mt-2 text-slate-500">
-        Language is the highest-value CRS factor. English: IELTS General, CELPIP, PTE Core. French: TEF Canada, TCF Canada. Use your most recent result (must be less than 2 years old).
+        Language is the highest-value CRS factor. English: IELTS General Training, CELPIP, PTE Core. French: TEF Canada, TCF Canada. Use your most recent result (must be less than 2 years old).
       </p>
-      <div className="mt-8 flex flex-col gap-8">
+      <div className="mt-6 flex flex-col gap-6">
         <div className="flex flex-col gap-3">
           <Label className="text-sm font-semibold text-[#0B1F3A]">Which test did you take?</Label>
           {langTestOptions.map((opt) => (
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.langTestType === opt.value}
-              onClick={() => onChange({ langTestType: opt.value, langReading: '', langWriting: '', langListening: '', langSpeaking: '' })}
+              onClick={() => onChange({ langTestType: opt.value, langTestName: '', langReading: '', langWriting: '', langListening: '', langSpeaking: '' })}
             />
           ))}
         </div>
-        {data.langTestType && langConfig[data.langTestType] && (
+
+        {isNone && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <div className="flex gap-2">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+              <p className="text-sm text-amber-800">
+                <span className="font-semibold">Language test required for most PR pathways. </span>
+                We will show you what score you need and which test to take. You can update your results later.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {showDateField && (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="langTestDate" className="text-sm font-semibold text-[#0B1F3A]">When did you take it?</Label>
+            <Input id="langTestDate" type="month" value={data.langTestDate}
+              onChange={(e) => onChange({ langTestDate: e.target.value })}
+              className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]" />
+            {dateStatus && (
+              <p className={`mt-1 text-sm font-medium ${dateStatus.warning ? 'text-amber-600' : 'text-emerald-600'}`}>
+                {dateStatus.label}
+              </p>
+            )}
+          </div>
+        )}
+
+        {showScores && (
           <LanguageScoreFields
             testType={data.langTestType}
             values={{ r: data.langReading, w: data.langWriting, l: data.langListening, s: data.langSpeaking }}
@@ -1395,6 +1443,8 @@ function getValidationHint(stepId: StepId, data: IntakeData): string {
     }
     case 'language': {
       if (!data.langTestType) return 'Select your language test type.'
+      if (data.langTestType === 'none') return ''
+      if (data.langTestType === 'other') return ''
       if (!data.langReading || !data.langWriting || !data.langListening || !data.langSpeaking) return 'Enter all four test scores.'
       return ''
     }
@@ -1439,7 +1489,11 @@ function canContinue(stepId: StepId, data: IntakeData): boolean {
     }
     case 'canada-dates': return !!data.arrivalDate && !!data.province
     case 'spouse-language': return !!data.spouseLangTestType && !!data.spouseEducationLevel
-    case 'language': return !!(data.langTestType && data.langReading && data.langWriting && data.langListening && data.langSpeaking)
+    case 'language': {
+      if (!data.langTestType) return false
+      if (data.langTestType === 'none' || data.langTestType === 'other') return true
+      return !!(data.langReading && data.langWriting && data.langListening && data.langSpeaking)
+    }
     case 'education': return !!data.educationLevel
     case 'work': {
       if (!data.teerLevel) return false
@@ -1475,9 +1529,13 @@ function SummaryView({ data }: { data: IntakeData }) {
     data.visaExpiryDate ? { label: 'Visa / permit expiry', value: data.visaExpiryDate } : null,
     data.age ? { label: 'Age', value: data.age } : null,
     data.maritalStatus ? { label: 'Marital status', value: { single: 'Single', married: 'Married', 'common-law': 'Common-law' }[data.maritalStatus] ?? data.maritalStatus } : null,
-    data.langTestType && data.langReading ? {
+    data.langTestType ? {
       label: 'Language test',
-      value: `${{ 'ielts-general': 'IELTS General', celpip: 'CELPIP', pte: 'PTE Core', tef: 'TEF Canada', tcf: 'TCF Canada' }[data.langTestType] || data.langTestType} — R:${data.langReading} W:${data.langWriting} L:${data.langListening} S:${data.langSpeaking}`,
+      value: data.langTestType === 'none'
+        ? 'No test taken yet'
+        : data.langTestType === 'other'
+          ? data.langTestName || 'Other test'
+          : `${{ 'ielts-general': 'IELTS General', 'ielts-academic': 'IELTS Academic', celpip: 'CELPIP', pte: 'PTE Core', tef: 'TEF Canada', tcf: 'TCF Canada' }[data.langTestType] || data.langTestType}${data.langReading ? ` — R:${data.langReading} W:${data.langWriting} L:${data.langListening} S:${data.langSpeaking}` : ''}`,
     } : null,
     data.educationLevel ? { label: 'Education', value: educationLabels[data.educationLevel] ?? data.educationLevel } : null,
     data.teerLevel ? { label: 'TEER level', value: `TEER ${data.teerLevel}` } : null,

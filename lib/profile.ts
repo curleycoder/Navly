@@ -34,7 +34,9 @@ export type IntakeData = {
   spouseCanadianWorkMonths: string
 
   // Language (first official)
-  langTestType: string   // 'ielts-general' | 'celpip' | 'pte' | 'tef' | 'tcf' | 'none'
+  langTestType: string   // 'ielts-general' | 'ielts-academic' | 'celpip' | 'pte' | 'tef' | 'tcf' | 'none' | 'other'
+  langTestName: string   // custom name when langTestType = 'other'
+  langTestDate: string   // 'YYYY-MM' — test date, used to check 2-year validity
   langReading: string
   langWriting: string
   langListening: string
@@ -134,6 +136,8 @@ export const EMPTY_PROFILE: IntakeData = {
   spouseEducationLevel: '',
   spouseCanadianWorkMonths: '',
   langTestType: '',
+  langTestName: '',
+  langTestDate: '',
   langReading: '',
   langWriting: '',
   langListening: '',
