@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ArrowRight, CheckCircle2, Eye, EyeOff, AlertTriangle, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -12,7 +13,7 @@ type SignUpPhase = 'phone' | 'otp' | 'details'
 
 export function StepSignUp({ onComplete }: { onComplete: (phone: string) => void }) {
   const [phase, setPhase] = useState<SignUpPhase>('phone')
-
+const router = useRouter()
   const [phone, setPhone] = useState('')
   const [otp, setOtp] = useState('')
   const [email, setEmail] = useState('')
@@ -36,8 +37,11 @@ export function StepSignUp({ onComplete }: { onComplete: (phone: string) => void
       body: JSON.stringify({ phone: trimmedPhone }),
     })
     const { taken } = await res.json()
-    if (taken) { setError('An account already exists with this phone number. Please log in instead.'); setLoading(false); return }
+    if (taken) {
+      router.push(`/login?phone=${encodeURIComponent(trimmedPhone)}`)
+    return
 
+    }
     const { error: otpError } = await supabase.auth.signInWithOtp({ phone: trimmedPhone })
     if (otpError) { setError(otpError.message); setLoading(false); return }
 

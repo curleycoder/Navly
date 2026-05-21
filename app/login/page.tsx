@@ -20,11 +20,69 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [unconfirmed, setUnconfirmed] = useState(false)
   const [resentAt, setResentAt] = useState<number | null>(null)
+  const [loginMode, setLoginMode] = useState<'email' | 'phone'>('email')
+  const [phone, setPhone] = useState('')
+  const [otp, setOtp] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
 
   async function handleResendVerification() {
     await supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: `${window.location.origin}/dashboard` } })
     setResentAt(Date.now())
   }
+  async function handleSendPhoneOtp() {
+  setLoading(true)
+  setError('')
+
+  const trimmedPhone = phone.trim()
+
+  if (!trimmedPhone) {
+    setError('Enter your phone number.')
+    setLoading(false)
+    return
+  }
+
+  const { error: otpError } = await supabase.auth.signInWithOtp({
+    phone: trimmedPhone,
+  })
+
+  if (otpError) {
+    setError(otpError.message)
+    setLoading(false)
+    return
+  }
+
+  setOtpSent(true)
+  setLoading(false)
+}
+async function handleVerifyPhoneOtp() {
+  setLoading(true)
+  setError('')
+
+  const { data, error: verifyError } = await supabase.auth.verifyOtp({
+    phone: phone.trim(),
+    token: otp.trim(),
+    type: 'sms',
+  })
+
+  if (verifyError) {
+    setError('Incorrect code. Check your SMS and try again.')
+    setLoading(false)
+    return
+  }
+
+  if (data.user) {
+    const dbProfile = await loadProfileFromSupabase(data.user.id)
+
+    if (!dbProfile) {
+      const localProfile = loadProfile()
+      if (localProfile?.locationStatus) {
+        await saveProfileToSupabase(data.user.id, localProfile)
+      }
+    }
+  }
+
+  router.push('/dashboard')
+}
 
   async function handleLogin() {
     setLoading(true)
