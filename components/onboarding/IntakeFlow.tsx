@@ -55,10 +55,11 @@ function getSteps(data: IntakeData): StepId[] {
   const hasSpouse = (data.maritalStatus === 'married' || data.maritalStatus === 'common-law') && data.spouseComing === 'yes'
   if (hasSpouse) steps.push('spouse-language')
 
-  const canadianMonths = parseInt(data.canadianWorkMonths) || 0
-  const qualifiesForCEC = data.locationStatus === 'inside' && canadianMonths >= 12 && ['student', 'work-permit'].includes(data.status)
   const isPR = data.status === 'pr'
-  const showSettlement = !qualifiesForCEC && !isPR
+  const isStudentInCanada = data.locationStatus === 'inside' && data.status === 'student'
+  const isWorkerInCanada = data.locationStatus === 'inside' && data.status === 'work-permit'
+  // Settlement funds are a FSW requirement — not needed for CEC/PNP paths (students, workers inside Canada)
+  const showSettlement = !isPR && !isStudentInCanada && !isWorkerInCanada
   steps.push('language', 'education', 'work')
   if (showSettlement) steps.push('settlement')
   steps.push('province')
