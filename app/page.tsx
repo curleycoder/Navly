@@ -6,31 +6,151 @@ import {
   MessageSquare,
   CalendarCheck,
   Target,
+  ShieldCheck,
+  LockKeyhole,
+  Map,
+  GraduationCap,
+  BriefcaseBusiness,
+  Plane,
+  BadgeCheck,
+  AlertTriangle,
+  Newspaper,
+  XCircle,
 } from "lucide-react";
 import { Navbar } from "@/components/ui/Navbar";
 import { NavlyLogo } from "@/components/ui/NavlyLogo";
-import { getUpdates, categoryLabels, categoryColors, importanceDot, formatDate } from "@/lib/news";
+import {
+  getUpdates,
+  categoryLabels,
+  categoryColors,
+  importanceDot,
+  formatDate,
+} from "@/lib/news";
+
+const trustItems = [
+  {
+    title: "Built around your status",
+    desc: "Navly adjusts questions for students, workers, visitors, and permanent residents.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Tracks real deadlines",
+    desc: "Track permit expiry, PR card expiry, citizenship days, and key reminders.",
+    icon: CalendarCheck,
+  },
+  {
+    title: "Clear next steps",
+    desc: "See missing requirements, score gaps, and practical actions to work on next.",
+    icon: Target,
+  },
+];
+
+const userTypes = [
+  {
+    title: "International students",
+    desc: "Track study timeline, PGWP planning, CEC readiness, and next PR steps.",
+    icon: GraduationCap,
+  },
+  {
+    title: "Workers and PGWP holders",
+    desc: "Track skilled work months, permit expiry, CRS readiness, and possible PNP options.",
+    icon: BriefcaseBusiness,
+  },
+  {
+    title: "Visitors in Canada",
+    desc: "Understand realistic options. Visitor status alone is not a direct PR pathway.",
+    icon: Plane,
+  },
+  {
+    title: "Permanent residents",
+    desc: "Track citizenship days, PR card expiry, travel history, and residency obligation.",
+    icon: BadgeCheck,
+  },
+];
 
 const features = [
   {
     title: "Smart intake",
-    desc: "Answer a guided set of questions to build a complete immigration profile.",
+    desc: "Build a profile based on your status, language scores, education, work, province, and goal.",
     icon: FileText,
   },
   {
     title: "Pathway screening",
-    desc: "See your strongest PR pathways, estimated CRS score, and what you're missing.",
+    desc: "See possible routes like CEC, FSW, PNP, study-to-PR, family sponsorship, or citizenship.",
     icon: Target,
   },
   {
-    title: "AI assistant",
-    desc: "Ask immigration questions in plain language. Always with safe legal reminders.",
-    icon: MessageSquare,
+    title: "Deadline tracker",
+    desc: "Track permit expiry, PR card expiry, citizenship days, and key immigration reminders.",
+    icon: CalendarCheck,
   },
   {
-    title: "Canada days tracker",
-    desc: "Log daily presence, track trips abroad, and monitor your physical presence count.",
-    icon: CalendarCheck,
+    title: "AI assistant",
+    desc: "Ask general immigration questions in plain English with clear legal-safety reminders.",
+    icon: MessageSquare,
+  },
+];
+
+const howSteps = [
+  {
+    title: "Answer a few questions",
+    desc: "Tell Navly your status, goal, language score, education, work history, province, and key dates.",
+  },
+  {
+    title: "See your planning dashboard",
+    desc: "Get an estimated pathway view, score gaps, missing requirements, and deadline reminders.",
+  },
+  {
+    title: "Track and improve",
+    desc: "Monitor your progress, update your profile, follow official changes, and prepare smarter.",
+  },
+];
+
+const notDoItems = [
+  "Submit immigration applications",
+  "Guarantee approval or results",
+  "Replace an RCIC or immigration lawyer",
+  "Give legal advice",
+  "Ask for passport, SIN, or government ID for the free check",
+];
+
+const pricingPlans = [
+  {
+    name: "Free Pathway Check",
+    price: "$0",
+    desc: "Basic profile screening and pathway overview.",
+    points: ["Smart intake", "Basic pathway view", "No documents required"],
+    href: "/onboarding",
+    featured: false,
+    cta: "Check My Pathway",
+  },
+  {
+    name: "Full Readiness Report",
+    price: "$29",
+    desc: "A one-time personalized report with clearer next steps.",
+    points: [
+      "CRS and FSW breakdown",
+      "Top realistic pathway options",
+      "Missing requirement checklist",
+      "Consultant-ready summary",
+    ],
+    href: "/pricing",
+    featured: true,
+    cta: "Get My Report",
+  },
+  {
+    name: "Monthly Immigration Tracker",
+    price: "$14/mo",
+    desc: "Ongoing tracking for people actively planning PR or citizenship.",
+    points: [
+      "Permit and PR card reminders",
+      "Canada days tracking",
+      "Profile-based updates",
+      "AI assistant access",
+    ],
+    href: "/pricing",
+    featured: false,
+    cta: "Start Tracking",
   },
 ];
 
@@ -39,118 +159,154 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-white pt-16 text-[#0B1F3A]">
-
       <Navbar />
 
-      {/* ── Hero ── */}
-      <section className="relative overflow-hidden bg-[#0B1F3A] lg:h-175">
-        {/* Hero group photo — direct child of section so right-0 = viewport edge */}
-        <div className="absolute inset-y-0 right-0 hidden w-1/2 lg:block">
+      {/* Hero */}
+      {/* Hero */}
+<section className="relative overflow-hidden bg-[#0B1F3A] px-6 py-16 md:py-20">
+  <div className="absolute inset-0 opacity-25">
+    <div className="absolute left-[-10%] top-[-20%] h-72 w-72 rounded-full bg-[#D62828]/30 blur-3xl" />
+    <div className="absolute bottom-[-20%] right-[-10%] h-96 w-96 rounded-full bg-white/10 blur-3xl" />
+  </div>
+
+  <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[0.95fr_1.05fr]">
+    {/* Left Content */}
+    <div className="max-w-2xl">
+      <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-200">
+        <ShieldCheck className="h-3.5 w-3.5 text-[#D62828]" />
+        Educational planning — not legal advice
+      </div>
+
+      <h1 className="mt-6 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
+        Your Canadian PR pathway,{" "}
+        <span className="text-[#D62828]">made clear.</span>
+      </h1>
+
+      <p className="mt-6 max-w-xl text-base leading-8 text-slate-300">
+        Answer a few questions and see your estimated PR pathway, score gaps,
+        missing requirements, and next steps — without uploading documents.
+      </p>
+
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        <Link
+          href="/onboarding"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#D62828] px-6 text-sm font-bold text-white transition hover:bg-[#B91C1C]"
+        >
+          Check My PR Pathway <ArrowRight className="h-4 w-4" />
+        </Link>
+
+        <a
+          href="#how"
+          className="inline-flex h-12 items-center justify-center rounded-xl border border-white/20 px-6 text-sm font-bold text-white transition hover:border-white/40 hover:bg-white/5"
+        >
+          See How It Works
+        </a>
+      </div>
+
+      {/* Trust chips */}
+      <div className="mt-8 flex flex-wrap gap-3">
+        {["No passport number", "No SIN", "No documents required"].map(
+          (item) => (
+            <div
+              key={item}
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-200"
+            >
+              <XCircle className="h-4 w-4 shrink-0 text-[#D62828]" />
+              <span>{item}</span>
+            </div>
+          )
+        )}
+      </div>
+
+      <p className="mt-6 max-w-xl text-xs leading-5 text-slate-500">
+        Navly is not affiliated with IRCC, the Government of Canada, or any
+        immigration authority. Always verify official requirements on canada.ca
+        or with a licensed professional.
+      </p>
+
+      <p className="mt-2 text-xs font-semibold text-slate-400">
+        Last checked against public immigration updates: May 2026
+      </p>
+    </div>
+
+    {/* Right Image */}
+    <div className="relative hidden lg:block">
+      <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 p-3 shadow-2xl">
+        <div className="overflow-hidden rounded-[1.5rem]">
           <img
             src="/images/hero-group.jpg"
-            alt="Diverse group of immigrants with Canadian flag"
-            className="h-full w-full object-cover object-center"
+            alt="People in Canada"
+            className="h-[500px] w-full object-cover"
           />
-          <div className="absolute inset-y-0 left-0 w-32 bg-linear-to-r from-[#0B1F3A] to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-[#0B1F3A] to-transparent" />
         </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-        <div className="relative z-10 mx-auto grid h-full max-w-7xl items-center gap-10 px-6 py-14 lg:grid-cols-2 lg:gap-0 lg:py-0">
+      {/* Trust Strip */}
+      <section className="border-b border-slate-200 bg-white px-6 py-8">
+        <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-3">
+          {trustItems.map((item) => {
+            const Icon = item.icon;
 
-          {/* Left */}
-          <div>
-            <span className="inline-block rounded-full border border-[#D62828]/40 bg-[#D62828]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#D62828]">
-              Educational guidance — not legal advice
-            </span>
-
-            <h1 className="mt-5 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Your Canadian PR pathway,{" "}
-              <span className="text-[#D62828]">made clear.</span>
-            </h1>
-
-            <p className="mt-5 max-w-lg text-base leading-7 text-slate-400">
-              Navly helps you understand possible Canadian PR pathways based on
-              the information you enter. For legal advice, connect with a
-              certified Canadian immigration consultant.
-            </p>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/onboarding"
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#D62828] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#B91C1C] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D62828]"
+            return (
+              <div
+                key={item.title}
+                className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
               >
-                Start Free <ArrowRight className="h-4 w-4" />
-              </Link>
-              <a
-                href="#how"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/20 px-6 py-3 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/5"
-              >
-                See how it works
-              </a>
-            </div>
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0B1F3A]">
+                  <Icon className="h-5 w-5 text-white" />
+                </div>
 
-            {/* Social proof */}
-            <div className="mt-8 flex items-center gap-3">
-              <div className="flex -space-x-2.5">
-                {[
-                  '/images/avatar-1.jpg',
-                  '/images/avatar-2.jpg',
-                  '/images/avatar-3.jpg',
-                  '/images/avatar-4.jpg',
-                  '/images/avatar-5.jpg',
-                ].map((src, i) => (
-                  <img
-                    key={i}
-                    src={src}
-                    alt=""
-                    className="h-9 w-9 rounded-full border-2 border-[#0B1F3A] object-cover"
-                  />
-                ))}
+                <div>
+                  <h3 className="font-bold text-[#0B1F3A]">{item.title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-slate-500">
+                    {item.desc}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-white">Immigrants across Canada</p>
-                <p className="text-xs text-slate-400">planning their PR journey with Navly</p>
-              </div>
-            </div>
-
-            <p className="mt-5 text-xs text-slate-500">
-              Free to start. No documents required. No legal advice.
-            </p>
-          </div>
-
-          {/* empty right column — image is positioned above */}
-          <div className="hidden lg:block" />
+            );
+          })}
         </div>
       </section>
 
-      {/* ── Features ── */}
-      <section id="features" className="bg-white px-6 py-14 md:py-20">
+      {/* Who Navly Helps */}
+      <section className="bg-[#F8FAFC] px-6 py-8 md:py-10">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-10">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">Features</p>
+          <div className="mb-10 max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">
+              Who Navly Helps
+            </p>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
-              Built for clarity, not confusion.
+              Built for different immigration stages.
             </h2>
-            <p className="mt-3 max-w-xl text-slate-500">
-              Navly turns scattered immigration information into a clean, organized workflow.
+            <p className="mt-3 text-slate-500">
+              Navly changes the questions and tracking dashboard based on where
+              you are in your immigration journey.
             </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature) => {
-              const Icon = feature.icon;
+            {userTypes.map((type) => {
+              const Icon = type.icon;
+
               return (
                 <div
-                  key={feature.title}
-                  className="rounded-xl border border-slate-200 bg-white p-5"
+                  key={type.title}
+                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#0B1F3A]">
-                      <Icon className="h-5 w-5 text-white" />
-                    </div>
-                    <h3 className="font-bold text-[#0B1F3A]">{feature.title}</h3>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#D62828]/10">
+                    <Icon className="h-5 w-5 text-[#D62828]" />
                   </div>
-                  <p className="mt-1.5 text-sm leading-6 text-slate-500">{feature.desc}</p>
+
+                  <h3 className="mt-4 font-bold text-[#0B1F3A]">
+                    {type.title}
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    {type.desc}
+                  </p>
                 </div>
               );
             })}
@@ -158,197 +314,372 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ── How it works ── */}
-      <section id="how" className="bg-[#F4F6F9] px-6 py-14 md:py-20">
+      {/* Features */}
+      <section id="features" className="bg-white px-6 py-8 md:py-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-10 max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">
+              Features
+            </p>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
+              Built for clarity, not confusion.
+            </h2>
+            <p className="mt-3 text-slate-500">
+              Navly turns scattered immigration information into a clean,
+              organized workflow.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+
+              return (
+                <div
+                  key={feature.title}
+                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0B1F3A]">
+                      <Icon className="h-5 w-5 text-white" />
+                    </div>
+
+                    <h3 className="font-bold text-[#0B1F3A]">
+                      {feature.title}
+                    </h3>
+                  </div>
+
+                  <p className="mt-3 text-sm leading-6 text-slate-500">
+                    {feature.desc}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section id="how" className="bg-[#F4F6F9] px-6 py-8 md:py-10">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 text-center">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">How it works</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">
+              How It Works
+            </p>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
-              From scattered info to a clear next step.
+              From confusion to a clear next step.
             </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-slate-500">
+              You do not need to understand every immigration program before
+              starting. Navly organizes the first step for you.
+            </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            {[
-              { title: "Answer a few questions", desc: "Tell us your current status, language scores, education, and work history. Takes about 5 minutes." },
-              { title: "See your pathway estimate", desc: "Get an estimated CRS score, strongest PR pathways, and exactly what you are missing." },
-              { title: "Track and improve", desc: "Log your Canada presence daily, monitor permit expiry, and get next-action guidance." },
-            ].map((step, index) => (
+            {howSteps.map((step, index) => (
               <div
                 key={step.title}
-                className="rounded-xl border border-slate-200 bg-white p-5"
+                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#D62828] text-sm font-bold text-white">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#D62828] text-sm font-bold text-white">
                     {index + 1}
                   </div>
+
                   <h3 className="font-bold text-[#0B1F3A]">{step.title}</h3>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-slate-500">{step.desc}</p>
+
+                <p className="mt-4 text-sm leading-6 text-slate-500">
+                  {step.desc}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Latest IRCC Updates ── */}
-      <section className="bg-white px-6 py-14 md:py-20">
-            <div className="mx-auto max-w-7xl">
-              <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">Official Updates</p>
-                  <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
-                    Latest IRCC news.
-                  </h2>
-                  <p className="mt-2 text-slate-500">
-                    Sourced from IRCC, Canada Gazette, and official government notices.
-                  </p>
-                </div>
-                <Link
-                  href="/onboarding"
-                  className="flex shrink-0 items-center gap-1 text-sm font-semibold text-[#D62828] hover:underline"
-                >
-                  Sign in for updates relevant to you <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
+      {/* Official Updates */}
+      <section className="bg-white px-6 py-8 md:py-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">
+                Official Updates
+              </p>
 
-              <div className="grid gap-4 md:grid-cols-3">
-                {updates.map((u) => (
-                  <div
-                    key={u.id}
-                    className="flex flex-col rounded-xl border border-slate-200 bg-white p-5"
-                  >
-                    <div className="mb-3 flex items-center gap-2">
-                      <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${categoryColors[u.category]}`}>
-                        {categoryLabels[u.category]}
-                      </span>
-                      <span className={`ml-auto h-2 w-2 rounded-full ${importanceDot[u.importance]}`} />
-                    </div>
-                    <p className="flex-1 text-sm font-bold leading-snug text-[#0B1F3A]">{u.title}</p>
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="text-xs text-slate-400">{formatDate(u.publishedAt)}</span>
-                      <a
-                        href={u.sourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-semibold text-[#D62828] hover:underline"
-                      >
-                        {u.sourceName} →
-                      </a>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
+                Latest immigration updates.
+              </h2>
 
-              <p className="mt-5 text-center text-xs text-slate-400">
-                Updates are for educational purposes only — not legal advice. Always verify at canada.ca.
+              <p className="mt-2 max-w-2xl text-slate-500">
+                Navly tracks official immigration updates and helps users focus
+                on what may affect their profile.
               </p>
             </div>
+
+            <Link
+              href="/onboarding"
+              className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-[#D62828] hover:underline"
+            >
+              Get updates relevant to me <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {updates.map((u) => (
+              <article
+                key={u.id}
+                className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              >
+                <div className="mb-3 flex items-center gap-2">
+                  <span
+                    className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${categoryColors[u.category]}`}
+                  >
+                    {categoryLabels[u.category]}
+                  </span>
+
+                  <span
+                    className={`ml-auto h-2 w-2 rounded-full ${importanceDot[u.importance]}`}
+                  />
+                </div>
+
+                <p className="flex-1 text-sm font-bold leading-snug text-[#0B1F3A]">
+                  {u.title}
+                </p>
+
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="text-xs text-slate-400">
+                    {formatDate(u.publishedAt)}
+                  </span>
+
+                  <a
+                    href={u.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-[#D62828] hover:underline"
+                  >
+                    {u.sourceName} →
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex gap-3">
+              <Newspaper className="mt-0.5 h-5 w-5 shrink-0 text-[#0B1F3A]" />
+              <p className="text-sm leading-6 text-slate-600">
+                Updates are provided for educational planning only. Always check
+                official government pages before making immigration decisions.
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* ── Pricing ── */}
-      <section id="pricing" className="bg-[#F4F6F9] px-6 py-14 md:py-20">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-10 text-center">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">Pricing</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
-              Start free. Upgrade when ready.
+      {/* What Navly Does Not Do */}
+      <section className="bg-[#0B1F3A] px-6 py-8 text-white md:py-10">
+        <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-center">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">
+              Trust and Safety
+            </p>
+
+            <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
+              Clear planning. No fake promises.
             </h2>
-            <p className="mx-auto mt-3 max-w-xl text-slate-500">
-              Navly is free to start. Pay only when you want a full personalized report or ongoing tracking.
+
+            <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
+              Immigration decisions are serious. Navly is designed to organize
+              your information, track deadlines, and explain general pathways —
+              not to replace professional legal advice.
             </p>
           </div>
 
-          <div className="mx-auto grid max-w-4xl gap-4 md:grid-cols-3">
-            {[
-              { name: "Free Check", price: "$0", desc: "Profile screening and pathway overview", href: "/onboarding", featured: false },
-              { name: "Personalized Report", price: "$29", desc: "Full personalized report with gap analysis", href: "/pricing", featured: true },
-              { name: "PR Tracker", price: "$14/mo", desc: "Ongoing tracking, alerts, and AI access", href: "/pricing", featured: false },
-            ].map(({ name, price, desc, href, featured }) => (
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <h3 className="font-bold text-white">Navly does not:</h3>
+
+            <div className="mt-5 grid gap-3">
+              {notDoItems.map((item) => (
+                <div key={item} className="flex gap-3">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#D62828]" />
+                  <p className="text-sm text-slate-300">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="bg-[#F4F6F9] px-6 py-8 md:py-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-10 text-center">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">
+              Pricing
+            </p>
+
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
+              Start free. Upgrade when ready.
+            </h2>
+
+            <p className="mx-auto mt-3 max-w-xl text-slate-500">
+              Use the free check first. Pay only when you want a deeper report
+              or ongoing immigration tracking.
+            </p>
+          </div>
+
+          <div className="mx-auto grid max-w-6xl gap-4 md:grid-cols-3">
+            {pricingPlans.map((plan) => (
               <div
-                key={name}
-                className={`rounded-xl p-6 ${
-                  featured
-                    ? "bg-[#0B1F3A] text-white"
+                key={plan.name}
+                className={`rounded-2xl p-6 shadow-sm ${
+                  plan.featured
+                    ? "bg-[#0B1F3A] text-white ring-2 ring-[#D62828]"
                     : "border border-slate-200 bg-white"
                 }`}
               >
-                {featured && (
-                  <span className="mb-3 inline-block rounded-full bg-[#D62828]/20 px-3 py-0.5 text-xs font-bold text-[#D62828]">
-                    Most popular
+                {plan.featured && (
+                  <span className="mb-4 inline-block rounded-full bg-[#D62828]/20 px-3 py-0.5 text-xs font-bold text-[#D62828]">
+                    Best value
                   </span>
                 )}
-                <h3 className={`font-bold ${featured ? "text-white" : "text-[#0B1F3A]"}`}>{name}</h3>
-                <p className={`mt-3 text-3xl font-bold ${featured ? "text-white" : "text-[#0B1F3A]"}`}>{price}</p>
-                <p className={`mt-2 text-sm ${featured ? "text-slate-400" : "text-slate-500"}`}>{desc}</p>
+
+                <h3
+                  className={`font-bold ${
+                    plan.featured ? "text-white" : "text-[#0B1F3A]"
+                  }`}
+                >
+                  {plan.name}
+                </h3>
+
+                <p
+                  className={`mt-3 text-3xl font-bold ${
+                    plan.featured ? "text-white" : "text-[#0B1F3A]"
+                  }`}
+                >
+                  {plan.price}
+                </p>
+
+                <p
+                  className={`mt-2 text-sm leading-6 ${
+                    plan.featured ? "text-slate-300" : "text-slate-500"
+                  }`}
+                >
+                  {plan.desc}
+                </p>
+
+                <div className="mt-5 space-y-3">
+                  {plan.points.map((point) => (
+                    <div key={point} className="flex gap-2">
+                      <CheckCircle2
+                        className={`mt-0.5 h-4 w-4 shrink-0 ${
+                          plan.featured ? "text-[#D62828]" : "text-[#0B1F3A]"
+                        }`}
+                      />
+
+                      <p
+                        className={`text-sm ${
+                          plan.featured ? "text-slate-300" : "text-slate-600"
+                        }`}
+                      >
+                        {point}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
                 <Link
-                  href={href}
-                  className={`mt-5 inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
-                    featured
+                  href={plan.href}
+                  className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                    plan.featured
                       ? "bg-[#D62828] text-white hover:bg-[#B91C1C] focus-visible:outline-[#D62828]"
                       : "border border-[#0B1F3A] text-[#0B1F3A] hover:bg-[#0B1F3A] hover:text-white focus-visible:outline-[#0B1F3A]"
                   }`}
                 >
-                  {name === "Free Check" ? "Get started" : `Choose ${name}`}
+                  {plan.cta} <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             ))}
           </div>
 
           <div className="mt-6 text-center">
-            <Link href="/pricing" className="text-sm font-semibold text-[#D62828] hover:underline">
+            <Link
+              href="/pricing"
+              className="text-sm font-semibold text-[#D62828] hover:underline"
+            >
               See full feature comparison →
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ── Final CTA ── */}
-      <section className="bg-[#D62828] px-6 py-14 md:py-20">
+      {/* Final CTA */}
+      <section className="bg-[#D62828] px-6 py-8 md:py-10">
         <div className="mx-auto max-w-3xl text-center">
           <CheckCircle2 className="mx-auto mb-4 h-10 w-10 text-white/80" />
+
           <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-            Your clearest path to Canadian PR starts here.
+            Know what to work on before you spend money.
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-base text-white/80">
-            See your estimated CRS score, strongest pathways, and exactly what you need to improve — before spending money on a consultant.
+
+          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-white/85">
+            Start with a free pathway check. See your status, gaps, and next
+            steps in one organized dashboard.
           </p>
+
           <Link
             href="/onboarding"
-            className="mt-8 inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-bold text-[#D62828] transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-[#D62828] transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
-            Start Free <ArrowRight className="h-4 w-4" />
+            Check My PR Pathway <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>
 
-      {/* ── Footer ── */}
+      {/* Footer */}
       <footer className="bg-[#0B1F3A] px-6 py-10">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
             <div>
               <NavlyLogo size="sm" variant="light" />
-              <p className="mt-2 max-w-xs text-xs leading-5 text-slate-400">
-                Educational immigration planning tool. Not a licensed immigration consultant or law firm.
+
+              <p className="mt-2 max-w-sm text-xs leading-5 text-slate-400">
+                Navly is an educational immigration planning and tracking tool.
+                It is not a law firm, RCIC practice, or government service.
               </p>
             </div>
-            <nav className="flex pt-4 flex-wrap gap-x-6 gap-y-2 text-xs text-slate-400">
-              <Link href="/pricing" className="transition hover:text-white">Pricing</Link>
-              <Link href="/privacy" className="transition hover:text-white">Privacy Policy</Link>
-              <Link href="/terms" className="transition hover:text-white">Terms of Service</Link>
-              <a href="mailto:support@navly.ca" className="transition hover:text-white">Support</a>
+
+            <nav className="flex flex-wrap gap-x-6 gap-y-2 pt-4 text-xs text-slate-400">
+              <Link href="/pricing" className="transition hover:text-white">
+                Pricing
+              </Link>
+              <Link href="/privacy" className="transition hover:text-white">
+                Privacy Policy
+              </Link>
+              <Link href="/terms" className="transition hover:text-white">
+                Terms of Service
+              </Link>
+              <a
+                href="mailto:support@navly.ca"
+                className="transition hover:text-white"
+              >
+                Support
+              </a>
             </nav>
           </div>
+
           <div className="mt-8 border-t border-white/10 pt-6 text-center text-xs text-slate-500">
             <p>© {new Date().getFullYear()} Navly. All rights reserved.</p>
+
             <p className="mt-1">
-              Navly provides general educational information only — not legal advice.
-              Always consult a licensed RCIC or immigration lawyer for your specific situation.
+              Navly provides general educational information only — not legal
+              advice. Always consult a licensed RCIC or immigration lawyer for
+              advice about your specific situation.
             </p>
           </div>
         </div>
       </footer>
-
     </main>
   );
 }
