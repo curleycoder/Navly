@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { cn } from '@/lib/utils'
+import { getRequiredFunds, SETTLEMENT_FUNDS } from '@/lib/settlement-funds'
 import {
   loadProfile,
   saveProfile,
@@ -31,6 +32,7 @@ type StepId =
   | 'goal'
   | 'personal'
   | 'canada-dates'
+  | 'pr-status'
   | 'spouse-language'
   | 'language'
   | 'education'
@@ -58,8 +60,15 @@ function getSteps(data: IntakeData): StepId[] {
   const isPR = data.status === 'pr'
   const isStudentInCanada = data.locationStatus === 'inside' && data.status === 'student'
   const isWorkerInCanada = data.locationStatus === 'inside' && data.status === 'work-permit'
+
+  if (isPR) {
+    // PR users track citizenship + residency obligation — not CRS/FSW
+    steps.push('pr-status', 'language', 'risk', 'signup')
+    return steps
+  }
+
   // Settlement funds are a FSW requirement — not needed for CEC/PNP paths (students, workers inside Canada)
-  const showSettlement = !isPR && !isStudentInCanada && !isWorkerInCanada
+  const showSettlement = !isStudentInCanada && !isWorkerInCanada
   steps.push('language', 'education', 'work')
   if (showSettlement) steps.push('settlement')
   steps.push('province')
@@ -75,6 +84,7 @@ const stepTitles: Record<StepId, string> = {
   goal: 'Your goal',
   personal: 'Personal details',
   'canada-dates': 'Canada dates',
+  'pr-status': 'PR details',
   'spouse-language': 'Spouse details',
   language: 'Language',
   education: 'Education',
@@ -371,7 +381,7 @@ function StepPersonal({ data, onChange }: {
               className="w-full rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="gender" className="text-sm font-semibold text-[#0B1F3A]">Gender</Label>
+            <Label htmlFor="gender" className="text-sm font-semibold text-[#0B1F3A]">Gender <span className="font-normal text-slate-400">(optional — not used for PR scoring)</span></Label>
             <div className="relative">
               <select id="gender" value={data.gender}
                 onChange={(e) => onChange({ gender: e.target.value })}
@@ -928,7 +938,7 @@ function StepWork({ data, onChange }: { data: IntakeData; onChange: (fields: Par
             <div className="flex flex-col gap-2">
               <Label htmlFor="canWork" className="text-sm font-semibold text-[#0B1F3A]">
                 Skilled Canadian work experience so far (months)
-                <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Co-ops and part-time work at TEER 0–3 count. Enter 0 if none.</span>
+                <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Work gained while studying full-time usually does not count for Canadian Experience Class. Work after graduation on PGWP may count if it meets CEC rules. Enter 0 if none.</span>
               </Label>
               <Input id="canWork" type="number" min={0} max={120} placeholder="e.g. 6"
                 value={data.canadianWorkMonths} onChange={(e) => onChange({ canadianWorkMonths: e.target.value })}
@@ -997,6 +1007,132 @@ function StepWork({ data, onChange }: { data: IntakeData; onChange: (fields: Par
   )
 }
 
+// ─── Step: PR Status ───────────────────────────────────────────────────────────
+
+function StepPRStatus({ data, onChange }: {
+  data: Pick<IntakeData, 'prDate' | 'prCardExpiry' | 'prPreStatus' | 'hasTraveledSincePR' | 'taxFilingComplete' | 'citizenshipLangProof' | 'citizenshipProhibitions' | 'age'>
+  onChange: (fields: Partial<IntakeData>) => void
+}) {
+  const age = parseInt(data.age) || 0
+  const showLangProof = age >= 18 && age <= 54
+
+  return (
+    <div>
+      <h1 className="text-3xl font-bold text-[#0B1F3A]">Your PR details</h1>
+      <p className="mt-2 text-slate-500">
+        These dates power your citizenship countdown, PR card reminder, and residency obligation tracker.
+      </p>
+      <div className="mt-8 flex flex-col gap-8">
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="prDate" className="text-sm font-semibold text-[#0B1F3A]">
+              Date you became a PR
+              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Used to calculate your citizenship eligibility date and PR residency obligation.</span>
+            </Label>
+            <Input id="prDate" type="date" value={data.prDate}
+              onChange={(e) => onChange({ prDate: e.target.value })}
+              className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="prCardExpiry" className="text-sm font-semibold text-[#0B1F3A]">
+              PR card expiry
+              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Navly will remind you before it expires.</span>
+            </Label>
+            <Input id="prCardExpiry" type="month" value={data.prCardExpiry}
+              onChange={(e) => onChange({ prCardExpiry: e.target.value })}
+              className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]" />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label className="text-sm font-semibold text-[#0B1F3A]">
+            What was your status in Canada before becoming a PR?
+            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Temporary resident days before PR may count as half-days toward citizenship (up to 365 days credit).</span>
+          </Label>
+          <div className="relative">
+            <select value={data.prPreStatus} onChange={(e) => onChange({ prPreStatus: e.target.value })}
+              className={cn(selectClass, !data.prPreStatus && 'text-slate-400')}>
+              <option value="" disabled>Select your status before PR…</option>
+              <option value="student">International student</option>
+              <option value="worker">Worker (work permit / PGWP)</option>
+              <option value="visitor">Visitor</option>
+              <option value="protected">Refugee / protected person</option>
+              <option value="outside">I was outside Canada</option>
+              <option value="other">Other</option>
+            </select>
+            <ChevronDownIcon />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <Label className="text-sm font-semibold text-[#0B1F3A]">
+            Have you travelled outside Canada since becoming a PR?
+            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">PRs must be in Canada at least 730 days in the last 5 years to keep PR status. You can log trips in your dashboard.</span>
+          </Label>
+          {[
+            { value: 'yes', label: 'Yes', desc: 'I have had trips outside Canada' },
+            { value: 'no', label: 'No', desc: 'I have stayed in Canada since becoming PR' },
+          ].map((opt) => (
+            <OptionCard key={opt.value} label={opt.label} desc={opt.desc}
+              selected={data.hasTraveledSincePR === opt.value}
+              onClick={() => onChange({ hasTraveledSincePR: opt.value })} />
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <Label className="text-sm font-semibold text-[#0B1F3A]">
+            Have you filed Canadian taxes for the required years?
+            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Tax filing is a requirement for citizenship. CRA records are reviewed during citizenship processing.</span>
+          </Label>
+          {[
+            { value: 'yes', label: 'Yes', desc: 'I have filed taxes for all required years' },
+            { value: 'partial', label: 'Partially', desc: 'I have filed some but not all required years' },
+            { value: 'no', label: 'No', desc: 'I have not filed taxes yet' },
+          ].map((opt) => (
+            <OptionCard key={opt.value} label={opt.label} desc={opt.desc}
+              selected={data.taxFilingComplete === opt.value}
+              onClick={() => onChange({ taxFilingComplete: opt.value })} />
+          ))}
+        </div>
+
+        {showLangProof && (
+          <div className="flex flex-col gap-3">
+            <Label className="text-sm font-semibold text-[#0B1F3A]">
+              Do you have proof of English or French language ability?
+              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Required for citizenship applicants aged 18–54. An accepted test result or other evidence of proficiency qualifies.</span>
+            </Label>
+            {[
+              { value: 'yes', label: 'Yes', desc: 'I have an accepted language test or other proof' },
+              { value: 'no', label: 'No', desc: 'I do not have language proof yet' },
+            ].map((opt) => (
+              <OptionCard key={opt.value} label={opt.label} desc={opt.desc}
+                selected={data.citizenshipLangProof === opt.value}
+                onClick={() => onChange({ citizenshipLangProof: opt.value })} />
+            ))}
+          </div>
+        )}
+
+        <div className="flex flex-col gap-3">
+          <Label className="text-sm font-semibold text-[#0B1F3A]">
+            Any criminal charges, removal order, probation, or past citizenship refusal?
+            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">These may affect citizenship eligibility. Navly will flag this for professional review.</span>
+          </Label>
+          {[
+            { value: 'no', label: 'No', desc: 'None of the above apply to me' },
+            { value: 'yes', label: 'Yes', desc: 'One or more of the above apply' },
+          ].map((opt) => (
+            <OptionCard key={opt.value} label={opt.label} desc={opt.desc}
+              selected={data.citizenshipProhibitions === opt.value}
+              onClick={() => onChange({ citizenshipProhibitions: opt.value })} />
+          ))}
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
 // ─── Step: Settlement ──────────────────────────────────────────────────────────
 
 function StepSettlement({ data, onChange }: {
@@ -1004,13 +1140,16 @@ function StepSettlement({ data, onChange }: {
   onChange: (fields: Partial<IntakeData>) => void
 }) {
   const familySize = parseInt(data.familySize) || 1
-  const fundsRequired: Record<number, number> = { 1: 13757, 2: 17127, 3: 21055, 4: 25564, 5: 28994, 6: 32700, 7: 36407 }
-  const required = fundsRequired[Math.min(familySize, 7)]
+  const required = getRequiredFunds(familySize)
   return (
     <div>
       <h1 className="text-3xl font-bold text-[#0B1F3A]">Settlement funds</h1>
       <p className="mt-2 text-slate-500">
         Federal Skilled Worker requires proof of available funds. Canadian Experience Class and most PNP streams do not require this.
+      </p>
+      <p className="mt-1 text-xs text-slate-400">
+        Amounts last verified: {SETTLEMENT_FUNDS.lastCheckedAt}. IRCC updates these annually —{' '}
+        <a href={SETTLEMENT_FUNDS.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">check the latest on IRCC</a>.
       </p>
       <div className="mt-8 flex flex-col gap-8">
         <div className="flex flex-col gap-2">
@@ -1080,10 +1219,12 @@ function StepManitobaFamily({ value, onChange }: { value: string; onChange: (v: 
 // ─── Step: Province ────────────────────────────────────────────────────────────
 
 function StepProvince({ data, onChange }: {
-  data: Pick<IntakeData, 'intendedProvince' | 'hasJobOffer' | 'locationStatus' | 'province'>
+  data: Pick<IntakeData, 'intendedProvince' | 'hasJobOffer' | 'locationStatus' | 'province' | 'status'>
   onChange: (fields: Partial<IntakeData>) => void
 }) {
   const isInside = data.locationStatus === 'inside'
+  // Job offer is only relevant for outside-Canada applicants and visitors inside Canada
+  const showJobOffer = data.locationStatus === 'outside' || (isInside && data.status === 'visitor')
   const currentProvinceLabel = CA_PROVINCES.find(p => p.value === data.province)?.label ?? data.province
   const planningToMove = data.intendedProvince && data.intendedProvince !== data.province
 
@@ -1149,18 +1290,20 @@ function StepProvince({ data, onChange }: {
           </div>
         )}
 
-        <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
-            Do you have a valid job offer from a Canadian employer?
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Adds 50–200 CRS points and strengthens PNP streams.</span>
-          </Label>
-          {[
-            { value: 'yes', label: 'Yes', desc: 'I have a written offer from a Canadian employer' },
-            { value: 'no', label: 'No', desc: 'No job offer yet' },
-          ].map((opt) => (
-            <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.hasJobOffer === opt.value} onClick={() => onChange({ hasJobOffer: opt.value })} />
-          ))}
-        </div>
+        {showJobOffer && (
+          <div className="flex flex-col gap-3">
+            <Label className="text-sm font-semibold text-[#0B1F3A]">
+              Do you have a valid job offer from a Canadian employer?
+              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Adds 50–200 CRS points and strengthens PNP streams.</span>
+            </Label>
+            {[
+              { value: 'yes', label: 'Yes', desc: 'I have a written offer from a Canadian employer' },
+              { value: 'no', label: 'No', desc: 'No job offer yet' },
+            ].map((opt) => (
+              <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.hasJobOffer === opt.value} onClick={() => onChange({ hasJobOffer: opt.value })} />
+            ))}
+          </div>
+        )}
 
         {(data.intendedProvince === 'QC' || (isInside && data.province === 'QC' && !planningToMove)) && (
           <div className="rounded-2xl border border-[#0B1F3A]/15 bg-[#0B1F3A]/5 p-4">
@@ -1595,6 +1738,15 @@ function getValidationHint(stepId: StepId, data: IntakeData): string {
       if (!data.canadianSibling) return 'Answer the Canadian sibling question.'
       return ''
     }
+    case 'pr-status': {
+      if (!data.prDate) return 'Enter the date you became a PR.'
+      if (!data.prCardExpiry) return 'Enter your PR card expiry date.'
+      if (!data.prPreStatus) return 'Select your status before becoming a PR.'
+      if (!data.hasTraveledSincePR) return 'Indicate whether you have travelled outside Canada since becoming a PR.'
+      if (!data.taxFilingComplete) return 'Answer the tax filing question.'
+      if (!data.citizenshipProhibitions) return 'Answer the prohibitions question.'
+      return ''
+    }
     case 'canada-dates': {
       if (!data.arrivalDate) return 'Enter your arrival date in Canada.'
       if (!data.province) return 'Select your province or territory.'
@@ -1630,7 +1782,8 @@ function getValidationHint(stepId: StepId, data: IntakeData): string {
     }
     case 'province': {
       if (!data.intendedProvince) return data.locationStatus === 'inside' ? 'Choose whether you are staying or moving province.' : 'Select your intended province.'
-      if (!data.hasJobOffer) return 'Indicate whether you have a Canadian job offer.'
+      const needsJobOffer = data.locationStatus === 'outside' || (data.locationStatus === 'inside' && data.status === 'visitor')
+      if (needsJobOffer && !data.hasJobOffer) return 'Indicate whether you have a Canadian job offer.'
       return ''
     }
     default: return ''
@@ -1669,7 +1822,12 @@ function canContinue(stepId: StepId, data: IntakeData): boolean {
     }
     case 'settlement': return !!data.familySize
     case 'risk': return !!data.previousRefusals && !!data.lostStatus
-    case 'province': return !!data.intendedProvince && !!data.hasJobOffer
+    case 'province': {
+      if (!data.intendedProvince) return false
+      const needsJobOffer = data.locationStatus === 'outside' || (data.locationStatus === 'inside' && data.status === 'visitor')
+      if (needsJobOffer) return !!data.hasJobOffer
+      return true
+    }
     case 'manitoba-family': return !!data.manitobaFamilyRelative
     case 'signup': return false
     default: return false
@@ -1858,6 +2016,9 @@ export function IntakeFlow() {
           )}
           {currentStep === 'canada-dates' && (
             <StepCanadaDates data={data} onChange={update} />
+          )}
+          {currentStep === 'pr-status' && (
+            <StepPRStatus data={data} onChange={update} />
           )}
           {currentStep === 'spouse-language' && (
             <StepSpouseLanguage data={data} onChange={update} />

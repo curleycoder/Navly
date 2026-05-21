@@ -103,6 +103,15 @@ export type IntakeData = {
   // Formal citizenship (legal nationality — originCountry used as fallback)
   citizenship: string
 
+  // PR / Citizenship tracking
+  prDate: string              // 'YYYY-MM-DD' — date became PR
+  prCardExpiry: string        // 'YYYY-MM' — PR card expiry
+  prPreStatus: string         // status before PR: 'student' | 'worker' | 'visitor' | 'protected' | 'other'
+  hasTraveledSincePR: string  // 'yes' | 'no' | ''
+  taxFilingComplete: string   // 'yes' | 'no' | 'partial' | ''
+  citizenshipLangProof: string // 'yes' | 'no' | '' — language proof for citizenship (age 18–54)
+  citizenshipProhibitions: string // 'yes' | 'no' | '' — criminal, removal order, probation
+
   // Account state (set by auth flow, not user-editable)
   phoneVerified: string    // 'yes' | 'no' | ''
   duplicateStatus: string  // 'clean' | 'duplicate' | ''
@@ -175,6 +184,13 @@ export const EMPTY_PROFILE: IntakeData = {
   parentOrChildSponsor: '',
   studyBudget: '',
   citizenship: '',
+  prDate: '',
+  prCardExpiry: '',
+  prPreStatus: '',
+  hasTraveledSincePR: '',
+  taxFilingComplete: '',
+  citizenshipLangProof: '',
+  citizenshipProhibitions: '',
   phoneVerified: '',
   duplicateStatus: '',
 }
