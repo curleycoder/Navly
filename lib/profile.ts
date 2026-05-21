@@ -18,6 +18,7 @@ export type IntakeData = {
   timeline: string      // 'urgent' | 'soon' | 'planning' | 'unsure'
   arrivalDate: string   // 'YYYY-MM-DD' — when user arrived in Canada (empty if outside Canada)
   visaExpiryDate: string // 'YYYY-MM-DD' — visa/permit expiry for reminders
+  targetArrivalTimeline: string // for outside users: 'within-3-months' | '3-6-months' | '6-12-months' | '1-2-years' | 'not-sure'
 
   // Phase 2 — PR profile
   age: string
@@ -33,14 +34,25 @@ export type IntakeData = {
   spouseEducationLevel: string
   spouseCanadianWorkMonths: string
 
-  // Language (first official)
-  langTestType: string   // 'ielts-general' | 'ielts-academic' | 'celpip' | 'pte' | 'tef' | 'tcf' | 'none' | 'other'
+  // Language
+  firstOfficialLanguage: string  // 'english' | 'french' | ''
+
+  // First official language test
+  langTestType: string   // 'ielts-general' | 'celpip' | 'pte' | 'tef' | 'tcf' | 'none' | 'other'
   langTestName: string   // custom name when langTestType = 'other'
-  langTestDate: string   // 'YYYY-MM' — test date, used to check 2-year validity
+  langTestDate: string   // 'YYYY-MM-DD' — exact test date for 2-year validity tracking
   langReading: string
   langWriting: string
   langListening: string
   langSpeaking: string
+
+  // Second official language test (optional — adds up to 24 bonus CRS points)
+  lang2TestType: string  // 'ielts-general' | 'celpip' | 'pte' | 'tef' | 'tcf' | 'none'
+  lang2TestDate: string  // 'YYYY-MM-DD'
+  lang2Reading: string
+  lang2Writing: string
+  lang2Listening: string
+  lang2Speaking: string
 
   // Education
   educationLevel: string
@@ -72,21 +84,71 @@ export type IntakeData = {
   // Provincial nomination
   pnpNomination: string    // 'yes' | 'no' | ''
 
+  // PNP ties (province-specific eligibility factors)
+  pnpJobOfferProvince: string       // province of job offer (may differ from intended)
+  pnpEducationProvince: string      // province where studied in Canada
+  pnpRelativesProvince: string      // province where relatives live
+  employerSupportsPNP: string       // 'yes' | 'no' | 'unsure' | ''
+  workExpInTargetProvince: string   // 'yes' | 'no' | ''
+  studiedInTargetProvince: string   // 'yes' | 'no' | ''
+  ruralCommunityInterest: string    // 'yes' | 'no' | ''
+
   // Risk flags
-  previousRefusals: string // 'yes' | 'no' | ''
-  lostStatus: string       // 'yes' | 'no' | '' (overstay or out-of-status)
+  previousRefusals: string      // 'yes' | 'no' | ''
+  lostStatus: string            // 'yes' | 'no' | '' (overstay or out-of-status)
+  criminalityIssues: string     // 'yes' | 'no' | ''
+  removalOrder: string          // 'yes' | 'no' | ''
+  medicalInadmissibility: string // 'yes' | 'no' | ''
 
   // Student-specific
   programLevel: string
   programLengthMonths: string
   graduationDate: string
+  schoolName: string
+  dliNumber: string
+  programStartDate: string      // 'YYYY-MM'
+  programEndDate: string        // 'YYYY-MM'
+  fieldOfStudy: string
+  fullTimeStudy: string         // 'yes' | 'no' | ''
+  hadPartTimeSemester: string   // 'yes' | 'no' | ''
+  unauthorizedWork: string      // 'yes' | 'no' | ''
+  pgwpApplied: string           // 'yes' | 'no' | 'not-applicable' | ''
+  pgwpExpiry: string            // 'YYYY-MM'
+  workAuthAfterGrad: string     // 'pgwp' | 'bridging' | 'none' | ''
 
   // Worker-specific
   workPermitType: string
-  permitExpiry: string     // 'YYYY-MM'
-  wage: string             // hourly CAD
+  permitExpiry: string          // 'YYYY-MM'
+  wage: string                  // hourly CAD
   hoursPerWeek: string
-  workStartDate: string    // 'YYYY-MM-DD'
+  workStartDate: string         // 'YYYY-MM-DD'
+  employerName: string
+  jobTitle: string
+  fullTimeOrPartTime: string    // 'full-time' | 'part-time' | ''
+  sameEmployerAsJobOffer: string // 'yes' | 'no' | ''
+  lmiaNumber: string
+  provinceOfJob: string
+  isPermanentNonSeasonal: string // 'yes' | 'no' | ''
+  isSelfEmployed: string         // 'yes' | 'no' | ''
+
+  // FSW / outside Canada
+  continuousSkilledWork1yr: string  // 'yes' | 'no' | ''
+  fswWorkDateFrom: string           // 'YYYY-MM'
+  fswWorkDateTo: string             // 'YYYY-MM'
+  paidWork: string                  // 'yes' | 'no' | ''
+  fullTimeEquivalent: string        // 'full-time' | 'part-time-equivalent' | ''
+  educationCredentialCountry: string
+  ecaOrganization: string
+  ecaIssueDate: string              // 'YYYY-MM'
+  ecaExpiryDate: string             // 'YYYY-MM'
+  relativesInCanada: string         // 'yes' | 'no' | ''
+  jobSearchStatus: string           // 'actively-searching' | 'have-offer' | 'not-yet' | ''
+
+  // Visitor-specific
+  visitorRecordExpiry: string       // 'YYYY-MM-DD'
+  applyingForStudyPermit: string    // 'yes' | 'no' | 'considering' | ''
+  eligibleForEEFromAbroad: string   // 'yes' | 'no' | 'unsure' | ''
+  extendedVisitorStatus: string     // 'yes' | 'no' | 'planning' | ''
 
   // Province targeting
   intendedProvince: string
@@ -112,6 +174,11 @@ export type IntakeData = {
   citizenshipLangProof: string // 'yes' | 'no' | '' — language proof for citizenship (age 18–54)
   citizenshipProhibitions: string // 'yes' | 'no' | '' — criminal, removal order, probation
 
+  // PR residency obligation tracking (730 days in Canada per 5-year period)
+  daysOutsideCanada5yr: string          // numeric string — days outside Canada in last 5 years
+  accompanyingCitizenSpouseAbroad: string // 'yes' | 'no' | '' — time abroad counts if accompanying citizen spouse
+  workingAbroadForCanadianEmployer: string // 'yes' | 'no' | '' — time abroad counts if employed by Canadian gov/business
+
   // Account state (set by auth flow, not user-editable)
   phoneVerified: string    // 'yes' | 'no' | ''
   duplicateStatus: string  // 'clean' | 'duplicate' | ''
@@ -134,6 +201,7 @@ export const EMPTY_PROFILE: IntakeData = {
   timeline: '',
   arrivalDate: '',
   visaExpiryDate: '',
+  targetArrivalTimeline: '',
   age: '',
   maritalStatus: '',
   spouseComing: '',
@@ -144,6 +212,7 @@ export const EMPTY_PROFILE: IntakeData = {
   spouseLangSpeaking: '',
   spouseEducationLevel: '',
   spouseCanadianWorkMonths: '',
+  firstOfficialLanguage: '',
   langTestType: '',
   langTestName: '',
   langTestDate: '',
@@ -151,6 +220,12 @@ export const EMPTY_PROFILE: IntakeData = {
   langWriting: '',
   langListening: '',
   langSpeaking: '',
+  lang2TestType: '',
+  lang2TestDate: '',
+  lang2Reading: '',
+  lang2Writing: '',
+  lang2Listening: '',
+  lang2Speaking: '',
   educationLevel: '',
   canadianEducation: '',
   ecaCompleted: '',
@@ -169,16 +244,60 @@ export const EMPTY_PROFILE: IntakeData = {
   frenchListening: '',
   frenchSpeaking: '',
   pnpNomination: '',
+  pnpJobOfferProvince: '',
+  pnpEducationProvince: '',
+  pnpRelativesProvince: '',
+  employerSupportsPNP: '',
+  workExpInTargetProvince: '',
+  studiedInTargetProvince: '',
+  ruralCommunityInterest: '',
   previousRefusals: '',
   lostStatus: '',
+  criminalityIssues: '',
+  removalOrder: '',
+  medicalInadmissibility: '',
   programLevel: '',
   programLengthMonths: '',
   graduationDate: '',
+  schoolName: '',
+  dliNumber: '',
+  programStartDate: '',
+  programEndDate: '',
+  fieldOfStudy: '',
+  fullTimeStudy: '',
+  hadPartTimeSemester: '',
+  unauthorizedWork: '',
+  pgwpApplied: '',
+  pgwpExpiry: '',
+  workAuthAfterGrad: '',
   workPermitType: '',
   permitExpiry: '',
   wage: '',
   hoursPerWeek: '',
   workStartDate: '',
+  employerName: '',
+  jobTitle: '',
+  fullTimeOrPartTime: '',
+  sameEmployerAsJobOffer: '',
+  lmiaNumber: '',
+  provinceOfJob: '',
+  isPermanentNonSeasonal: '',
+  isSelfEmployed: '',
+  continuousSkilledWork1yr: '',
+  fswWorkDateFrom: '',
+  fswWorkDateTo: '',
+  paidWork: '',
+  fullTimeEquivalent: '',
+  educationCredentialCountry: '',
+  ecaOrganization: '',
+  ecaIssueDate: '',
+  ecaExpiryDate: '',
+  relativesInCanada: '',
+  jobSearchStatus: '',
+  visitorRecordExpiry: '',
+  applyingForStudyPermit: '',
+  eligibleForEEFromAbroad: '',
+  extendedVisitorStatus: '',
   intendedProvince: '',
   quebecIntent: '',
   parentOrChildSponsor: '',
@@ -191,6 +310,9 @@ export const EMPTY_PROFILE: IntakeData = {
   taxFilingComplete: '',
   citizenshipLangProof: '',
   citizenshipProhibitions: '',
+  daysOutsideCanada5yr: '',
+  accompanyingCitizenSpouseAbroad: '',
+  workingAbroadForCanadianEmployer: '',
   phoneVerified: '',
   duplicateStatus: '',
 }

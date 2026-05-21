@@ -19,8 +19,9 @@ import { StepWork } from './steps/WorkStep'
 import { StepPRStatus } from './steps/PRStep'
 import { StepSettlement } from './steps/SettlementStep'
 import { StepProvince, StepManitobaFamily } from './steps/ProvinceSteps'
+import { StepPNP } from './steps/PNPStep'
 import { StepRisk } from './steps/RiskStep'
-import { StepSignUp } from './steps/SignUpStep'
+import { StepEarlySignup } from './steps/EarlySignupStep'
 
 export function IntakeFlow() {
   const [data, setData] = useState<IntakeData>({ ...EMPTY_PROFILE })
@@ -44,12 +45,15 @@ export function IntakeFlow() {
     setData((d) => ({ ...d, ...fields }))
   }
 
-  function next() {
+  async function next() {
     const currentSteps = getSteps(data)
     if (stepIndex < currentSteps.length - 1) {
       setStepIndex((i) => i + 1)
     } else {
+      // End of flow — persist full profile and show summary
       saveProfile(data)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) await saveProfileToSupabase(user.id, data)
       setDone(true)
     }
   }
@@ -66,20 +70,26 @@ export function IntakeFlow() {
     }
   }
 
-  async function handleSignUpComplete(phone: string) {
+  // Called after phone OTP + email/password — advances flow, does NOT end it
+  function handleEarlySignupComplete(phone: string) {
     const withPhone = { ...data, phone, phoneVerified: 'yes' }
     setData(withPhone)
     saveProfile(withPhone)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) await saveProfileToSupabase(user.id, withPhone)
-    setDone(true)
+    setStepIndex((i) => i + 1)
   }
 
   if (done) return <SummaryView data={data} />
 
-  const isSignupStep = currentStep === 'signup'
+  const isAccountStep = currentStep === 'early-signup'
   const ok = canContinue(currentStep, data)
   const hint = !ok ? getValidationHint(currentStep, data) : ''
+  const nextStep = steps[stepIndex + 1]
+  const isLastStep = stepIndex === steps.length - 1
+  const continueLabel = isLastStep
+    ? 'Complete profile'
+    : nextStep === 'early-signup'
+      ? 'Save progress'
+      : 'Continue'
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -114,6 +124,7 @@ export function IntakeFlow() {
           {currentStep === 'inside-status' && <StepInsideStatus value={data.status} onChange={(v) => update({ status: v })} />}
           {currentStep === 'goal' && <StepGoal data={data} onChange={(v) => update({ goal: v })} />}
           {currentStep === 'personal' && <StepPersonal data={data} onChange={update} />}
+          {currentStep === 'early-signup' && <StepEarlySignup data={data} onComplete={handleEarlySignupComplete} />}
           {currentStep === 'canada-dates' && <StepCanadaDates data={data} onChange={update} />}
           {currentStep === 'pr-status' && <StepPRStatus data={data} onChange={update} />}
           {currentStep === 'spouse-language' && <StepSpouseLanguage data={data} onChange={update} />}
@@ -122,16 +133,16 @@ export function IntakeFlow() {
           {currentStep === 'work' && <StepWork data={data} onChange={update} />}
           {currentStep === 'settlement' && <StepSettlement data={data} onChange={update} />}
           {currentStep === 'province' && <StepProvince data={data} onChange={update} />}
+          {currentStep === 'pnp-details' && <StepPNP data={data} onChange={update} />}
           {currentStep === 'manitoba-family' && <StepManitobaFamily value={data.manitobaFamilyRelative} onChange={(v) => update({ manitobaFamilyRelative: v })} />}
           {currentStep === 'risk' && <StepRisk data={data} onChange={update} />}
-          {currentStep === 'signup' && <StepSignUp onComplete={(phone) => handleSignUpComplete(phone)} />}
         </div>
       </div>
 
       {/* Fixed bottom nav */}
       <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-200 bg-white px-6 py-3" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
         <div className="mx-auto flex max-w-2xl items-center justify-between">
-          {!isSignupStep && (
+          {!isAccountStep && (
             <div className="flex w-full flex-col gap-1">
               <div className="flex items-center justify-between">
                 {stepIndex > 0 ? (
@@ -149,7 +160,7 @@ export function IntakeFlow() {
                   aria-describedby={!ok && hint ? 'step-hint' : undefined}
                   className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
                 >
-                  {stepIndex === steps.length - 2 ? 'Continue to account' : 'Continue'}
+                  {continueLabel}
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
@@ -160,7 +171,7 @@ export function IntakeFlow() {
               )}
             </div>
           )}
-          {isSignupStep && (
+          {isAccountStep && (
             <Button variant="outline" onClick={back} className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50">
               <ArrowLeft className="h-4 w-4" /> Back
             </Button>
