@@ -49,11 +49,14 @@ export function StepProvince({ data, onChange }: {
   onChange: (fields: Partial<IntakeData>) => void
 }) {
   const isInside = data.locationStatus === 'inside'
-  const currentProvinceLabel = CA_PROVINCES.find(p => p.value === data.province)?.label ?? data.province
+  const currentProvinceLabel = CA_PROVINCES.find(p => p.value === data.province)?.label ?? ''
   // Track move intent separately so the card stays selected while province picker is open
   const [wantsToMove, setWantsToMove] = useState(
     !!data.intendedProvince && data.intendedProvince !== data.province
   )
+
+  // PR users skip canada-dates, so province may not be set yet — ask inline
+  const needsProvincePicker = isInside && !data.province
 
   return (
     <div>
@@ -67,6 +70,20 @@ export function StepProvince({ data, onChange }: {
       </p>
       <div className="mt-6 flex flex-col gap-6">
 
+        {needsProvincePicker && (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="curProv" className="text-sm font-semibold text-[#0B1F3A]">Which province are you currently in?</Label>
+            <div className="relative">
+              <select id="curProv" value={data.province ?? ''} onChange={(e) => onChange({ province: e.target.value, intendedProvince: e.target.value })}
+                className={cn(selectClass, !data.province && 'text-slate-400')}>
+                <option value="" disabled>Select province or territory…</option>
+                {CA_PROVINCES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+              </select>
+              <ChevronDownIcon />
+            </div>
+          </div>
+        )}
+
         {!isInside && (
           <div className="flex flex-col gap-3">
             <Label className="text-sm font-semibold text-[#0B1F3A]">When are you planning to arrive in Canada?</Label>
@@ -76,7 +93,7 @@ export function StepProvince({ data, onChange }: {
           </div>
         )}
 
-        {isInside ? (
+        {isInside && !needsProvincePicker ? (
           <div className="flex flex-col gap-3">
             <Label className="text-sm font-semibold text-[#0B1F3A]">Where are you planning to settle for PR?</Label>
             {[

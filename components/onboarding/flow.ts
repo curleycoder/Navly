@@ -40,10 +40,8 @@ export function getSteps(data: IntakeData): StepId[] {
   const isManitoba = data.intendedProvince === 'MB'
 
   if (isInside) {
-    steps.push('inside-status', 'goal', 'province', 'personal', 'early-signup')
-
     if (isPR) {
-      steps.push('pr-status')
+      steps.push('inside-status', 'goal', 'province', 'personal', 'early-signup', 'pr-status')
 
       if (hasSpouse) {
         steps.push('spouse-language')
@@ -53,13 +51,14 @@ export function getSteps(data: IntakeData): StepId[] {
       return steps
     }
 
-    steps.push('canada-dates')
+    steps.push('inside-status', 'goal', 'canada-dates', 'province', 'personal', 'early-signup')
 
     if (hasSpouse) {
       steps.push('spouse-language')
     }
 
     steps.push('language', 'education', 'work')
+
 
     const isStudent = data.status === 'student'
     const isWorker =
