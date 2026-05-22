@@ -122,13 +122,13 @@ export default function PricingPage() {
           <Link href="/">
             <NavlyLogo size="sm" />
           </Link>
-          <Link href="/onboarding" className="text-sm font-semibold text-[#D62828] hover:underline">
+          <Link href="/onboarding" className="text-sm pt-2 font-semibold text-[#D62828] hover:underline">
             Start free →
           </Link>
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl px-6 py-16">
+      <div className="mx-auto max-w-5xl px-6 py-5">
         <Link
           href="/"
           className="mb-8 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#0B1F3A]"
@@ -209,16 +209,16 @@ export default function PricingPage() {
           <h2 className="mb-6 text-center text-xl font-bold text-[#0B1F3A]">What each tier sees</h2>
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             {/* Header */}
-            <div className="grid grid-cols-4 border-b border-slate-100 bg-slate-50">
+            <div className="grid grid-cols-4 border-b-2 border-slate-200 bg-[#0B1F3A]">
               <div className="px-5 py-4 text-xs font-bold uppercase tracking-wide text-slate-400">Feature</div>
               {[
-                { label: 'Free', sub: '$0' },
-                { label: 'Report', sub: '$29 one-time' },
-                { label: 'Tracker', sub: '$14/mo' },
+                { label: 'Free', sub: '$0', accent: 'text-slate-300' },
+                { label: 'Report', sub: '$29 one-time', accent: 'text-amber-400' },
+                { label: 'Tracker', sub: '$14/mo', accent: 'text-[#D62828]' },
               ].map((h) => (
                 <div key={h.label} className="px-4 py-4 text-center">
-                  <p className="text-sm font-bold text-[#0B1F3A]">{h.label}</p>
-                  <p className="text-[11px] text-slate-400">{h.sub}</p>
+                  <p className={`text-sm font-bold ${h.accent}`}>{h.label}</p>
+                  <p className="text-[11px] text-slate-500">{h.sub}</p>
                 </div>
               ))}
             </div>
@@ -235,16 +235,16 @@ export default function PricingPage() {
               { feature: 'Permit expiry warnings', free: 'x', report: 'x', tracker: 'check' },
               { feature: 'PR probability score', free: 'x', report: 'x', tracker: 'check' },
               { feature: 'AI immigration assistant', free: 'x', report: 'x', tracker: 'check' },
-            ].map((row) => (
-              <div key={row.feature} className="grid grid-cols-4 border-b border-slate-100 last:border-0 even:bg-slate-50/50">
-                <div className="flex items-center px-5 py-3.5 text-sm text-slate-700">{row.feature}</div>
-                {[row.free, row.report, row.tracker].map((val, i) => (
-                  <div key={i} className="flex items-center justify-center px-4 py-3.5">
-                    {val === 'check' && <Check className="h-4 w-4 text-emerald-500" />}
-                    {val === 'lock' && <Lock className="h-4 w-4 text-slate-400" />}
-                    {val === 'x' && <X className="h-4 w-4 text-slate-300" />}
+            ].map((row, i) => (
+              <div key={row.feature} className={`grid grid-cols-4 border-b border-slate-100 last:border-0 ${i % 2 === 1 ? 'bg-slate-50' : 'bg-white'}`}>
+                <div className="flex items-center px-5 py-4 text-sm font-medium text-slate-800">{row.feature}</div>
+                {[row.free, row.report, row.tracker].map((val, j) => (
+                  <div key={j} className="flex items-center justify-center px-4 py-4">
+                    {val === 'check' && <Check className="h-5 w-5 text-emerald-500" strokeWidth={2.5} />}
+                    {val === 'lock' && <Lock className="h-4 w-4 text-amber-500" />}
+                    {val === 'x' && <X className="h-4 w-4 text-slate-300" strokeWidth={2.5} />}
                     {val !== 'check' && val !== 'lock' && val !== 'x' && (
-                      <span className="text-sm font-semibold text-slate-600">{val}</span>
+                      <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">{val}</span>
                     )}
                   </div>
                 ))}
