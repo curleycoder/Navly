@@ -60,13 +60,14 @@ function MiniGauge({ value, max, color }: { value: number; max: number; color: s
 
 // ─── Dashboard page ───────────────────────────────────────────────────────────
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
   const { t } = useLocale()
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
   const [presence, setPresence] = useState<PresenceData>({
     totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null, arrivalDate: null, travelLog: [],
   })
+  const [news, setNews] = useState<NewsUpdate[]>([])
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -76,6 +77,7 @@ export default async function DashboardPage() {
       const s = calculateScore(p)
       setScore(s)
       if (s.crs && s.crs.total > 0) recordScoreSnapshot(s.crs.total)
+      getPersonalizedUpdates(p.status, p.goal).then(updates => setNews(updates.slice(0, 2)))
     }
     setPresence(loadPresence())
     setLoaded(true)
@@ -90,7 +92,6 @@ export default async function DashboardPage() {
   const tasks = loadTasks()
   const nextTask = tasks.find((t) => !t.done)
   const topPathway = score?.pathways.find((p) => p.status === 'eligible' || p.status === 'possible')
-  const news = profile ? (await getPersonalizedUpdates(profile.status, profile.goal)).slice(0, 2) : []
   const improvement = score?.improvements[0]
   const checkedInToday = isCheckedInToday(presence)
 
