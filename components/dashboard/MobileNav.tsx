@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Menu, LogOut, UserCircle } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { ChevronLeft, Menu, LogOut, UserCircle } from 'lucide-react'
 import { Sheet, SheetContent, SheetClose } from '@/components/ui/sheet'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { navItems } from '@/components/dashboard/Sidebar'
@@ -15,6 +15,7 @@ export function MobileNav() {
   const [open, setOpen] = useState(false)
   const [isOutside, setIsOutside] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
 
   useEffect(() => {
     const profile = loadProfile()
@@ -22,17 +23,36 @@ export function MobileNav() {
   }, [])
 
   const visibleItems = navItems.filter((item) => !isOutside || item.outsideOk)
+  const isRoot = pathname === '/dashboard'
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 md:hidden">
-      <Link href="/">
-        <NavlyLogo size="sm" />
-      </Link>
+    <header className="grid h-14 grid-cols-[48px_1fr_48px] items-center border-b border-slate-200 bg-white px-3 md:hidden">
+      {/* Left: back arrow */}
+      <div className="flex items-center justify-start">
+        {!isRoot && (
+          <button
+            onClick={() => router.back()}
+            aria-label="Go back"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 active:bg-slate-200"
+          >
+            <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
+          </button>
+        )}
+      </div>
 
+      {/* Center: wordmark */}
+      <div className="flex items-center justify-center">
+        <Link href="/dashboard" onClick={() => setOpen(false)} aria-label="Dashboard home">
+          <NavlyLogo size="sm" />
+        </Link>
+      </div>
+
+      {/* Right: hamburger */}
+      <div className="flex items-center justify-end">
       <Sheet open={open} onOpenChange={setOpen}>
         <button
           onClick={() => setOpen(true)}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 active:bg-slate-200"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
@@ -106,6 +126,7 @@ export function MobileNav() {
           </div>
         </SheetContent>
       </Sheet>
+      </div>
     </header>
   )
 }
