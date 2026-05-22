@@ -113,21 +113,20 @@ type DrawRow = {
   tie_break_rule: string | null
 }
 
-function parseDrawsFromHTML(html: string): DrawRow[] {
+function parseRowsFromBlock(block: string): DrawRow[] {
   const draws: DrawRow[] = []
-
-  // Find the <tbody> of the draws table — IRCC uses a single main table
-  const tbodyMatch = html.match(/<tbody[^>]*>([\s\S]*?)<\/tbody>/i)
-  if (!tbodyMatch) return draws
-
-  const tbody = tbodyMatch[1]
   const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi
   let rowMatch: RegExpExecArray | null
 
-  while ((rowMatch = rowRegex.exec(tbody)) !== null) {
-    const cells = parseCells(rowMatch[1])
+  while ((rowMatch = rowRegex.exec(block)) !== null) {
+    // Accept both <td> and <th> cells (IRCC sometimes uses <th> for data rows)
+    const cells: string[] = []
+    const cellRegex = /<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi
+    let cm: RegExpExecArray | null
+    while ((cm = cellRegex.exec(rowMatch[1])) !== null) {
+      cells.push(stripHtml(cm[1]))
+    }
 
-    // Expected column order: No. | Date | Type | CRS Score | Invitations | Tie-break
     if (cells.length < 5) continue
 
     const drawNumber = parseNumber(cells[0])
@@ -152,6 +151,39 @@ function parseDrawsFromHTML(html: string): DrawRow[] {
   return draws
 }
 
+function parseDrawsFromHTML(html: string): DrawRow[] {
+  const draws: DrawRow[] = []
+  const seen = new Set<number>()
+
+  // IRCC uses <details> per year, each containing a <table> with a <tbody>.
+  // Collect ALL <tbody> blocks across the full page.
+  const tbodyRegex = /<tbody[^>]*>([\s\S]*?)<\/tbody>/gi
+  let tbodyMatch: RegExpExecArray | null
+
+  while ((tbodyMatch = tbodyRegex.exec(html)) !== null) {
+    for (const row of parseRowsFromBlock(tbodyMatch[1])) {
+      if (!seen.has(row.draw_number)) {
+        seen.add(row.draw_number)
+        draws.push(row)
+      }
+    }
+  }
+
+  // Fallback: if no <tbody> found, try parsing <tr> rows directly from the full HTML
+  if (draws.length === 0) {
+    for (const row of parseRowsFromBlock(html)) {
+      if (!seen.has(row.draw_number)) {
+        seen.add(row.draw_number)
+        draws.push(row)
+      }
+    }
+  }
+
+  // Sort descending by draw number (most recent first)
+  draws.sort((a, b) => b.draw_number - a.draw_number)
+  return draws
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
 
 export async function GET(req: Request) {
@@ -160,6 +192,8 @@ export async function GET(req: Request) {
   if (secret && auth !== `Bearer ${secret}`) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const debug = new URL(req.url).searchParams.get('debug') === '1'
 
   // Fetch the IRCC EE draws page
   let html: string
@@ -176,13 +210,31 @@ export async function GET(req: Request) {
     return Response.json({ error: `Fetch failed: ${(e as Error).message}` }, { status: 502 })
   }
 
+  // Debug mode: return HTML structure info without writing to DB
+  if (debug) {
+    const tbodyCount = (html.match(/<tbody/gi) ?? []).length
+    const tableCount = (html.match(/<table/gi) ?? []).length
+    const trCount = (html.match(/<tr/gi) ?? []).length
+    const firstTbody = html.match(/<tbody[^>]*>([\s\S]{0,2000})/i)?.[1] ?? 'not found'
+    const firstTable = html.match(/<table[^>]*>([\s\S]{0,1000})/i)?.[1] ?? 'not found'
+    return Response.json({
+      debug: true,
+      htmlLength: html.length,
+      tableCount,
+      tbodyCount,
+      trCount,
+      firstTableSnippet: stripHtml(firstTable).slice(0, 500),
+      firstTbodySnippet: stripHtml(firstTbody).slice(0, 1000),
+    })
+  }
+
   const draws = parseDrawsFromHTML(html)
 
   if (draws.length === 0) {
     return Response.json({
       ok: false,
       error: 'No draws parsed — the IRCC page structure may have changed.',
-      hint: 'Check the HTML at the EE draws URL and update parseCells() if needed.',
+      hint: 'Add ?debug=1 to inspect the HTML structure.',
     }, { status: 200 })
   }
 
