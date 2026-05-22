@@ -356,6 +356,59 @@ function PNPStreamsCard({ streams }: { streams: PNPStream[] }) {
   )
 }
 
+// ─── Free CRS Summary Card ────────────────────────────────────────────────────
+
+function CRSSummaryCard({ crs }: { crs: number }) {
+  const [cutoff, setCutoff] = useState<number | null>(null)
+
+  useEffect(() => {
+    fetch('/api/draws')
+      .then(r => r.json())
+      .then((data: { cutoff: number }[]) => { if (data[0]?.cutoff) setCutoff(data[0].cutoff) })
+      .catch(() => {})
+  }, [])
+
+  const gap = cutoff !== null && crs > 0 ? cutoff - crs : null
+  const isAbove = gap !== null && gap <= 0
+
+  return (
+    <Card className="mb-6 rounded-2xl border-slate-200 bg-white shadow-sm">
+      <CardContent className="p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-5">
+            <div className="flex flex-col items-center justify-center rounded-2xl bg-[#0B1F3A] px-5 py-3 text-white">
+              <span className="text-3xl font-bold leading-none">{crs > 0 ? crs : '—'}</span>
+              <span className="mt-1 text-[10px] font-bold uppercase tracking-wide text-white/60">Your CRS</span>
+            </div>
+            {cutoff !== null && (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3">
+                <span className="text-3xl font-bold leading-none text-[#0B1F3A]">{cutoff}</span>
+                <span className="mt-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">Last draw</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-1">
+            {gap === null && crs === 0 && (
+              <p className="text-sm text-slate-500">Complete your profile to see your CRS score.</p>
+            )}
+            {gap !== null && (
+              <p className={`text-lg font-bold ${isAbove ? 'text-green-700' : 'text-[#0B1F3A]'}`}>
+                {isAbove
+                  ? `You are ${Math.abs(gap)} point${Math.abs(gap) !== 1 ? 's' : ''} above the last cutoff ✓`
+                  : `You are ${gap} point${gap !== 1 ? 's' : ''} away 👀`}
+              </p>
+            )}
+            {cutoff !== null && gap !== null && !isAbove && (
+              <p className="text-sm text-slate-500">Last draw cutoff was {cutoff} CRS</p>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 // ─── EE Draws Card ────────────────────────────────────────────────────────────
 
 type EEDraw = { date: string; type: string; cutoff: number; invited?: number }
@@ -477,7 +530,23 @@ export default function PRTrackerPage() {
 
       {isOutside && profile && <OutsidePlanningCard profile={profile} />}
 
-      <PlanGate plan="report">
+      {profile && score && <CRSSummaryCard crs={score.crs?.total ?? 0} />}
+
+      <PlanGate
+        plan="report"
+        fallback={
+          <Link
+            href="/dashboard/upgrade"
+            className="mb-8 flex items-center justify-between rounded-2xl border border-dashed border-[#D62828]/40 bg-[#D62828]/5 p-5 transition hover:bg-[#D62828]/10"
+          >
+            <div>
+              <p className="font-bold text-[#0B1F3A]">Unlock where your missing points are →</p>
+              <p className="mt-0.5 text-sm text-slate-500">See your full CRS breakdown by category, pathway eligibility, and the exact improvements that would move your score.</p>
+            </div>
+            <ArrowRight className="ml-4 h-5 w-5 shrink-0 text-[#D62828]" />
+          </Link>
+        }
+      >
         {profile && score && <ScoreTracker profile={profile} score={score} />}
 
         {pnpStreams.length > 0 && <PNPStreamsCard streams={pnpStreams} />}
