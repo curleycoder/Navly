@@ -97,7 +97,9 @@ export async function GET(req: Request) {
     return Response.json({ error: `Fetch failed: ${(e as Error).message}` }, { status: 502 })
   }
 
-  const draws = rounds.map(toDrawRow).filter((d): d is DrawRow => d !== null)
+  const allDraws = rounds.map(toDrawRow).filter((d): d is DrawRow => d !== null)
+  // Deduplicate by draw_number (feed occasionally contains duplicates)
+  const draws = [...new Map(allDraws.map(d => [d.draw_number, d])).values()]
 
   if (draws.length === 0) {
     return Response.json({ ok: false, error: 'No draws in JSON response.' }, { status: 200 })
