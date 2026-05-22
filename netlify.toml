@@ -8,9 +8,6 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[functions]
-  included_files = ["**"]
-
 [[headers]]
   for = "/api/*"
   [headers.values]
