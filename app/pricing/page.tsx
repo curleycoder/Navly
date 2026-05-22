@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Check, Zap, BarChart3, CalendarCheck, Loader2 } from 'lucide-react'
+import { ArrowLeft, Check, Zap, BarChart3, CalendarCheck, Loader2, Lock, X } from 'lucide-react'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
@@ -224,28 +224,28 @@ export default function PricingPage() {
             </div>
 
             {[
-              { feature: 'CRS score (current)', free: '✅', report: '✅', tracker: '✅' },
-              { feature: '"You need X more points"', free: '✅', report: '✅', tracker: '✅' },
-              { feature: 'Canada days counter', free: '✅', report: '✅', tracker: '✅' },
-              { feature: 'Express Entry draw alerts', free: '✅', report: '✅', tracker: '✅' },
-              { feature: 'Where those points come from', free: '🔒', report: '✅', tracker: '✅' },
+              { feature: 'CRS score (current)', free: 'check', report: 'check', tracker: 'check' },
+              { feature: '"You need X more points"', free: 'check', report: 'check', tracker: 'check' },
+              { feature: 'Canada days counter', free: 'check', report: 'check', tracker: 'check' },
+              { feature: 'Express Entry draw alerts', free: 'check', report: 'check', tracker: 'check' },
+              { feature: 'Where those points come from', free: 'lock', report: 'check', tracker: 'check' },
               { feature: 'Pathway options', free: '1 preview', report: 'All', tracker: 'All' },
-              { feature: 'Missing docs checklist', free: '—', report: '✅', tracker: '✅' },
-              { feature: '"If I do X → score becomes Y"', free: '—', report: '✅', tracker: '✅' },
-              { feature: 'Permit expiry warnings', free: '—', report: '—', tracker: '✅' },
-              { feature: 'PR probability score', free: '—', report: '—', tracker: '✅' },
-              { feature: 'AI immigration assistant', free: '—', report: '—', tracker: '✅' },
+              { feature: 'Missing docs checklist', free: 'x', report: 'check', tracker: 'check' },
+              { feature: '"If I do X → score becomes Y"', free: 'x', report: 'check', tracker: 'check' },
+              { feature: 'Permit expiry warnings', free: 'x', report: 'x', tracker: 'check' },
+              { feature: 'PR probability score', free: 'x', report: 'x', tracker: 'check' },
+              { feature: 'AI immigration assistant', free: 'x', report: 'x', tracker: 'check' },
             ].map((row) => (
               <div key={row.feature} className="grid grid-cols-4 border-b border-slate-100 last:border-0 even:bg-slate-50/50">
                 <div className="flex items-center px-5 py-3.5 text-sm text-slate-700">{row.feature}</div>
                 {[row.free, row.report, row.tracker].map((val, i) => (
                   <div key={i} className="flex items-center justify-center px-4 py-3.5">
-                    <span className={`text-sm font-semibold ${
-                      val === '✅' ? 'text-emerald-600' :
-                      val === '🔒' ? 'text-slate-400' :
-                      val === '—' ? 'text-slate-300' :
-                      'text-slate-600'
-                    }`}>{val}</span>
+                    {val === 'check' && <Check className="h-4 w-4 text-emerald-500" />}
+                    {val === 'lock' && <Lock className="h-4 w-4 text-slate-400" />}
+                    {val === 'x' && <X className="h-4 w-4 text-slate-300" />}
+                    {val !== 'check' && val !== 'lock' && val !== 'x' && (
+                      <span className="text-sm font-semibold text-slate-600">{val}</span>
+                    )}
                   </div>
                 ))}
               </div>
