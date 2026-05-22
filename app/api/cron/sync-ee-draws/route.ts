@@ -1,5 +1,5 @@
 /**
- * Cron route — scrapes Express Entry draw results from the IRCC official page
+ * Cron route — fetches Express Entry draw results from the official IRCC JSON feed
  * and upserts into express_entry_draws.
  *
  * Run the migration first:
@@ -9,13 +9,16 @@
  *   GET /api/cron/sync-ee-draws
  *   Authorization: Bearer <CRON_SECRET>
  *
- * Source: https://www.canada.ca/en/immigration-refugees-citizenship/services/
- *         immigrate-canada/express-entry/submit-profile/rounds-invitations.html
+ * Source: https://www.canada.ca/content/dam/ircc/documents/json/ee_rounds_123_en.json
  */
 import { createClient } from '@supabase/supabase-js'
 
-const EE_DRAWS_URL =
-  'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/submit-profile/rounds-invitations.html'
+const EE_DRAWS_JSON =
+  'https://www.canada.ca/content/dam/ircc/documents/json/ee_rounds_123_en.json'
+
+// Reference page for source_url stored in rule_snapshots
+const EE_DRAWS_PAGE =
+  'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/rounds-invitations.html'
 
 function adminDb() {
   return createClient(
@@ -24,85 +27,17 @@ function adminDb() {
   )
 }
 
-// ── HTML parsing helpers ──────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
-/** Strip all HTML tags and decode common entities. */
-function stripHtml(html: string): string {
-  return html
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/\s+/g, ' ')
-    .trim()
+type IRCCRound = {
+  drawNumber: string
+  drawDate: string        // 'YYYY-MM-DD'
+  drawName: string        // draw type label
+  drawSize: string        // invitations issued
+  drawCRS: string         // CRS cutoff
+  drawCutOff: string      // tie-break date/time string e.g. "January 07, 2026 at 05:23:31 UTC"
+  [key: string]: string   // dd1..dd18 distribution buckets
 }
-
-/** Extract all <td> cell texts from a single <tr> block. */
-function parseCells(row: string): string[] {
-  const cells: string[] = []
-  const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi
-  let m: RegExpExecArray | null
-  while ((m = cellRegex.exec(row)) !== null) {
-    cells.push(stripHtml(m[1]))
-  }
-  return cells
-}
-
-/**
- * Parse a date string like "May 14, 2026" or "14 May 2026" → "YYYY-MM-DD".
- * Returns null if unparseable.
- */
-function parseDate(raw: string): string | null {
-  const cleaned = raw.trim()
-  const d = new Date(cleaned)
-  if (!isNaN(d.getTime())) {
-    return d.toISOString().slice(0, 10)
-  }
-  return null
-}
-
-/**
- * Parse a tie-break string like "October 24, 2024 at 09:01:26 UTC"
- * → ISO 8601 string. Returns null if unparseable.
- */
-function parseTieBreak(raw: string): string | null {
-  if (!raw || raw === 'N/A' || raw === '-') return null
-  // Replace "at" with a space so Date can parse it
-  const cleaned = raw.replace(/\s+at\s+/i, ' ').replace(/\s*UTC\s*/i, 'Z')
-  const d = new Date(cleaned)
-  if (!isNaN(d.getTime())) return d.toISOString()
-  return null
-}
-
-/** Remove commas from numbers like "1,000" → 1000. */
-function parseNumber(raw: string): number {
-  return parseInt(raw.replace(/,/g, ''), 10)
-}
-
-// ── Draw type normalisation ───────────────────────────────────────────────────
-
-/**
- * Normalise IRCC draw type label to a consistent slug-friendly value.
- * IRCC sometimes changes the exact wording; map known variants.
- */
-function normaliseDrawType(raw: string): string {
-  const t = raw.toLowerCase()
-  if (t.includes('no program')) return 'No Program Specified'
-  if (t.includes('canadian experience')) return 'Canadian Experience Class'
-  if (t.includes('french')) return 'French Language Proficiency'
-  if (t.includes('provincial nominee') || t.includes('pnp')) return 'Provincial Nominee Program'
-  if (t.includes('federal skilled trades') || t.includes('fst')) return 'Federal Skilled Trades'
-  if (t.includes('federal skilled worker') || t.includes('fsw')) return 'Federal Skilled Worker'
-  if (t.includes('healthcare') || t.includes('health care')) return 'Healthcare Occupations'
-  if (t.includes('stem')) return 'STEM Occupations'
-  if (t.includes('trade')) return 'Trade Occupations'
-  if (t.includes('transport')) return 'Transport Occupations'
-  if (t.includes('agriculture') || t.includes('agri-food')) return 'Agriculture and Agri-Food'
-  return raw.trim() // keep original if unknown
-}
-
-// ── Parser ────────────────────────────────────────────────────────────────────
 
 type DrawRow = {
   draw_number: number
@@ -113,75 +48,28 @@ type DrawRow = {
   tie_break_rule: string | null
 }
 
-function parseRowsFromBlock(block: string): DrawRow[] {
-  const draws: DrawRow[] = []
-  const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi
-  let rowMatch: RegExpExecArray | null
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-  while ((rowMatch = rowRegex.exec(block)) !== null) {
-    // Accept both <td> and <th> cells (IRCC sometimes uses <th> for data rows)
-    const cells: string[] = []
-    const cellRegex = /<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi
-    let cm: RegExpExecArray | null
-    while ((cm = cellRegex.exec(rowMatch[1])) !== null) {
-      cells.push(stripHtml(cm[1]))
-    }
-
-    if (cells.length < 5) continue
-
-    const drawNumber = parseNumber(cells[0])
-    const drawDate = parseDate(cells[1])
-    const drawType = normaliseDrawType(cells[2])
-    const crsScore = parseNumber(cells[3])
-    const invitations = parseNumber(cells[4])
-    const tieBreak = cells[5] ? parseTieBreak(cells[5]) : null
-
-    if (isNaN(drawNumber) || !drawDate || isNaN(crsScore) || isNaN(invitations)) continue
-
-    draws.push({
-      draw_number: drawNumber,
-      draw_date: drawDate,
-      draw_type: drawType,
-      crs_cutoff: crsScore,
-      invitations,
-      tie_break_rule: tieBreak,
-    })
-  }
-
-  return draws
+function parseTieBreak(raw: string): string | null {
+  if (!raw || raw === 'N/A' || raw === '-') return null
+  const cleaned = raw.replace(/\s+at\s+/i, ' ').replace(/\s*UTC\s*/i, 'Z')
+  const d = new Date(cleaned)
+  return isNaN(d.getTime()) ? null : d.toISOString()
 }
 
-function parseDrawsFromHTML(html: string): DrawRow[] {
-  const draws: DrawRow[] = []
-  const seen = new Set<number>()
-
-  // IRCC uses <details> per year, each containing a <table> with a <tbody>.
-  // Collect ALL <tbody> blocks across the full page.
-  const tbodyRegex = /<tbody[^>]*>([\s\S]*?)<\/tbody>/gi
-  let tbodyMatch: RegExpExecArray | null
-
-  while ((tbodyMatch = tbodyRegex.exec(html)) !== null) {
-    for (const row of parseRowsFromBlock(tbodyMatch[1])) {
-      if (!seen.has(row.draw_number)) {
-        seen.add(row.draw_number)
-        draws.push(row)
-      }
-    }
+function toDrawRow(r: IRCCRound): DrawRow | null {
+  const draw_number = parseInt(r.drawNumber, 10)
+  const crs_cutoff = parseInt(r.drawCRS, 10)
+  const invitations = parseInt(r.drawSize.replace(/,/g, ''), 10)
+  if (isNaN(draw_number) || isNaN(crs_cutoff) || isNaN(invitations) || !r.drawDate) return null
+  return {
+    draw_number,
+    draw_date: r.drawDate,           // already 'YYYY-MM-DD'
+    draw_type: r.drawName || 'Unknown',
+    crs_cutoff,
+    invitations,
+    tie_break_rule: parseTieBreak(r.drawCutOff),
   }
-
-  // Fallback: if no <tbody> found, try parsing <tr> rows directly from the full HTML
-  if (draws.length === 0) {
-    for (const row of parseRowsFromBlock(html)) {
-      if (!seen.has(row.draw_number)) {
-        seen.add(row.draw_number)
-        draws.push(row)
-      }
-    }
-  }
-
-  // Sort descending by draw number (most recent first)
-  draws.sort((a, b) => b.draw_number - a.draw_number)
-  return draws
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
@@ -193,49 +81,26 @@ export async function GET(req: Request) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const debug = new URL(req.url).searchParams.get('debug') === '1'
-
-  // Fetch the IRCC EE draws page
-  let html: string
+  // Fetch the official IRCC JSON feed (no scraping needed)
+  let rounds: IRCCRound[]
   try {
-    const res = await fetch(EE_DRAWS_URL, {
+    const res = await fetch(EE_DRAWS_JSON, {
       headers: { 'User-Agent': 'Navly-SourceBot/1.0' },
-      next: { revalidate: 0 },
+      cache: 'no-store',
     })
     if (!res.ok) {
-      return Response.json({ error: `IRCC page returned HTTP ${res.status}` }, { status: 502 })
+      return Response.json({ error: `IRCC JSON feed returned HTTP ${res.status}` }, { status: 502 })
     }
-    html = await res.text()
+    const json = await res.json() as { rounds: IRCCRound[] }
+    rounds = json.rounds ?? []
   } catch (e) {
     return Response.json({ error: `Fetch failed: ${(e as Error).message}` }, { status: 502 })
   }
 
-  // Debug mode: return HTML structure info without writing to DB
-  if (debug) {
-    const tbodyCount = (html.match(/<tbody/gi) ?? []).length
-    const tableCount = (html.match(/<table/gi) ?? []).length
-    const trCount = (html.match(/<tr/gi) ?? []).length
-    const firstTbody = html.match(/<tbody[^>]*>([\s\S]{0,2000})/i)?.[1] ?? 'not found'
-    const firstTable = html.match(/<table[^>]*>([\s\S]{0,1000})/i)?.[1] ?? 'not found'
-    return Response.json({
-      debug: true,
-      htmlLength: html.length,
-      tableCount,
-      tbodyCount,
-      trCount,
-      firstTableSnippet: stripHtml(firstTable).slice(0, 500),
-      firstTbodySnippet: stripHtml(firstTbody).slice(0, 1000),
-    })
-  }
-
-  const draws = parseDrawsFromHTML(html)
+  const draws = rounds.map(toDrawRow).filter((d): d is DrawRow => d !== null)
 
   if (draws.length === 0) {
-    return Response.json({
-      ok: false,
-      error: 'No draws parsed — the IRCC page structure may have changed.',
-      hint: 'Add ?debug=1 to inspect the HTML structure.',
-    }, { status: 200 })
+    return Response.json({ ok: false, error: 'No draws in JSON response.' }, { status: 200 })
   }
 
   // Upsert into Supabase
@@ -268,7 +133,7 @@ export async function GET(req: Request) {
           invitations: latest.invitations,
           tie_break_rule: latest.tie_break_rule,
         },
-        source_url: EE_DRAWS_URL,
+        source_url: EE_DRAWS_PAGE,
         effective_date: latest.draw_date,
         last_checked_at: now,
         status: 'active',
