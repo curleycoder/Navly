@@ -101,7 +101,7 @@ export default async function DashboardPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[#0B1F3A]">
-            {profile?.firstName ? `Hi, ${profile.firstName}` : 'Your overview'}
+            {profile?.fullName ? `Hi, ${profile.fullName.split(' ')[0]}` : 'Your overview'}
           </h1>
           <p className="mt-0.5 text-sm text-slate-500">
             {profile

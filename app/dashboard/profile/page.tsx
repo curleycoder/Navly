@@ -342,24 +342,14 @@ export default function ProfilePage() {
 
         {/* ── Account ─────────────────────────────────────────────────────── */}
         <Section title="Account" desc="Your personal and login details.">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="First name">
-              <Input
-                value={data.firstName}
-                onChange={(e) => update({ firstName: e.target.value })}
-                placeholder="e.g. Amara"
-                className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]"
-              />
-            </Field>
-            <Field label="Last name">
-              <Input
-                value={data.lastName}
-                onChange={(e) => update({ lastName: e.target.value })}
-                placeholder="e.g. Osei"
-                className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]"
-              />
-            </Field>
-          </div>
+          <Field label="Full name">
+            <Input
+              value={data.fullName}
+              onChange={(e) => update({ fullName: e.target.value })}
+              placeholder="e.g. Amara Osei"
+              className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]"
+            />
+          </Field>
 
           <Field label="Email address">
             <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
