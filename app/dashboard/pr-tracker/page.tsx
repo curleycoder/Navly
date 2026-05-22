@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
-import { loadProfile, saveProfile, type IntakeData } from '@/lib/profile'
+import { loadProfile, loadProfileFromSupabase, saveProfile, type IntakeData } from '@/lib/profile'
 import { calculateScore, type ScoreResult, type RiskFlag } from '@/lib/scoring'
 import { recordScoreSnapshot } from '@/lib/history'
 import { ProgressGauge } from '@/components/dashboard/ProgressGauge'
@@ -477,13 +477,23 @@ export default function PRTrackerPage() {
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    const p = loadProfile()
-    setProfile(p)
-    if (p) {
-      setScore(calculateScore(p))
-      setPnpStreams(matchPNPStreams(p))
+    async function init() {
+      let p = loadProfile()
+
+      if (!p) {
+        const { supabase } = await import('@/lib/supabase/client')
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) p = await loadProfileFromSupabase(user.id)
+      }
+
+      setProfile(p)
+      if (p) {
+        setScore(calculateScore(p))
+        setPnpStreams(matchPNPStreams(p))
+      }
+      setLoaded(true)
     }
-    setLoaded(true)
+    init()
   }, [])
 
   if (!loaded) return <DashboardSkeleton />

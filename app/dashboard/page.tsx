@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useLocale } from '@/lib/i18n'
-import { loadProfile, statusLabels, goalLabels, getPermitWarning, type IntakeData } from '@/lib/profile'
+import { loadProfile, loadProfileFromSupabase, statusLabels, goalLabels, getPermitWarning, type IntakeData } from '@/lib/profile'
 import { loadPresence, isCheckedInToday, getDaysInCanada, type PresenceData } from '@/lib/presence'
 
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
@@ -71,16 +71,26 @@ export default function DashboardPage() {
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    const p = loadProfile()
-    setProfile(p)
-    if (p) {
-      const s = calculateScore(p)
-      setScore(s)
-      if (s.crs && s.crs.total > 0) recordScoreSnapshot(s.crs.total)
-      getPersonalizedUpdates(p.status, p.goal).then(updates => setNews(updates.slice(0, 2)))
+    async function init() {
+      let p = loadProfile()
+
+      if (!p) {
+        const { supabase } = await import('@/lib/supabase/client')
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) p = await loadProfileFromSupabase(user.id)
+      }
+
+      setProfile(p)
+      if (p) {
+        const s = calculateScore(p)
+        setScore(s)
+        if (s.crs && s.crs.total > 0) recordScoreSnapshot(s.crs.total)
+        getPersonalizedUpdates(p.status, p.goal).then(updates => setNews(updates.slice(0, 2)))
+      }
+      setPresence(loadPresence())
+      setLoaded(true)
     }
-    setPresence(loadPresence())
-    setLoaded(true)
+    init()
   }, [])
 
   if (!loaded) return <DashboardSkeleton />
