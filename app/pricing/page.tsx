@@ -204,6 +204,55 @@ export default function PricingPage() {
           })}
         </div>
 
+        {/* Comparison table */}
+        <div className="mt-16">
+          <h2 className="mb-6 text-center text-xl font-bold text-[#0B1F3A]">What each tier sees</h2>
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            {/* Header */}
+            <div className="grid grid-cols-4 border-b border-slate-100 bg-slate-50">
+              <div className="px-5 py-4 text-xs font-bold uppercase tracking-wide text-slate-400">Feature</div>
+              {[
+                { label: 'Free', sub: '$0' },
+                { label: 'Report', sub: '$29 one-time' },
+                { label: 'Tracker', sub: '$14/mo' },
+              ].map((h) => (
+                <div key={h.label} className="px-4 py-4 text-center">
+                  <p className="text-sm font-bold text-[#0B1F3A]">{h.label}</p>
+                  <p className="text-[11px] text-slate-400">{h.sub}</p>
+                </div>
+              ))}
+            </div>
+
+            {[
+              { feature: 'CRS score (current)', free: '✅', report: '✅', tracker: '✅' },
+              { feature: '"You need X more points"', free: '✅', report: '✅', tracker: '✅' },
+              { feature: 'Canada days counter', free: '✅', report: '✅', tracker: '✅' },
+              { feature: 'Express Entry draw alerts', free: '✅', report: '✅', tracker: '✅' },
+              { feature: 'Where those points come from', free: '🔒', report: '✅', tracker: '✅' },
+              { feature: 'Pathway options', free: '1 preview', report: 'All', tracker: 'All' },
+              { feature: 'Missing docs checklist', free: '—', report: '✅', tracker: '✅' },
+              { feature: '"If I do X → score becomes Y"', free: '—', report: '✅', tracker: '✅' },
+              { feature: 'Permit expiry warnings', free: '—', report: '—', tracker: '✅' },
+              { feature: 'PR probability score', free: '—', report: '—', tracker: '✅' },
+              { feature: 'AI immigration assistant', free: '—', report: '—', tracker: '✅' },
+            ].map((row) => (
+              <div key={row.feature} className="grid grid-cols-4 border-b border-slate-100 last:border-0 even:bg-slate-50/50">
+                <div className="flex items-center px-5 py-3.5 text-sm text-slate-700">{row.feature}</div>
+                {[row.free, row.report, row.tracker].map((val, i) => (
+                  <div key={i} className="flex items-center justify-center px-4 py-3.5">
+                    <span className={`text-sm font-semibold ${
+                      val === '✅' ? 'text-emerald-600' :
+                      val === '🔒' ? 'text-slate-400' :
+                      val === '—' ? 'text-slate-300' :
+                      'text-slate-600'
+                    }`}>{val}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
         <p className="mt-10 text-center text-xs text-slate-400">
           Navly is an educational planning tool. It does not provide legal immigration advice.
           For legal review, connect with a certified RCIC or immigration lawyer.
