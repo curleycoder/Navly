@@ -103,20 +103,20 @@ export async function GET(req: Request) {
     return Response.json({ ok: false, error: 'No draws in JSON response.' }, { status: 200 })
   }
 
-  // Upsert into Supabase
+  // Upsert into Supabase in one batch call
   const db = adminDb()
   const now = new Date().toISOString()
-  let upserted = 0
   const errors: string[] = []
 
-  for (const draw of draws) {
-    const { error } = await db.from('express_entry_draws').upsert(
-      { ...draw, synced_at: now },
-      { onConflict: 'draw_number' }
+  const { error: upsertError, count } = await db
+    .from('express_entry_draws')
+    .upsert(
+      draws.map(d => ({ ...d, synced_at: now })),
+      { onConflict: 'draw_number', count: 'exact' }
     )
-    if (error) errors.push(`Draw #${draw.draw_number}: ${error.message}`)
-    else upserted++
-  }
+
+  if (upsertError) errors.push(upsertError.message)
+  const upserted = count ?? draws.length
 
   // Store the latest draw as a rule_snapshot so the AI bot can retrieve it easily
   const latest = draws[0]
