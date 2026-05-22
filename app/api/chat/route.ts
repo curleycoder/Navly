@@ -1,8 +1,83 @@
 import Groq from 'groq-sdk'
+import { createClient } from '@supabase/supabase-js'
 import type { IntakeData } from '@/lib/profile'
 import { calculateScore, convertToCLB } from '@/lib/scoring'
 
 const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
+
+// ── RAG: retrieve rule_snapshots relevant to the user's query ──────────────
+
+const KEYWORD_CATEGORY_MAP: [RegExp, string][] = [
+  [/express.?entry|ee draw|crs|cutoff|round of invitation/i, 'express_entry'],
+  [/pgwp|post.?grad|work permit/i, 'pgwp'],
+  [/citizen(ship)?|naturali[sz]/i, 'citizenship'],
+  [/pr card|resid(ency|ence) obligation|2 (years|yrs)/i, 'pr_residency'],
+  [/settlement fund|proof of fund|bank|money/i, 'proof_of_funds'],
+  [/french|francoph|bilingu/i, 'express_entry'],
+  [/pnp|provincial nominee/i, 'express_entry'],
+]
+
+function detectCategories(query: string): string[] {
+  const cats = new Set<string>()
+  for (const [re, cat] of KEYWORD_CATEGORY_MAP) {
+    if (re.test(query)) cats.add(cat)
+  }
+  return [...cats]
+}
+
+function adminDb() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
+
+type RuleSnapshot = {
+  rule_key: string
+  category: string
+  data: Record<string, unknown>
+  source_url: string
+  effective_date: string | null
+}
+
+async function fetchRuleContext(userQuery: string): Promise<string> {
+  const db = adminDb()
+  const categories = detectCategories(userQuery)
+
+  let query = db
+    .from('rule_snapshots')
+    .select('rule_key, category, data, source_url, effective_date')
+    .eq('status', 'active')
+
+  if (categories.length > 0) {
+    // Always include the latest EE draw when Express Entry is relevant
+    const keys = categories.includes('express_entry') ? ['latest_ee_draw'] : []
+    query = query.or(
+      [
+        `category.in.(${categories.join(',')})`,
+        keys.length ? `rule_key.in.(${keys.join(',')})` : null,
+      ]
+        .filter(Boolean)
+        .join(',')
+    )
+  } else {
+    // No specific match — pull all active rules (few enough to fit in context)
+    // (no additional filter)
+  }
+
+  const { data: rows } = await query.limit(10)
+  if (!rows || rows.length === 0) return ''
+
+  const lines = ['---', 'OFFICIAL RULE CONTEXT (sourced from IRCC, effective dates noted):']
+  for (const row of rows as RuleSnapshot[]) {
+    lines.push(`\n[${row.rule_key}] (effective: ${row.effective_date ?? 'unknown'}, source: ${row.source_url})`)
+    lines.push(JSON.stringify(row.data, null, 2))
+  }
+  lines.push('---')
+  lines.push('Use the above official data when answering. Cite the effective date when relevant. Do not invent numbers not present above.')
+
+  return lines.join('\n')
+}
 
 const BASE_SYSTEM = `You are Navly's immigration information assistant. You help users understand Canadian immigration concepts, pathways, and terminology in plain, clear language.
 
@@ -80,9 +155,15 @@ export async function POST(request: Request) {
 
   const trimmed = messages.slice(-MAX_HISTORY)
 
-  const systemPrompt = profile
-    ? `${BASE_SYSTEM}\n\n${buildProfileContext(profile)}`
-    : BASE_SYSTEM
+  // RAG: pull relevant rule snapshots based on the last user message
+  const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')?.content ?? ''
+  const ruleContext = await fetchRuleContext(lastUserMsg)
+
+  const systemPrompt = [
+    BASE_SYSTEM,
+    profile ? buildProfileContext(profile) : null,
+    ruleContext || null,
+  ].filter(Boolean).join('\n\n')
 
   const stream = await client.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
