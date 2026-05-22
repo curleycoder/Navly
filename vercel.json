@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/sync-sources",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/sync-ee-draws",
+      "schedule": "0 10 * * *"
     }
   ]
 }

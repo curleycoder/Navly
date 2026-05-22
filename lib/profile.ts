@@ -1,7 +1,6 @@
 export type IntakeData = {
   // Identity
-  firstName: string
-  lastName: string
+  fullName: string
   email: string
   phone: string
   gender: string        // 'male' | 'female' | 'non-binary' | 'prefer-not' | ''
@@ -185,8 +184,7 @@ export type IntakeData = {
 }
 
 export const EMPTY_PROFILE: IntakeData = {
-  firstName: '',
-  lastName: '',
+  fullName: '',
   email: '',
   phone: '',
   gender: '',

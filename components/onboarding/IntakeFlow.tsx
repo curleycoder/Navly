@@ -1,19 +1,35 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
+
 import { supabase } from '@/lib/supabase/client'
+import {
+  EMPTY_PROFILE,
+  loadProfile,
+  saveProfile,
+  saveProfileToSupabase,
+  type IntakeData,
+} from '@/lib/profile'
+
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
-import { loadProfile, saveProfile, saveProfileToSupabase, EMPTY_PROFILE, type IntakeData } from '@/lib/profile'
+
 import { getSteps, stepTitles } from './flow'
 import { canContinue, getValidationHint } from './validation'
 import { SummaryView } from './SummaryView'
-import { StepLocationSplit, StepPlannedEntry, StepInsideStatus, StepGoal } from './steps/LocationSteps'
-import { StepPersonal, StepCanadaDates } from './steps/PersonalSteps'
-import { StepSpouseLanguage, StepLanguage } from './steps/LanguageSteps'
+
+import {
+  StepGoal,
+  StepInsideStatus,
+  StepLocationSplit,
+  StepPlannedEntry,
+} from './steps/LocationSteps'
+
+import { StepCanadaDates, StepPersonal } from './steps/PersonalSteps'
+import { StepLanguage, StepSpouseLanguage } from './steps/LanguageSteps'
 import { StepEducation } from './steps/EducationStep'
 import { StepWork } from './steps/WorkStep'
 import { StepPRStatus } from './steps/PRStep'
@@ -22,6 +38,7 @@ import { StepProvince, StepManitobaFamily } from './steps/ProvinceSteps'
 import { StepPNP } from './steps/PNPStep'
 import { StepRisk } from './steps/RiskStep'
 import { StepEarlySignup } from './steps/EarlySignupStep'
+import { StepContactPhone } from './steps/ContactPhoneStep'
 
 export function IntakeFlow() {
   const [data, setData] = useState<IntakeData>({ ...EMPTY_PROFILE })
@@ -30,66 +47,147 @@ export function IntakeFlow() {
 
   useEffect(() => {
     const saved = loadProfile()
-    if (saved) setData(saved)
+
+    if (saved) {
+      setData(saved)
+    }
   }, [])
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [stepIndex])
 
-  const steps = getSteps(data)
-  const currentStep = steps[stepIndex]
-  const progress = ((stepIndex + 1) / steps.length) * 100
+  const steps = useMemo(() => getSteps(data), [data])
+  const safeStepIndex = Math.min(stepIndex, steps.length - 1)
+  const currentStep = steps[safeStepIndex]
 
-  function update(fields: Partial<IntakeData>) {
-    setData((d) => ({ ...d, ...fields }))
-  }
-
-  async function next() {
-    const currentSteps = getSteps(data)
-    if (stepIndex < currentSteps.length - 1) {
-      setStepIndex((i) => i + 1)
-    } else {
-      // End of flow — persist full profile and show summary
-      saveProfile(data)
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) await saveProfileToSupabase(user.id, data)
-      setDone(true)
-    }
-  }
-
-  function back() {
-    if (stepIndex > 0) setStepIndex((i) => i - 1)
-  }
-
-  function handleLocationSplit(v: string) {
-    if (v === 'inside') {
-      update({ locationStatus: 'inside', currentCountry: 'Canada', plannedEntry: '' })
-    } else {
-      update({ locationStatus: 'outside', status: 'outside-canada', arrivalDate: '', visaExpiryDate: '', province: '', canadianWorkMonths: '' })
-    }
-  }
-
-  // Called after phone OTP + email/password — advances flow, does NOT end it
-  function handleEarlySignupComplete(phone: string) {
-    const withPhone = { ...data, phone, phoneVerified: 'yes' }
-    setData(withPhone)
-    saveProfile(withPhone)
-    setStepIndex((i) => i + 1)
-  }
-
-  if (done) return <SummaryView data={data} />
+  const progress = ((safeStepIndex + 1) / steps.length) * 100
 
   const isAccountStep = currentStep === 'early-signup'
+  const isPhoneStep = currentStep === 'contact-phone'
+  const usesCustomNav = isAccountStep || isPhoneStep
+
   const ok = canContinue(currentStep, data)
   const hint = !ok ? getValidationHint(currentStep, data) : ''
-  const nextStep = steps[stepIndex + 1]
-  const isLastStep = stepIndex === steps.length - 1
+
+  const nextStep = steps[safeStepIndex + 1]
+  const isLastStep = safeStepIndex === steps.length - 1
+
   const continueLabel = isLastStep
     ? 'Complete profile'
     : nextStep === 'early-signup'
       ? 'Save progress'
       : 'Continue'
+
+  function update(fields: Partial<IntakeData>) {
+    setData((currentData) => {
+      const nextData = {
+        ...currentData,
+        ...fields,
+      }
+
+      saveProfile(nextData)
+      return nextData
+    })
+  }
+
+  async function saveToSupabase(profileData: IntakeData) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (user) {
+      await saveProfileToSupabase(user.id, profileData)
+    }
+  }
+
+  async function next() {
+    const currentSteps = getSteps(data)
+    const isFinalStep = safeStepIndex >= currentSteps.length - 1
+
+    if (!isFinalStep) {
+      setStepIndex((currentIndex) => currentIndex + 1)
+      return
+    }
+
+    saveProfile(data)
+    await saveToSupabase(data)
+    setDone(true)
+  }
+
+  function back() {
+    if (safeStepIndex > 0) {
+      setStepIndex((currentIndex) => currentIndex - 1)
+    }
+  }
+
+  function handleLocationSplit(value: string) {
+    if (value === 'inside') {
+      update({
+        locationStatus: 'inside',
+        currentCountry: 'Canada',
+        plannedEntry: '',
+      })
+
+      return
+    }
+
+    update({
+      locationStatus: 'outside',
+      status: 'outside-canada',
+      arrivalDate: '',
+      visaExpiryDate: '',
+      province: '',
+      canadianWorkMonths: '',
+    })
+  }
+
+  async function handleEarlySignupComplete(account: {
+    fullName: string
+    email: string
+  }) {
+    const nextData = {
+      ...data,
+      fullName: account.fullName,
+      email: account.email,
+    }
+
+    setData(nextData)
+    saveProfile(nextData)
+    await saveToSupabase(nextData)
+
+    const currentSteps = getSteps(nextData)
+
+    if (safeStepIndex >= currentSteps.length - 1) {
+      setDone(true)
+      return
+    }
+
+    setStepIndex((currentIndex) => currentIndex + 1)
+  }
+
+  async function handlePhoneComplete(phone: string) {
+    const finalData = {
+      ...data,
+      phone,
+      phoneVerified: phone ? 'yes' : '',
+    }
+
+    setData(finalData)
+    saveProfile(finalData)
+    await saveToSupabase(finalData)
+
+    setDone(true)
+  }
+
+  function handleSkipPhone() {
+    saveProfile(data)
+    setDone(true)
+  }
+
+  if (done) {
+    return <SummaryView data={data} />
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -97,12 +195,19 @@ export function IntakeFlow() {
         <header className="border-b border-slate-200 px-6 py-4">
           <div className="mx-auto flex max-w-2xl items-center justify-between">
             <NavlyLogo size="sm" />
+
             <div className="text-right">
-              <span className="text-sm text-slate-500">{stepIndex + 1} / {steps.length}</span>
-              <p className="text-xs text-slate-400">{stepTitles[currentStep]}</p>
+              <span className="text-sm text-slate-500">
+                {safeStepIndex + 1} / {steps.length}
+              </span>
+
+              <p className="text-xs text-slate-400">
+                {stepTitles[currentStep]}
+              </p>
             </div>
           </div>
         </header>
+
         <div className="px-6 pb-2">
           <div className="mx-auto max-w-2xl">
             <Progress
@@ -117,43 +222,135 @@ export function IntakeFlow() {
         </div>
       </div>
 
-      <div className="flex flex-1 items-start justify-center px-6 py-6 pb-28">
+      <main className="flex flex-1 items-start justify-center px-6 py-6 pb-28">
         <div className="w-full max-w-2xl">
-          {currentStep === 'location-split' && <StepLocationSplit value={data.locationStatus} onChange={handleLocationSplit} />}
-          {currentStep === 'planned-entry' && <StepPlannedEntry value={data.plannedEntry} onChange={(v) => update({ plannedEntry: v })} />}
-          {currentStep === 'inside-status' && <StepInsideStatus value={data.status} onChange={(v) => update({ status: v })} />}
-          {currentStep === 'goal' && <StepGoal data={data} onChange={(v) => update({ goal: v })} />}
-          {currentStep === 'personal' && <StepPersonal data={data} onChange={update} />}
-          {currentStep === 'early-signup' && <StepEarlySignup data={data} onComplete={handleEarlySignupComplete} />}
-          {currentStep === 'canada-dates' && <StepCanadaDates data={data} onChange={update} />}
-          {currentStep === 'pr-status' && <StepPRStatus data={data} onChange={update} />}
-          {currentStep === 'spouse-language' && <StepSpouseLanguage data={data} onChange={update} />}
-          {currentStep === 'language' && <StepLanguage data={data} onChange={update} />}
-          {currentStep === 'education' && <StepEducation data={data} onChange={update} />}
-          {currentStep === 'work' && <StepWork data={data} onChange={update} />}
-          {currentStep === 'settlement' && <StepSettlement data={data} onChange={update} />}
-          {currentStep === 'province' && <StepProvince data={data} onChange={update} />}
-          {currentStep === 'pnp-details' && <StepPNP data={data} onChange={update} />}
-          {currentStep === 'manitoba-family' && <StepManitobaFamily value={data.manitobaFamilyRelative} onChange={(v) => update({ manitobaFamilyRelative: v })} />}
-          {currentStep === 'risk' && <StepRisk data={data} onChange={update} />}
-        </div>
-      </div>
+          {currentStep === 'location-split' && (
+            <StepLocationSplit
+              value={data.locationStatus}
+              onChange={handleLocationSplit}
+            />
+          )}
 
-      {/* Fixed bottom nav */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-200 bg-white px-6 py-3" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
-        <div className="mx-auto flex max-w-2xl items-center justify-between">
-          {!isAccountStep && (
+          {currentStep === 'planned-entry' && (
+            <StepPlannedEntry
+              value={data.plannedEntry}
+              onChange={(value) => update({ plannedEntry: value })}
+            />
+          )}
+
+          {currentStep === 'inside-status' && (
+            <StepInsideStatus
+              value={data.status}
+              onChange={(value) => update({ status: value })}
+            />
+          )}
+
+          {currentStep === 'goal' && (
+            <StepGoal
+              data={data}
+              onChange={(value) => update({ goal: value })}
+            />
+          )}
+
+          {currentStep === 'province' && (
+            <StepProvince data={data} onChange={update} />
+          )}
+
+          {currentStep === 'personal' && (
+            <StepPersonal data={data} onChange={update} />
+          )}
+
+          {currentStep === 'early-signup' && (
+            <StepEarlySignup
+              data={data}
+              onComplete={handleEarlySignupComplete}
+            />
+          )}
+
+          {currentStep === 'canada-dates' && (
+            <StepCanadaDates data={data} onChange={update} />
+          )}
+
+          {currentStep === 'pr-status' && (
+            <StepPRStatus data={data} onChange={update} />
+          )}
+
+          {currentStep === 'spouse-language' && (
+            <StepSpouseLanguage data={data} onChange={update} />
+          )}
+
+          {currentStep === 'language' && (
+            <StepLanguage data={data} onChange={update} />
+          )}
+
+          {currentStep === 'education' && (
+            <StepEducation data={data} onChange={update} />
+          )}
+
+          {currentStep === 'work' && (
+            <StepWork data={data} onChange={update} />
+          )}
+
+          {currentStep === 'settlement' && (
+            <StepSettlement data={data} onChange={update} />
+          )}
+
+          {currentStep === 'pnp-details' && (
+            <StepPNP data={data} onChange={update} />
+          )}
+
+          {currentStep === 'manitoba-family' && (
+            <StepManitobaFamily
+              value={data.manitobaFamilyRelative}
+              onChange={(value) => update({ manitobaFamilyRelative: value })}
+            />
+          )}
+
+          {currentStep === 'risk' && (
+            <StepRisk data={data} onChange={update} />
+          )}
+
+          {currentStep === 'contact-phone' && (
+            <StepContactPhone
+              data={data}
+              onComplete={handlePhoneComplete}
+              onSkip={handleSkipPhone}
+            />
+          )}
+        </div>
+      </main>
+
+      {!usesCustomNav && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-200 bg-white px-6 py-3"
+          style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
+        >
+          <div className="mx-auto flex max-w-2xl items-center justify-between">
             <div className="flex w-full flex-col gap-1">
               <div className="flex items-center justify-between">
-                {stepIndex > 0 ? (
-                  <Button variant="outline" onClick={back} className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50">
-                    <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back
+                {safeStepIndex > 0 ? (
+                  <Button
+                    variant="outline"
+                    onClick={back}
+                    className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50"
+                  >
+                    <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                    Back
                   </Button>
                 ) : (
-                  <Link href="/" className={buttonVariants({ variant: 'outline', className: 'gap-2 border-slate-300 text-slate-700 hover:bg-slate-50' })}>
-                    <ArrowLeft className="h-4 w-4" />Back to home
+                  <Link
+                    href="/"
+                    className={buttonVariants({
+                      variant: 'outline',
+                      className:
+                        'gap-2 border-slate-300 text-slate-700 hover:bg-slate-50',
+                    })}
+                  >
+                    <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                    Back to home
                   </Link>
                 )}
+
                 <Button
                   onClick={next}
                   disabled={!ok}
@@ -164,20 +361,38 @@ export function IntakeFlow() {
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
+
               {!ok && hint && (
-                <p id="step-hint" role="status" className="text-right text-xs text-slate-400">
+                <p
+                  id="step-hint"
+                  role="status"
+                  className="text-right text-xs text-slate-400"
+                >
                   {hint}
                 </p>
               )}
             </div>
-          )}
-          {isAccountStep && (
-            <Button variant="outline" onClick={back} className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50">
-              <ArrowLeft className="h-4 w-4" /> Back
-            </Button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {usesCustomNav && safeStepIndex > 0 && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-200 bg-white px-6 py-3"
+          style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
+        >
+          <div className="mx-auto flex max-w-2xl items-center justify-start">
+            <Button
+              variant="outline"
+              onClick={back}
+              className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              Back
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
