@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { loadProfile } from '@/lib/profile'
-import { PlanGate } from '@/components/ui/PlanGate'
 import {
   loadPresence,
   checkIn,
@@ -105,8 +104,6 @@ export default function DaysPage() {
           Log every trip to keep the number accurate.
         </p>
       </div>
-
-      <PlanGate plan="tracker">
 
       {/* Streak + check-in */}
       <Card className="mb-6 rounded-2xl border-slate-200 bg-white">
@@ -335,7 +332,6 @@ export default function DaysPage() {
       <p className="mt-4 text-xs text-slate-400">
         This tracker is for personal planning only. Final physical presence calculations depend on official government rules and records.
       </p>
-      </PlanGate>
     </div>
   )
 }

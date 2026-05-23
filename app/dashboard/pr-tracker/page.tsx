@@ -545,26 +545,45 @@ export default function PRTrackerPage() {
       <PlanGate
         plan="report"
         fallback={
-          <Link
-            href="/dashboard/upgrade"
-            className="mb-8 flex items-center justify-between rounded-2xl border border-dashed border-[#D62828]/40 bg-[#D62828]/5 p-5 transition hover:bg-[#D62828]/10"
-          >
-            <div>
-              <p className="font-bold text-[#0B1F3A]">Unlock where your missing points are →</p>
-              <p className="mt-0.5 text-sm text-slate-500">See your full CRS breakdown by category, pathway eligibility, and the exact improvements that would move your score.</p>
-            </div>
-            <ArrowRight className="ml-4 h-5 w-5 shrink-0 text-[#D62828]" />
-          </Link>
+          <div className="mb-8">
+            {/* 1 pathway preview for free users */}
+            {score && score.pathways.length > 0 && (() => {
+              const top = score.pathways.find(p => p.status === 'eligible' || p.status === 'possible') ?? score.pathways[0]
+              return (
+                <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Top pathway preview</p>
+                  <div className="flex items-center justify-between">
+                    <p className="font-bold text-[#0B1F3A]">{top.name}</p>
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${top.status === 'eligible' ? 'bg-green-100 text-green-700' : top.status === 'possible' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
+                      {top.status === 'eligible' ? 'Eligible' : top.status === 'possible' ? 'Possible' : 'Not ready'}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-slate-500 line-clamp-2">{top.reason}</p>
+                </div>
+              )
+            })()}
+            <Link
+              href="/pricing"
+              className="flex items-center justify-between rounded-2xl border border-dashed border-[#D62828]/40 bg-[#D62828]/5 p-5 transition hover:bg-[#D62828]/10"
+            >
+              <div>
+                <p className="font-bold text-[#0B1F3A]">Unlock where your missing points are →</p>
+                <p className="mt-0.5 text-sm text-slate-500">See your full CRS breakdown by category, all pathway eligibility, and the exact improvements that would move your score.</p>
+              </div>
+              <ArrowRight className="ml-4 h-5 w-5 shrink-0 text-[#D62828]" />
+            </Link>
+          </div>
         }
       >
         {profile && score && <ScoreTracker profile={profile} score={score} />}
 
         {pnpStreams.length > 0 && <PNPStreamsCard streams={pnpStreams} />}
-
-        {profile && profile.goal === 'pr' && (
-          <EEDrawsCard crs={score?.crs?.total ?? 0} />
-        )}
       </PlanGate>
+
+      {/* EE draws — free for all users */}
+      {profile && profile.goal === 'pr' && (
+        <EEDrawsCard crs={score?.crs?.total ?? 0} />
+      )}
 
       <div className="flex gap-3 rounded-2xl border border-[#0B1F3A]/15 bg-[#0B1F3A]/5 p-4">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#0B1F3A]" />

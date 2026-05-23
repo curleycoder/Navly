@@ -111,6 +111,9 @@ export function StepSignUp({
       return
     }
 
+    // Sign in immediately to establish a session (in case email confirmation is enabled)
+    await supabase.auth.signInWithPassword({ email: trimmedEmail, password })
+
     onComplete({
       fullName: trimmedName,
       email: trimmedEmail,

@@ -41,9 +41,9 @@ export function MobileNav() {
       </div>
 
       {/* Center: wordmark */}
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center pt-1">
         <Link href="/dashboard" onClick={() => setOpen(false)} aria-label="Dashboard home">
-          <NavlyLogo size="sm" />
+          <NavlyLogo size="sm" showWordmark={false} />
         </Link>
       </div>
 

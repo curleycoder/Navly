@@ -20,6 +20,7 @@ import { recordScoreSnapshot } from '@/lib/history'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import { getPersonalizedUpdates, importanceDot, formatDate, type NewsUpdate } from '@/lib/news'
 import { loadTasks } from '@/lib/tasks'
+import { PlanGate } from '@/components/ui/PlanGate'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -125,23 +126,25 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {/* Permit warning */}
+      {/* Permit warning — tracker tier only */}
       {profile && (() => {
         const w = getPermitWarning(profile)
         if (!w) return null
         return (
-          <div className={`mb-5 flex items-start gap-3 rounded-2xl border-l-4 p-4 ${w.urgent ? 'border-l-red-500 bg-red-50' : 'border-l-amber-400 bg-amber-50'}`}>
-            <AlertTriangle className={`mt-0.5 h-4 w-4 shrink-0 ${w.urgent ? 'text-red-500' : 'text-amber-500'}`} />
-            <div>
-              <p className={`text-sm font-bold ${w.urgent ? 'text-red-900' : 'text-amber-900'}`}>
-                {w.daysLeft <= 0 ? 'Permit may have expired' : `Permit expires in ${w.daysLeft} day${w.daysLeft !== 1 ? 's' : ''}`}
-              </p>
-              <div className="mt-1 flex gap-3">
-                <Link href="/dashboard/tasks" className={`text-xs font-semibold hover:underline ${w.urgent ? 'text-red-700' : 'text-amber-700'}`}>Renewal tasks →</Link>
-                <Link href="/dashboard/consultants" className={`text-xs font-semibold hover:underline ${w.urgent ? 'text-red-700' : 'text-amber-700'}`}>Find consultant →</Link>
+          <PlanGate plan="tracker" fallback={null}>
+            <div className={`mb-5 flex items-start gap-3 rounded-2xl border-l-4 p-4 ${w.urgent ? 'border-l-red-500 bg-red-50' : 'border-l-amber-400 bg-amber-50'}`}>
+              <AlertTriangle className={`mt-0.5 h-4 w-4 shrink-0 ${w.urgent ? 'text-red-500' : 'text-amber-500'}`} />
+              <div>
+                <p className={`text-sm font-bold ${w.urgent ? 'text-red-900' : 'text-amber-900'}`}>
+                  {w.daysLeft <= 0 ? 'Permit may have expired' : `Permit expires in ${w.daysLeft} day${w.daysLeft !== 1 ? 's' : ''}`}
+                </p>
+                <div className="mt-1 flex gap-3">
+                  <Link href="/dashboard/tasks" className={`text-xs font-semibold hover:underline ${w.urgent ? 'text-red-700' : 'text-amber-700'}`}>Renewal tasks →</Link>
+                  <Link href="/dashboard/consultants" className={`text-xs font-semibold hover:underline ${w.urgent ? 'text-red-700' : 'text-amber-700'}`}>Find consultant →</Link>
+                </div>
               </div>
             </div>
-          </div>
+          </PlanGate>
         )
       })()}
 
