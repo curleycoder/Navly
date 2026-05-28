@@ -145,6 +145,34 @@ function buildProfileContext(profile: IntakeData): string {
   return lines.join('\n')
 }
 
+// ── Recent news context ────────────────────────────────────────────────────────
+
+async function fetchRecentNewsContext(): Promise<string> {
+  try {
+    const db = adminDb()
+    const { data: rows } = await db
+      .from('immigration_news')
+      .select('title, summary, source_name, source_type, published_at, category')
+      .order('published_at', { ascending: false })
+      .limit(8)
+
+    if (!rows || rows.length === 0) return ''
+
+    const lines = ['---', 'RECENT IMMIGRATION NEWS (for context — summarise relevance to user, do not fabricate details):']
+    for (const row of rows) {
+      const date = String(row.published_at).slice(0, 10)
+      const sourceLabel = row.source_type === 'official' ? `[Official — ${row.source_name}]` : `[${row.source_name} — third-party commentary]`
+      lines.push(`\n${date} ${sourceLabel}: ${row.title}`)
+      if (row.summary) lines.push(row.summary.slice(0, 300))
+    }
+    lines.push('---')
+    lines.push('Reference relevant news items when they relate to the user\'s question. Always note whether a source is official IRCC or third-party commentary.')
+    return lines.join('\n')
+  } catch {
+    return ''
+  }
+}
+
 const MAX_HISTORY = 14 // 7 turns
 
 export async function POST(request: Request) {
@@ -155,14 +183,18 @@ export async function POST(request: Request) {
 
   const trimmed = messages.slice(-MAX_HISTORY)
 
-  // RAG: pull relevant rule snapshots based on the last user message
+  // RAG: pull relevant rule snapshots + recent news in parallel
   const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')?.content ?? ''
-  const ruleContext = await fetchRuleContext(lastUserMsg)
+  const [ruleContext, newsContext] = await Promise.all([
+    fetchRuleContext(lastUserMsg),
+    fetchRecentNewsContext(),
+  ])
 
   const systemPrompt = [
     BASE_SYSTEM,
     profile ? buildProfileContext(profile) : null,
     ruleContext || null,
+    newsContext || null,
   ].filter(Boolean).join('\n\n')
 
   const stream = await client.chat.completions.create({

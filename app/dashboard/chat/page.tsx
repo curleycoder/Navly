@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils'
 import { loadProfile, statusLabels, goalLabels, type IntakeData } from '@/lib/profile'
 import { calculateScore } from '@/lib/scoring'
 import { MarkdownMessage } from '@/components/ui/MarkdownMessage'
-import { UpgradeBanner } from '@/components/ui/UpgradeBanner'
-import { PlanGate } from '@/components/ui/PlanGate'
+import { usePlan, hasPlan } from '@/lib/subscription'
+import Link from 'next/link'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -17,6 +17,32 @@ type Message = {
 }
 
 const CHAT_KEY = 'navly_chat_history'
+const WEEKLY_KEY = 'navly_chat_weekly'
+const FREE_WEEKLY_LIMIT = 1
+
+type WeeklyUsage = { weekStart: string; count: number }
+
+function getWeekStart(): string {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  d.setDate(d.getDate() - d.getDay())
+  return d.toISOString()
+}
+
+function loadWeeklyUsage(): WeeklyUsage {
+  try {
+    const raw = localStorage.getItem(WEEKLY_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw) as WeeklyUsage
+      if (parsed.weekStart === getWeekStart()) return parsed
+    }
+  } catch { /* ignore */ }
+  return { weekStart: getWeekStart(), count: 0 }
+}
+
+function saveWeeklyUsage(usage: WeeklyUsage): void {
+  localStorage.setItem(WEEKLY_KEY, JSON.stringify(usage))
+}
 
 // ─── Suggestions ──────────────────────────────────────────────────────────────
 
@@ -174,16 +200,21 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false)
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [showTopics, setShowTopics] = useState(false)
+  const [weeklyCount, setWeeklyCount] = useState(0)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const { plan } = usePlan()
+  const isPaid = hasPlan(plan, 'report')
+  const limitReached = !isPaid && weeklyCount >= FREE_WEEKLY_LIMIT
 
-  // Load profile and persisted messages
+  // Load profile, persisted messages, and weekly usage
   useEffect(() => {
     setProfile(loadProfile())
     try {
       const saved = localStorage.getItem(CHAT_KEY)
       if (saved) setMessages(JSON.parse(saved))
     } catch { /* ignore */ }
+    setWeeklyCount(loadWeeklyUsage().count)
   }, [])
 
   // Persist messages whenever they change
@@ -205,7 +236,15 @@ export default function ChatPage() {
 
   async function send(text?: string) {
     const content = (text ?? input).trim()
-    if (!content || loading) return
+    if (!content || loading || limitReached) return
+
+    // Track weekly usage for free tier
+    if (!isPaid) {
+      const usage = loadWeeklyUsage()
+      usage.count++
+      saveWeeklyUsage(usage)
+      setWeeklyCount(usage.count)
+    }
 
     const userMessage: Message = { role: 'user', content }
     const next = [...messages, userMessage]
@@ -403,41 +442,59 @@ export default function ChatPage() {
 
       {/* Input */}
       <div className="border-t border-slate-200 bg-white px-6 py-4">
-        <PlanGate plan="tracker" fallback={
-          <div className="mx-auto max-w-2xl">
-            <UpgradeBanner plan="tracker" />
-          </div>
-        }>
-          <div className="mx-auto flex max-w-2xl gap-3">
-            <Textarea
-              ref={inputRef}
-              placeholder="Ask an immigration question…"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  send()
-                }
-              }}
-              rows={1}
-              aria-label="Your message"
-              className="min-h-0 resize-none rounded-xl border-slate-200 bg-white px-4 py-3 text-sm text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
-            />
-            <Button
-              onClick={() => send()}
-              disabled={!input.trim() || loading}
-              aria-label="Send message"
-              className="gap-2 self-end bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
-            >
-              <Send className="h-4 w-4" aria-hidden="true" />
-              Send
-            </Button>
-          </div>
-          <p className="mx-auto mt-2 max-w-2xl text-center text-xs text-slate-400">
-            Enter to send · Shift+Enter for new line · Conversation saved automatically
-          </p>
-        </PlanGate>
+        <div className="mx-auto max-w-2xl">
+          {limitReached ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-center">
+              <p className="text-sm font-semibold text-[#0B1F3A]">You've used your free question this week.</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Upgrade your plan to ask unlimited questions and get the most out of Navly.
+              </p>
+              <Link
+                href="/pricing"
+                className="mt-3 inline-flex items-center gap-2 rounded-xl bg-[#D62828] px-5 py-2 text-sm font-bold text-white hover:bg-[#B91C1C] transition-colors"
+              >
+                Upgrade plan
+              </Link>
+            </div>
+          ) : (
+            <>
+              <div className="flex gap-3">
+                <Textarea
+                  ref={inputRef}
+                  placeholder={isPaid ? 'Ask an immigration question…' : `Ask a question (${FREE_WEEKLY_LIMIT - weeklyCount} free this week)…`}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      send()
+                    }
+                  }}
+                  rows={1}
+                  aria-label="Your message"
+                  className="min-h-0 resize-none rounded-xl border-slate-200 bg-white px-4 py-3 text-sm text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
+                />
+                <Button
+                  onClick={() => send()}
+                  disabled={!input.trim() || loading}
+                  aria-label="Send message"
+                  className="gap-2 self-end bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
+                >
+                  <Send className="h-4 w-4" aria-hidden="true" />
+                  Send
+                </Button>
+              </div>
+              <p className="mt-2 text-center text-xs text-slate-400">
+                {isPaid
+                  ? 'Enter to send · Shift+Enter for new line · Conversation saved automatically'
+                  : `Free plan: ${FREE_WEEKLY_LIMIT} question per week. `}
+                {!isPaid && (
+                  <Link href="/pricing" className="font-semibold text-[#D62828] hover:underline">Upgrade for unlimited access.</Link>
+                )}
+              </p>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
