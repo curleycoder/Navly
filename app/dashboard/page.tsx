@@ -121,9 +121,6 @@ export default function DashboardPage() {
               : 'Complete your profile to get started'}
           </p>
         </div>
-        <Link href="/onboarding" className="text-xs font-semibold text-slate-400 hover:text-[#D62828]">
-          Update profile →
-        </Link>
       </div>
 
       {/* Permit warning — tracker tier only */}

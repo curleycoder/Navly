@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { loadProfile, saveProfile, EMPTY_PROFILE, type IntakeData } from '@/lib/profile'
+import { loadProfile, saveProfile, loadProfileFromSupabase, saveProfileToSupabase, EMPTY_PROFILE, type IntakeData } from '@/lib/profile'
 import { TOP_COUNTRIES, ALL_COUNTRIES, CA_PROVINCES } from '@/lib/geo'
 import { supabase } from '@/lib/supabase/client'
 
@@ -299,6 +299,7 @@ function PasswordChangeForm() {
 export default function ProfilePage() {
   const [data, setData] = useState<IntakeData>({ ...EMPTY_PROFILE })
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [loaded, setLoaded] = useState(false)
 
   // Pending confirmation state for sensitive dropdowns
@@ -307,15 +308,33 @@ export default function ProfilePage() {
   const [pendingCountry, setPendingCountry] = useState<string | null>(null)
 
   useEffect(() => {
-    const profile = loadProfile()
-    if (profile) setData(profile)
-    setLoaded(true)
+    async function load() {
+      // Load localStorage immediately for fast display
+      const local = loadProfile()
+      if (local) setData(local)
+
+      // Sync from Supabase (source of truth) — overwrites localStorage if newer
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const remote = await loadProfileFromSupabase(user.id)
+        if (remote) setData(remote)
+      }
+
+      setLoaded(true)
+    }
+    load()
   }, [])
 
   const inCanada = data.currentCountry === 'Canada'
 
-  function handleSave() {
-    saveProfile(data)
+  async function handleSave() {
+    setSaving(true)
+    saveProfile(data) // localStorage — instant
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await saveProfileToSupabase(user.id, data)
+    }
+    setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
   }
@@ -829,9 +848,11 @@ export default function ProfilePage() {
       <div className="mt-6 flex items-center gap-4">
         <Button
           onClick={handleSave}
-          className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C]"
+          disabled={saving}
+          className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-60"
         >
-          Save changes
+          {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+          {saving ? 'Saving…' : 'Save changes'}
         </Button>
         {saved && (
           <span className="flex items-center gap-1.5 text-sm font-semibold text-green-600">
