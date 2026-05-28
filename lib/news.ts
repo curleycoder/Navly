@@ -68,80 +68,84 @@ export const importanceDot: Record<NewsImportance, string> = {
   low:    'bg-slate-300',
 }
 
-// ─── Mock data — replace with real DB fetch in production ────────────────────
+// ─── Fallback data — real verified IRCC policy changes ───────────────────────
+// These are shown when the Supabase DB is empty or unavailable.
+// The cron job at /api/cron/news fetches live items from canada.ca RSS feeds
+// and upserts them into the ircc_news table — these are only a safety net.
+// Sources: canada.ca/en/immigration-refugees-citizenship/news and /notices
 
 export const mockUpdates: NewsUpdate[] = [
   {
-    id: 'ircc-2026-05-01',
-    title: 'IRCC Updates PGWP Eligibility for Programs Starting After 2024',
+    id: 'ircc-job-offer-crs-removed-2025-03-25',
+    title: 'Express Entry: Job offer no longer adds points to CRS score',
     summary:
-      'International students whose programs started after November 1, 2024 may receive a shorter Post-Graduation Work Permit based on program length. Programs under 2 years now generate a PGWP equal to the program length, not 3 years. Students in 2-year or longer programs are unaffected.',
+      'Effective March 25, 2025, IRCC removed arranged employment (job offer) points from the Comprehensive Ranking System. A valid job offer no longer adds 50 or 200 CRS points. This change applies to all candidates currently in the pool and all future rounds. A job offer may still strengthen eligibility for some Provincial Nominee Program streams, but it has no direct effect on your Express Entry CRS score.',
     sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/news/notices.html',
     sourceName: 'IRCC Notices',
-    publishedAt: '2026-05-01',
-    category: 'study',
-    importance: 'high',
-    affectedUsers: ['student', 'study-permit'],
-  },
-  {
-    id: 'ircc-2026-04-24',
-    title: 'Express Entry Draw: Canadian Experience Class — 3,500 Invitations Issued',
-    summary:
-      'IRCC issued 3,500 Invitations to Apply (ITAs) to Canadian Experience Class candidates on April 24, 2026. The minimum CRS score was 491. Candidates with scores above 491 in the CEC pool should expect an invitation in the next draw cycle if their score holds.',
-    sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/news.html',
-    sourceName: 'IRCC',
-    publishedAt: '2026-04-24',
+    publishedAt: '2025-03-25',
     category: 'express-entry',
     importance: 'high',
     affectedUsers: ['work-permit', 'pr', 'express-entry'],
   },
   {
-    id: 'ircc-2026-04-15',
-    title: 'Study Permit Application Cap: 2026 International Student Intake Plan',
+    id: 'ircc-pgwp-language-field-study-2024-11-01',
+    title: 'New language and field-of-study requirements for PGWP applicants',
     summary:
-      'Canada has finalized its 2026 international student intake limits. Approved study permit applications are capped provincially. Applicants from provinces already near their cap may face longer processing times or refusals. Students should confirm their DLI and province quota before applying.',
-    sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/news.html',
-    sourceName: 'IRCC',
-    publishedAt: '2026-04-15',
+      'Starting November 1, 2024, most students who applied for a study permit must meet two new PGWP requirements at graduation: (1) provide proof of English or French language ability — CLB 7 (English) or NCLC 7 (French) minimum — and (2) have studied in a program whose field of study appears on the IRCC-approved list, which focuses on healthcare, trades, STEM, and agriculture. Graduates of designated flight schools are exempt from both requirements. Students who held a study permit before November 1, 2024 are not affected.',
+    sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/news/notices.html',
+    sourceName: 'IRCC Notices',
+    publishedAt: '2024-11-01',
     category: 'study',
     importance: 'high',
     affectedUsers: ['student', 'study-permit'],
   },
   {
-    id: 'ircc-2026-04-08',
-    title: 'Open Work Permit Eligibility Extended for Spouses of Certain Work Permit Holders',
+    id: 'ircc-2025-2027-levels-plan-2024-10-24',
+    title: 'Canada reduces permanent resident targets in 2025–2027 Immigration Levels Plan',
     summary:
-      'Spouses of TEER 1 work permit holders are now eligible for an open work permit regardless of their employer\'s size. Previously this applied only to spouses of workers with NOC 0 and NOC A occupations. This expansion came into effect April 1, 2026.',
+      'IRCC released a revised multi-year immigration levels plan on October 24, 2024. Canada\'s permanent resident admission targets are: 395,000 in 2025, 380,000 in 2026, and 365,000 in 2027. This represents a significant reduction from the previous 500,000 target for 2025. The government cited housing supply, infrastructure capacity, and public services as reasons for the adjustment. Express Entry, PNP, family sponsorship, and other programs will operate within these reduced overall targets.',
     sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/news.html',
     sourceName: 'IRCC',
-    publishedAt: '2026-04-08',
-    category: 'work',
-    importance: 'medium',
-    affectedUsers: ['work-permit'],
+    publishedAt: '2024-10-24',
+    category: 'pr',
+    importance: 'high',
+    affectedUsers: ['work-permit', 'student', 'pr', 'express-entry', 'pnp'],
   },
   {
-    id: 'ircc-2026-04-01',
-    title: 'Provincial Nominee Program: 2026 Allocation Levels Released',
+    id: 'ircc-visitor-work-permit-policy-ended-2024-08-28',
+    title: 'Temporary policy allowing visitors to apply for work permits from inside Canada ended',
     summary:
-      'Canada released its 2026 PNP allocation levels. Ontario, British Columbia, and Alberta received the largest share of nominations. Saskatchewan and Manitoba increased their allocations for skilled trades workers. Nominees should submit their federal PR application promptly after receiving a provincial nomination — delays can affect processing.',
-    sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/news.html',
-    sourceName: 'IRCC',
-    publishedAt: '2026-04-01',
-    category: 'pnp',
-    importance: 'medium',
-    affectedUsers: ['work-permit', 'student', 'pr', 'pnp'],
-  },
-  {
-    id: 'ircc-2026-03-20',
-    title: 'Family Sponsorship: Updated Minimum Necessary Income Thresholds for 2026',
-    summary:
-      'IRCC has updated the Minimum Necessary Income (MNI) thresholds for sponsoring a spouse or dependent. Sponsors must demonstrate income at or above the 2026 Low Income Cut-Off (LICO). Applications submitted before the update date are assessed under 2025 thresholds.',
+      'IRCC ended the temporary public policy that allowed foreign nationals visiting Canada to apply for an employer-specific work permit from inside Canada without first leaving the country. This policy ended August 28, 2024. Visitors who want to work in Canada must now apply for a work permit before arriving, or qualify under one of the established in-Canada exceptions (such as certain CUSMA/USMCA workers or International Experience Canada participants). Maintained status from a previously held work permit is not affected.',
     sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/news/notices.html',
     sourceName: 'IRCC Notices',
-    publishedAt: '2026-03-20',
-    category: 'family',
-    importance: 'medium',
-    affectedUsers: ['family', 'family-member'],
+    publishedAt: '2024-08-28',
+    category: 'work',
+    importance: 'high',
+    affectedUsers: ['visitor', 'work-permit'],
+  },
+  {
+    id: 'ircc-study-permit-cap-2024-01-22',
+    title: 'Canada announces two-year cap on international study permit approvals',
+    summary:
+      'IRCC announced on January 22, 2024, a two-year cap on new approved study permits for international students. For 2024, the target was approximately 360,000 approved permits distributed across provinces by population. Graduate-level programs (master\'s and doctoral) are exempt from the cap. Applicants should verify their institution\'s DLI status and provincial allocation before applying, as provinces already near their quota may face processing delays or refusals.',
+    sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/news.html',
+    sourceName: 'IRCC',
+    publishedAt: '2024-01-22',
+    category: 'study',
+    importance: 'high',
+    affectedUsers: ['student', 'study-permit'],
+  },
+  {
+    id: 'ircc-express-entry-category-draws-2023-05-31',
+    title: 'Express Entry introduces category-based selection draws',
+    summary:
+      'IRCC launched category-based selection for Express Entry rounds starting May 31, 2023. In addition to all-program draws, IRCC now issues targeted Invitations to Apply (ITAs) to candidates in specific occupational categories — including healthcare, STEM, trades, transport, agriculture, and education — and to French-language-proficiency candidates. Candidates who qualify under a targeted category may receive an ITA even if their overall CRS score is lower than the all-program cut-off. French speakers with CLB 7+ now receive 25–50 bonus CRS points depending on English proficiency.',
+    sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/news.html',
+    sourceName: 'IRCC',
+    publishedAt: '2023-05-31',
+    category: 'express-entry',
+    importance: 'high',
+    affectedUsers: ['work-permit', 'pr', 'express-entry'],
   },
 ]
 
@@ -233,4 +237,23 @@ export async function getPersonalizedUpdates(status: string, goal: string): Prom
 
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+// ─── In-app notification tracking (localStorage) ──────────────────────────────
+
+const NEWS_LAST_READ_KEY = 'navly_news_last_read'
+
+/** Call when the user opens the news page to clear the unread badge. */
+export function markNewsAsRead(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(NEWS_LAST_READ_KEY, new Date().toISOString())
+  }
+}
+
+/** Returns how many items in the list are newer than the last time the user read news. */
+export function countUnread(updates: NewsUpdate[]): number {
+  if (typeof window === 'undefined') return 0
+  const raw = localStorage.getItem(NEWS_LAST_READ_KEY)
+  const lastRead = raw ? new Date(raw) : new Date(0) // epoch = never read
+  return updates.filter((u) => new Date(u.publishedAt) > lastRead).length
 }

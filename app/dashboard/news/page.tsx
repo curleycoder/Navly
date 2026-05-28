@@ -8,6 +8,7 @@ import {
   categoryColors,
   importanceDot,
   formatDate,
+  markNewsAsRead,
   type NewsCategory,
   type NewsUpdate,
 } from '@/lib/news'
@@ -98,6 +99,8 @@ export default function NewsPage() {
             .map((u) => u.id)
           setPersonalizedIds(new Set(ids))
         }
+        // Mark all news as read — clears the sidebar badge
+        markNewsAsRead()
       })
       .catch(() => {})
       .finally(() => setLoading(false))
