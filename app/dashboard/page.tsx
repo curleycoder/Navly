@@ -205,7 +205,10 @@ export default function DashboardPage() {
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${strength.bg} ${strength.text}`}>
                 {strength.label}
               </span>
-              {topPathway && (
+              {!hasData && score?.missingFields && score.missingFields.length > 0 && (
+                <p className="mt-1.5 text-xs text-slate-400">Missing: {score.missingFields.join(', ')}</p>
+              )}
+              {hasData && topPathway && (
                 <p className="mt-1.5 text-xs font-semibold text-[#0B1F3A]">{topPathway.name}</p>
               )}
             </div>
