@@ -26,7 +26,7 @@ export default function LoginPage() {
   const [otpSent, setOtpSent] = useState(false)
 
   async function handleResendVerification() {
-    await supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: `${window.location.origin}/dashboard` } })
+    await supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin}/dashboard` } })
     setResentAt(Date.now())
   }
   async function handleSendPhoneOtp() {
@@ -123,7 +123,7 @@ async function handleVerifyPhoneOtp() {
       return
     }
     await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/dashboard`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin}/dashboard`,
     })
     setError('')
     alert(`Password reset email sent to ${email}. Check your inbox.`)

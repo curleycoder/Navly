@@ -540,13 +540,35 @@ export default function PRTrackerPage() {
 
       {isOutside && profile && <OutsidePlanningCard profile={profile} />}
 
-      {profile && score && <CRSSummaryCard crs={score.crs?.total ?? 0} />}
-
       <PlanGate
         plan="report"
         fallback={
           <div className="mb-8">
-            {/* 1 pathway preview for free users */}
+            {/* CRS gauge — free users */}
+            {score && (
+              <div className="mb-6 flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <ProgressGauge
+                  value={score.crs?.total ?? 0}
+                  max={600}
+                  label="Complete"
+                  sublabel="Competitive Express Entry scores typically range 480–550+"
+                />
+                <div className="flex w-full items-center justify-center gap-8 border-t border-slate-100 pt-4">
+                  <div className="flex flex-col text-center">
+                    <span className="text-3xl font-bold text-[#0B1F3A]">{score.crs?.total ?? 0}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">CRS Points</span>
+                  </div>
+                  <div className="h-10 w-px bg-slate-200" />
+                  <div className="flex flex-col text-center">
+                    <span className="text-3xl font-bold text-[#0B1F3A]">{score.fsw?.score ?? 0}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">FSW Grid</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* CRS vs last draw */}
+            {profile && score && <CRSSummaryCard crs={score.crs?.total ?? 0} />}
+            {/* 1 pathway preview */}
             {score && score.pathways.length > 0 && (() => {
               const top = score.pathways.find(p => p.status === 'eligible' || p.status === 'possible') ?? score.pathways[0]
               return (
@@ -567,8 +589,8 @@ export default function PRTrackerPage() {
               className="flex items-center justify-between rounded-2xl border border-dashed border-[#D62828]/40 bg-[#D62828]/5 p-5 transition hover:bg-[#D62828]/10"
             >
               <div>
-                <p className="font-bold text-[#0B1F3A]">Unlock where your missing points are →</p>
-                <p className="mt-0.5 text-sm text-slate-500">See your full CRS breakdown by category, all pathway eligibility, and the exact improvements that would move your score.</p>
+                <p className="font-bold text-[#0B1F3A]">Unlock the full breakdown →</p>
+                <p className="mt-0.5 text-sm text-slate-500">See your CRS score by category, all pathway eligibility, and the exact improvements that would move your score.</p>
               </div>
               <ArrowRight className="ml-4 h-5 w-5 shrink-0 text-[#D62828]" />
             </Link>
