@@ -40,8 +40,6 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
 
   const currentScore = calculateScore(simulatedProfile)
   const crs = currentScore.crs || { total: 0, age: 0, education: 0, firstLanguage: 0, canadianExperience: 0, skillTransferability: 0, additional: 0 }
-  const showIncompleteWarning = !currentScore.hasEnoughData
-
   const langDetails = currentScore.clb ? [
     { label: 'Reading', value: `CLB ${currentScore.clb.r}` },
     { label: 'Writing', value: `CLB ${currentScore.clb.w}` },
@@ -88,49 +86,7 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
 
   return (
     <div className="animate-fade-in relative">
-      {showIncompleteWarning && (
-        <Card className="mb-8 rounded-2xl border-[#D62828]/20 bg-[#D62828]/5">
-          <CardContent className="p-5">
-            <div className="flex items-start gap-3">
-              <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-[#D62828]" />
-              <div>
-                <p className="font-semibold text-[#0B1F3A]">Profile incomplete — score estimate unavailable</p>
-                <p className="mt-1 text-sm text-slate-600">
-                  Add the missing fields to unlock your CRS estimate and pathway analysis. Missing:{' '}
-                  <span className="font-medium text-[#D62828]">{currentScore.missingFields.join(', ')}</span>.
-                </p>
-                <Link href="/onboarding" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#D62828] hover:underline">
-                  Update profile <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="mb-6 flex flex-col items-start gap-4 lg:flex-row lg:items-stretch">
-        <div className="flex w-full shrink-0 flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:w-87.5 transition-all duration-300">
-          <ProgressGauge
-            value={crs.total || 0}
-            max={600}
-            label="Complete"
-            sublabel="Competitive Express Entry scores typically range 480–550+"
-          />
-          <div className="flex w-full items-center justify-center gap-8 border-t border-slate-100 pt-4">
-            <div className="flex flex-col text-center">
-              <span className="text-3xl font-bold text-[#0B1F3A] transition-all duration-500">{crs.total}</span>
-              <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">CRS Points</span>
-            </div>
-            <div className="h-10 w-px bg-slate-200" />
-            <div className="flex flex-col text-center">
-              <span className="text-3xl font-bold text-[#0B1F3A] transition-all duration-500">{currentScore.fsw?.score || 0}</span>
-              <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">FSW Grid</span>
-            </div>
-          </div>
-          <ScoreTimelineChart />
-        </div>
-
-        <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <RequirementCard
             icon={BookOpen}
             title="Language Score"
@@ -162,7 +118,6 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
             details={pathwayDetails.length > 0 ? pathwayDetails : [{ label: 'Pathways', value: 'Calculating…' }]}
             progress={isEligible ? 100 : currentScore.pathways.some((p) => p.status === 'possible') ? 70 : 40}
           />
-        </div>
       </div>
 
       {currentScore.improvements.length > 0 && (
@@ -540,35 +495,59 @@ export default function PRTrackerPage() {
 
       {isOutside && profile && <OutsidePlanningCard profile={profile} />}
 
+      {/* ── CRS gauge — always visible, never gated ── */}
+      {profile && score && (
+        <div className="mb-6 flex flex-col items-start gap-4 lg:flex-row lg:items-stretch">
+          <div className="flex w-full shrink-0 flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:w-[350px]">
+            <ProgressGauge
+              value={score.crs?.total ?? 0}
+              max={600}
+              label="Complete"
+              sublabel="Competitive Express Entry scores typically range 480–550+"
+            />
+            <div className="flex w-full items-center justify-center gap-8 border-t border-slate-100 pt-4">
+              <div className="flex flex-col text-center">
+                <span className="text-3xl font-bold text-[#0B1F3A]">{score.crs?.total ?? 0}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">CRS Points</span>
+              </div>
+              <div className="h-10 w-px bg-slate-200" />
+              <div className="flex flex-col text-center">
+                <span className="text-3xl font-bold text-[#0B1F3A]">{score.fsw?.score ?? 0}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">FSW Grid</span>
+              </div>
+            </div>
+            <ScoreTimelineChart />
+          </div>
+
+          <div className="flex flex-1 flex-col gap-4">
+            {!score.hasEnoughData && score.missingFields.length > 0 && (
+              <Card className="rounded-2xl border-[#D62828]/20 bg-[#D62828]/5">
+                <CardContent className="p-5">
+                  <div className="flex items-start gap-3">
+                    <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-[#D62828]" />
+                    <div>
+                      <p className="font-semibold text-[#0B1F3A]">Profile incomplete — score estimate unavailable</p>
+                      <p className="mt-1 text-sm text-slate-600">
+                        Missing: <span className="font-medium text-[#D62828]">{score.missingFields.join(', ')}</span>.
+                      </p>
+                      <Link href="/onboarding" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#D62828] hover:underline">
+                        Update profile <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            <CRSSummaryCard crs={score.crs?.total ?? 0} />
+          </div>
+        </div>
+      )}
+
+      {/* ── Gated: full breakdown for paid users ── */}
       <PlanGate
         plan="report"
         fallback={
           <div className="mb-8">
-            {/* CRS gauge — free users */}
-            {score && (
-              <div className="mb-6 flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <ProgressGauge
-                  value={score.crs?.total ?? 0}
-                  max={600}
-                  label="Complete"
-                  sublabel="Competitive Express Entry scores typically range 480–550+"
-                />
-                <div className="flex w-full items-center justify-center gap-8 border-t border-slate-100 pt-4">
-                  <div className="flex flex-col text-center">
-                    <span className="text-3xl font-bold text-[#0B1F3A]">{score.crs?.total ?? 0}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">CRS Points</span>
-                  </div>
-                  <div className="h-10 w-px bg-slate-200" />
-                  <div className="flex flex-col text-center">
-                    <span className="text-3xl font-bold text-[#0B1F3A]">{score.fsw?.score ?? 0}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">FSW Grid</span>
-                  </div>
-                </div>
-              </div>
-            )}
-            {/* CRS vs last draw */}
-            {profile && score && <CRSSummaryCard crs={score.crs?.total ?? 0} />}
-            {/* 1 pathway preview */}
             {score && score.pathways.length > 0 && (() => {
               const top = score.pathways.find(p => p.status === 'eligible' || p.status === 'possible') ?? score.pathways[0]
               return (
@@ -598,7 +577,6 @@ export default function PRTrackerPage() {
         }
       >
         {profile && score && <ScoreTracker profile={profile} score={score} />}
-
         {pnpStreams.length > 0 && <PNPStreamsCard streams={pnpStreams} />}
       </PlanGate>
 
