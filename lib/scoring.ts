@@ -35,7 +35,7 @@ export type FSWResult = {
 export type PathwayStatus = {
   id: string
   name: string
-  status: 'eligible' | 'not-yet' | 'possible' | 'not-applicable'
+  status: 'eligible' | 'not-yet' | 'possible' | 'not-applicable' | 'high-risk'
   reason: string
 }
 
@@ -82,77 +82,74 @@ function celpipToCLB(scores: CLBScores): CLBScores {
   return { r: cap(scores.r), w: cap(scores.w), l: cap(scores.l), s: cap(scores.s) }
 }
 
-function pteToCLB(scores: CLBScores): CLBScores {
+// Corrected PTE Core CLB equivalency — IRCC official tables
+function pteCoreToCLB(scores: CLBScores): CLBScores {
   function reading(s: number) {
-    if (s >= 88) return 10; if (s >= 78) return 9; if (s >= 60) return 8
-    if (s >= 51) return 7;  if (s >= 33) return 6; if (s >= 23) return 5
-    if (s >= 20) return 4;  return 3
+    if (s >= 88) return 10; if (s >= 78) return 9; if (s >= 69) return 8
+    if (s >= 60) return 7;  if (s >= 51) return 6; if (s >= 42) return 5
+    if (s >= 33) return 4;  if (s >= 24) return 3; return 0
   }
   function writing(s: number) {
-    if (s >= 90) return 10; if (s >= 79) return 9; if (s >= 69) return 8
-    if (s >= 60) return 7;  if (s >= 51) return 6; if (s >= 41) return 5
-    if (s >= 32) return 4;  return 3
+    if (s >= 90) return 10; if (s >= 88) return 9; if (s >= 79) return 8
+    if (s >= 69) return 7;  if (s >= 60) return 6; if (s >= 51) return 5
+    if (s >= 41) return 4;  if (s >= 32) return 3; return 0
   }
   function listening(s: number) {
-    if (s >= 82) return 10; if (s >= 71) return 9; if (s >= 60) return 8
-    if (s >= 46) return 7;  if (s >= 31) return 6; if (s >= 21) return 5
-    if (s >= 18) return 4;  return 3
+    if (s >= 89) return 10; if (s >= 82) return 9; if (s >= 71) return 8
+    if (s >= 60) return 7;  if (s >= 50) return 6; if (s >= 39) return 5
+    if (s >= 28) return 4;  if (s >= 18) return 3; return 0
   }
   function speaking(s: number) {
-    if (s >= 89) return 10; if (s >= 76) return 9; if (s >= 68) return 8
-    if (s >= 59) return 7;  if (s >= 51) return 6; if (s >= 41) return 5
-    if (s >= 30) return 4;  return 3
+    if (s >= 89) return 10; if (s >= 84) return 9; if (s >= 76) return 8
+    if (s >= 68) return 7;  if (s >= 59) return 6; if (s >= 51) return 5
+    if (s >= 42) return 4;  if (s >= 34) return 3; return 0
   }
   return { r: reading(scores.r), w: writing(scores.w), l: listening(scores.l), s: speaking(scores.s) }
 }
 
 // ─── CLB Conversion — French tests ────────────────────────────────────────────
-// Source: IRCC official CLB equivalency charts for TEF Canada and TCF Canada
 
 function tefToCLB(scores: CLBScores): CLBScores {
-  // TEF Canada scale: Listening(CO) 0-360, Speaking(EO) 0-450, Reading(CE) 0-248, Writing(EE) 0-450
-  function listening(s: number) { // CO
+  function listening(s: number) {
     if (s >= 316) return 10; if (s >= 298) return 9; if (s >= 280) return 8
     if (s >= 249) return 7;  if (s >= 217) return 6; if (s >= 181) return 5
     if (s >= 145) return 4;  return 3
   }
-  function speaking(s: number) { // EO
+  function speaking(s: number) {
     if (s >= 393) return 10; if (s >= 349) return 9; if (s >= 310) return 8
     if (s >= 271) return 7;  if (s >= 226) return 6; if (s >= 181) return 5
     if (s >= 151) return 4;  return 3
   }
-  function reading(s: number) { // CE
+  function reading(s: number) {
     if (s >= 206) return 10; if (s >= 181) return 9; if (s >= 151) return 8
     if (s >= 121) return 7;  if (s >= 91)  return 6; if (s >= 71)  return 5
     if (s >= 60)  return 4;  return 3
   }
-  function writing(s: number) { // EE
+  function writing(s: number) {
     if (s >= 393) return 10; if (s >= 349) return 9; if (s >= 310) return 8
     if (s >= 271) return 7;  if (s >= 226) return 6; if (s >= 181) return 5
     if (s >= 151) return 4;  return 3
   }
-  // scores.l = Listening (CO), scores.s = Speaking (EO), scores.r = Reading (CE), scores.w = Writing (EE)
   return { r: reading(scores.r), w: writing(scores.w), l: listening(scores.l), s: speaking(scores.s) }
 }
 
 function tcfToCLB(scores: CLBScores): CLBScores {
-  // TCF Canada: Listening(CO) 0-699, Speaking(EO) 0-20, Reading(CE) 0-699, Writing(EE) 0-20
-  function listening(s: number) { // CO
+  function listening(s: number) {
     if (s >= 549) return 10; if (s >= 523) return 9; if (s >= 503) return 8
     if (s >= 458) return 7;  if (s >= 398) return 6; if (s >= 369) return 5
     if (s >= 331) return 4;  return 3
   }
-  function speaking(s: number) { // EO (scored 0–20)
+  function speaking(s: number) {
     if (s >= 16) return 10; if (s >= 14) return 9; if (s >= 12) return 8
     if (s >= 10) return 7;  if (s >= 7)  return 6; if (s >= 6)  return 5
     if (s >= 4)  return 4;  return 3
   }
-  function reading(s: number) { // CE
+  function reading(s: number) {
     if (s >= 549) return 10; if (s >= 524) return 9; if (s >= 499) return 8
     if (s >= 453) return 7;  if (s >= 406) return 6; if (s >= 375) return 5
     if (s >= 342) return 4;  return 3
   }
-  function writing(s: number) { // EE (scored 0–20)
+  function writing(s: number) {
     if (s >= 16) return 10; if (s >= 14) return 9; if (s >= 12) return 8
     if (s >= 10) return 7;  if (s >= 7)  return 6; if (s >= 6)  return 5
     if (s >= 4)  return 4;  return 3
@@ -166,7 +163,7 @@ export function convertToCLB(testType: string, scores: CLBScores): CLBScores | n
   if (isNaN(r) || isNaN(w) || isNaN(l) || isNaN(s)) return null
   if (testType === 'ielts-general') return ieltsToCLB(scores)
   if (testType === 'celpip') return celpipToCLB(scores)
-  if (testType === 'pte') return pteToCLB(scores)
+  if (testType === 'pte') return pteCoreToCLB(scores)
   if (testType === 'tef') return tefToCLB(scores)
   if (testType === 'tcf') return tcfToCLB(scores)
   return null
@@ -211,14 +208,32 @@ function agePts(age: number, spouseComing: boolean): number {
 }
 
 // ─── CRS — Education Points ───────────────────────────────────────────────────
+// Corrected: separate tables for with/without spouse per IRCC CRS tool
 
-function educationPts(level: string): number {
-  const map: Record<string, number> = {
-    'less-than-secondary': 0, secondary: 28,
-    '1-year': 84, '2-year': 91, bachelors: 112,
-    'two-credentials': 119, masters: 126, doctoral: 140,
+function educationPts(level: string, spouseComing: boolean): number {
+  const noSpouse: Record<string, number> = {
+    'less-than-secondary': 0,
+    secondary: 30,
+    '1-year': 90,
+    '2-year': 98,
+    bachelors: 120,
+    'two-credentials': 128,
+    masters: 135,
+    professional: 135,
+    doctoral: 150,
   }
-  return map[level] ?? 0
+  const withSpouse: Record<string, number> = {
+    'less-than-secondary': 0,
+    secondary: 28,
+    '1-year': 84,
+    '2-year': 91,
+    bachelors: 112,
+    'two-credentials': 119,
+    masters: 126,
+    professional: 126,
+    doctoral: 140,
+  }
+  return spouseComing ? (withSpouse[level] ?? 0) : (noSpouse[level] ?? 0)
 }
 
 // ─── CRS — Canadian Work Experience ──────────────────────────────────────────
@@ -255,10 +270,7 @@ function spouseCanadianWorkPts(months: number): number {
 
 function calculateSpouseFactors(profile: IntakeData): number {
   if (profile.spouseComing !== 'yes') return 0
-
   let pts = 0
-
-  // Spouse language contribution (max 20)
   const rawSpouseLang: CLBScores = {
     r: parseFloat(profile.spouseLangReading),
     w: parseFloat(profile.spouseLangWriting),
@@ -271,17 +283,10 @@ function calculateSpouseFactors(profile: IntakeData): number {
                     spouseLangPts(spouseClb.l) + spouseLangPts(spouseClb.s)
     pts += Math.min(langPts, 20)
   }
-
-  // Spouse education contribution (max 10)
-  if (profile.spouseEducationLevel) {
-    pts += Math.min(spouseEducationPts(profile.spouseEducationLevel), 10)
-  }
-
-  // Spouse Canadian work experience (max 10)
+  if (profile.spouseEducationLevel) pts += Math.min(spouseEducationPts(profile.spouseEducationLevel), 10)
   const spouseCanMonths = parseFloat(profile.spouseCanadianWorkMonths) || 0
   pts += Math.min(spouseCanadianWorkPts(spouseCanMonths), 10)
-
-  return Math.min(pts, 40) // spouse factors cap at 40
+  return Math.min(pts, 40)
 }
 
 // ─── CRS — Skill Transferability ─────────────────────────────────────────────
@@ -296,8 +301,8 @@ function skillTransferabilityPts(
   const canYears = Math.floor(canadianWorkMonths / 12)
   const hasCLB7 = minLang >= 7
   const hasCLB9 = minLang >= 9
-  const advEdu = ['bachelors','two-credentials','masters','doctoral'].includes(educationLevel)
-  const anyPost = ['1-year','2-year','bachelors','two-credentials','masters','doctoral'].includes(educationLevel)
+  const advEdu = ['bachelors','two-credentials','masters','professional','doctoral'].includes(educationLevel)
+  const anyPost = ['1-year','2-year','bachelors','two-credentials','masters','professional','doctoral'].includes(educationLevel)
 
   let total = 0
 
@@ -337,7 +342,6 @@ function skillTransferabilityPts(
 }
 
 // ─── CRS — Second Official Language (French) ─────────────────────────────────
-// Source: IRCC — Additional 25 pts for French NCLC 7+; 50 pts if also English CLB 5+
 
 function secondLangPts(frenchClb: CLBScores | null, englishClb: CLBScores | null): number {
   if (!frenchClb) return 0
@@ -351,24 +355,21 @@ function secondLangPts(frenchClb: CLBScores | null, englishClb: CLBScores | null
 }
 
 // ─── CRS — Additional Points ──────────────────────────────────────────────────
+// NOTE: Job-offer CRS points removed March 25, 2025. Do NOT add them back.
 
 function additionalPts(
-  hasJobOffer: boolean,
-  teerLevel: string,
   canadianEducation: string,
   canadianSibling: string,
   pnpNomination: boolean,
+  frenchBonus: number,
 ): number {
   let pts = 0
   if (pnpNomination) pts += 600
-  if (hasJobOffer) {
-    if (teerLevel === '0') pts += 200
-    else if (['1','2','3'].includes(teerLevel)) pts += 50
-    else pts += 25
-  }
+  // Job offer CRS points removed March 25, 2025 — 0 points
   if (canadianEducation === '3-plus-year') pts += 30
   else if (canadianEducation === '1-2-year') pts += 15
   if (canadianSibling === 'yes') pts += 15
+  pts += frenchBonus
   return pts
 }
 
@@ -385,7 +386,7 @@ function fswLangPts(clb: CLBScores | null): number {
 function fswEduPts(level: string): number {
   const map: Record<string, number> = {
     'less-than-secondary': 0, secondary: 5, '1-year': 15, '2-year': 19,
-    bachelors: 21, 'two-credentials': 22, masters: 23, doctoral: 25,
+    bachelors: 21, 'two-credentials': 22, masters: 23, professional: 23, doctoral: 25,
   }
   return map[level] ?? 0
 }
@@ -405,7 +406,299 @@ function fswAgePts(age: number): number {
   return 0
 }
 
-// ─── Risk Flags ───────────────────────────────────────────────────────────────
+// ─── Canadian Work Year Calculation ──────────────────────────────────────────
+
+function calculateCanadianWorkYears(profile: IntakeData): number {
+  const months = parseFloat(profile.canadianWorkMonths || '0')
+  const yearsByMonths = months / 12
+  // Cross-check via hours/week if available (IRCC uses ~1,560 hrs/yr for FTE)
+  const hoursPerWeek = parseFloat(profile.hoursPerWeek || '0')
+  if (hoursPerWeek > 0 && months > 0) {
+    const totalHours = hoursPerWeek * (months * 4.33)
+    const yearsByHours = totalHours / 1560
+    // Use the more conservative of the two
+    return Math.min(yearsByMonths, yearsByHours)
+  }
+  return yearsByMonths
+}
+
+// ─── CEC Assessment ───────────────────────────────────────────────────────────
+
+function assessCEC(profile: IntakeData, clb: CLBScores | null, canMonths: number): PathwayStatus {
+  const teer = profile.teerLevel
+  const minCLB = clb ? Math.min(clb.r, clb.w, clb.l, clb.s) : 0
+  const canadianYears = calculateCanadianWorkYears(profile)
+  const skilledTeer = ['0', '1', '2', '3'].includes(teer)
+  const requiredCLB = (teer === '0' || teer === '1') ? 7 : 5
+  const authorized = profile.canadianWorkAuthorized !== 'no'
+  const whileStudent = profile.canadianWorkWhileFullTimeStudent === 'yes'
+
+  if (!skilledTeer) {
+    return {
+      id: 'cec', name: 'Canadian Experience Class',
+      status: 'not-applicable',
+      reason: 'CEC requires skilled Canadian work in TEER 0, 1, 2, or 3.',
+    }
+  }
+
+  if (!authorized) {
+    return {
+      id: 'cec', name: 'Canadian Experience Class',
+      status: 'not-yet',
+      reason: 'CEC work experience must be authorized Canadian work.',
+    }
+  }
+
+  if (whileStudent) {
+    return {
+      id: 'cec', name: 'Canadian Experience Class',
+      status: 'not-yet',
+      reason: 'Work while studying full-time generally should not be counted toward the CEC 1-year requirement.',
+    }
+  }
+
+  if (canadianYears >= 1 && minCLB >= requiredCLB) {
+    return {
+      id: 'cec', name: 'Canadian Experience Class',
+      status: 'eligible',
+      reason: 'You may meet the basic CEC screening criteria: 1 year of authorized skilled Canadian work and required language level.',
+    }
+  }
+
+  if (canadianYears < 1) {
+    const monthsLeft = Math.ceil((1 - canadianYears) * 12)
+    return {
+      id: 'cec', name: 'Canadian Experience Class',
+      status: canMonths > 0 ? 'not-yet' : 'not-applicable',
+      reason: `${monthsLeft} more month${monthsLeft !== 1 ? 's' : ''} of TEER ${teer} skilled Canadian work needed.`,
+    }
+  }
+
+  return {
+    id: 'cec', name: 'Canadian Experience Class',
+    status: 'not-yet',
+    reason: `Language is below the CEC minimum for TEER ${teer}. Required: CLB ${requiredCLB} in all 4 skills.`,
+  }
+}
+
+// ─── FSW Assessment ───────────────────────────────────────────────────────────
+
+function isExemptFromFSWFunds(profile: IntakeData): boolean {
+  return (
+    profile.currentlyAuthorizedToWorkCanada === 'yes' &&
+    profile.hasValidJobOfferForFundsExemption === 'yes'
+  )
+}
+
+function assessFSW(
+  profile: IntakeData,
+  clb: CLBScores | null,
+  age: number,
+): FSWResult {
+  const minCLB = clb ? Math.min(clb.r, clb.w, clb.l, clb.s) : 0
+  const foreignYears = parseFloat(profile.foreignWorkYears || '0')
+  const teer = profile.teerLevel
+  const skilledTeer = ['0', '1', '2', '3'].includes(teer)
+  // Use continuousSkilledWork1yr if provided, otherwise fall back to year count
+  const continuousOneYear = profile.continuousSkilledWork1yr === 'yes' || foreignYears >= 1
+  const meetsWorkRequirement = skilledTeer && continuousOneYear
+
+  const familySize = parseInt(profile.familySize || '1')
+  const funds = parseFloat(profile.settlementFunds || '0')
+  const requiredFunds = getRequiredFunds(familySize)
+  const fundsExempt = isExemptFromFSWFunds(profile)
+  const meetsMinFunds = fundsExempt || !profile.settlementFunds || funds >= requiredFunds
+
+  const langPts = fswLangPts(clb)
+  const eduPts = fswEduPts(profile.educationLevel)
+  const workPts = fswWorkPts(foreignYears)
+  const agePts2 = fswAgePts(age)
+  // Job offer still gives FSW selection-factor points (10 pts) but NOT CRS points
+  const jobOfferPts = profile.hasJobOffer === 'yes' ? 10 : 0
+  const canMonths = parseFloat(profile.canadianWorkMonths || '0')
+  const adaptPts = canMonths >= 12 ? 10 :
+    (profile.canadianEducation && profile.canadianEducation !== 'none' ? 5 : 0)
+  const fswTotal = langPts + eduPts + workPts + agePts2 + jobOfferPts + adaptPts
+
+  return {
+    score: fswTotal,
+    eligible: meetsWorkRequirement && minCLB >= 7 && fswTotal >= 67 && meetsMinFunds,
+    meetsWorkRequirement,
+    meetsMinFunds,
+    breakdown: {
+      language: langPts,
+      education: eduPts,
+      workExperience: workPts,
+      age: agePts2,
+      jobOffer: jobOfferPts,
+      adaptability: adaptPts,
+    },
+  }
+}
+
+// ─── PGWP Assessment — 2026 ───────────────────────────────────────────────────
+
+function assessPGWP(profile: IntakeData): PathwayStatus | null {
+  if (profile.status !== 'student') return null
+
+  const programMonths = parseFloat(profile.programLengthMonths || '0')
+  const hasDLI = profile.dliNumber !== '' || profile.schoolIsDLI === 'yes'
+  const programEligible = profile.programPgwpEligible === 'yes'
+  const basicProgramOk = hasDLI && programEligible && programMonths >= 8
+  // Flight school graduates are exempt from language requirement
+  const languageOk = profile.graduatedFromFlightSchool === 'yes' || profile.pgwpLanguageMet === 'yes'
+  // Field-of-study check only required for some programs (2026 frozen list)
+  const fieldOk = profile.fieldOfStudyRequired !== 'yes' || profile.cipCodeEligible === 'yes'
+
+  if (basicProgramOk && languageOk && fieldOk) {
+    return {
+      id: 'pgwp', name: 'PGWP → CEC pathway',
+      status: 'possible',
+      reason: 'You may meet the basic PGWP screening factors. After graduating and getting a PGWP, complete 1 year of authorized skilled Canadian work to screen for CEC.',
+    }
+  }
+
+  if (programMonths < 8) {
+    return {
+      id: 'pgwp', name: 'Post-Graduation Work Permit',
+      status: 'not-yet',
+      reason: 'Programs under 8 months generally do not qualify for a PGWP.',
+    }
+  }
+
+  if (!hasDLI || !programEligible) {
+    return {
+      id: 'pgwp', name: 'Post-Graduation Work Permit',
+      status: 'not-yet',
+      reason: 'PGWP requires graduation from a designated learning institution (DLI) in an eligible program. Not every DLI program qualifies.',
+    }
+  }
+
+  if (!languageOk) {
+    return {
+      id: 'pgwp', name: 'Post-Graduation Work Permit',
+      status: 'not-yet',
+      reason: 'Most PGWP applicants who applied for a study permit after November 1, 2024 must provide proof of English or French language results.',
+    }
+  }
+
+  if (!fieldOk) {
+    return {
+      id: 'pgwp', name: 'Post-Graduation Work Permit',
+      status: 'not-yet',
+      reason: 'Your program may need to match an eligible field of study (CIP code). For 2026, IRCC froze the eligible field-of-study list.',
+    }
+  }
+
+  const gradDate = profile.graduationDate ? new Date(profile.graduationDate) : null
+  const today = new Date()
+  const monthsToGrad = gradDate ? Math.floor((gradDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)) : null
+
+  return {
+    id: 'pgwp', name: 'Post-Graduation Work Permit',
+    status: 'possible',
+    reason: monthsToGrad !== null && monthsToGrad <= 6
+      ? `Graduation in ~${monthsToGrad} month${monthsToGrad !== 1 ? 's' : ''}. Apply for your PGWP before your study permit expires. Check DLI, program eligibility, language, and field-of-study requirements.`
+      : 'PGWP eligibility depends on DLI, program eligibility, program length, language proof, and field of study if required. Verify before applying.',
+  }
+}
+
+// ─── Study Permit Extension ───────────────────────────────────────────────────
+
+function assessStudyPermitExtension(profile: IntakeData): PathwayStatus | null {
+  if (profile.status !== 'student') return null
+  return {
+    id: 'study-permit-extension', name: 'Study permit extension',
+    status: 'possible',
+    reason: 'Apply to extend your study permit at least 30 days before expiry. If changing schools, you need a new acceptance letter and must notify IRCC.',
+  }
+}
+
+// ─── Visitor Pathways ─────────────────────────────────────────────────────────
+
+function buildVisitorPathways(profile: IntakeData, fsw: FSWResult | null): PathwayStatus[] {
+  if (profile.status !== 'visitor') return []
+  const pathways: PathwayStatus[] = []
+
+  pathways.push({
+    id: 'visitor-status', name: 'Visitor status',
+    status: 'possible',
+    reason: 'Visitor status allows you to stay temporarily in Canada, but does not authorize work or long-term study unless separately permitted.',
+  })
+
+  // Temporary visitor-to-work-permit public policy ended August 28, 2024
+  pathways.push({
+    id: 'visitor-to-work-permit', name: 'Visitor → work permit',
+    status: profile.canApplyInsideCanadaException === 'yes' ? 'possible' : 'not-applicable',
+    reason: profile.canApplyInsideCanadaException === 'yes'
+      ? 'You may fall under an inside-Canada work permit exception. Confirm the specific exception applies before applying.'
+      : 'Most visitors cannot apply for a work permit from inside Canada. The temporary visitor-to-work-permit public policy ended August 28, 2024.',
+  })
+
+  pathways.push({
+    id: 'visitor-to-study-permit', name: 'Visitor → study permit',
+    status: profile.canApplyInsideCanadaException === 'yes' ? 'possible' : 'not-applicable',
+    reason: profile.canApplyInsideCanadaException === 'yes'
+      ? 'Some people can apply for a study permit from inside Canada. Confirm the applicable IRCC exception before applying.'
+      : 'Study permits are generally applied for before coming to Canada. Most visitors cannot apply from inside Canada.',
+  })
+
+  if (profile.goal === 'pr') {
+    pathways.push({
+      id: 'visitor-to-pr', name: 'Visitor → PR',
+      status: fsw?.eligible ? 'possible' : 'not-yet',
+      reason: fsw?.eligible
+        ? 'Visitor status does not block PR on its own. You may qualify through FSW if you meet all program requirements.'
+        : 'Visitor status alone is not a PR pathway. Check FSW, PNP, or family sponsorship based on your full profile.',
+    })
+  }
+
+  return pathways
+}
+
+// ─── Maintained Status ────────────────────────────────────────────────────────
+// IRCC calls this "maintained status" — not "implied status"
+
+function assessMaintainedStatus(profile: IntakeData): PathwayStatus | null {
+  if (profile.appliedBeforeStatusExpiry !== 'yes') return null
+  return {
+    id: 'maintained-status', name: 'Maintained status',
+    status: 'possible',
+    reason: 'If you applied to extend or change your temporary status before it expired, you may remain in Canada while IRCC decides. Work or study rights depend on your previous permit conditions and the type of application you submitted.',
+  }
+}
+
+// ─── Work Permit Pathways ─────────────────────────────────────────────────────
+
+function buildWorkerPathways(profile: IntakeData, cecEligible: boolean, canMonths: number): PathwayStatus[] {
+  if (profile.status !== 'work-permit') return []
+  const pathways: PathwayStatus[] = []
+
+  const expiry = profile.permitExpiry ? new Date(profile.permitExpiry + '-01') : null
+  const daysToExpiry = expiry ? Math.floor((expiry.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null
+
+  pathways.push({
+    id: 'work-permit-extension', name: 'Work permit extension',
+    status: daysToExpiry !== null && daysToExpiry <= 90 ? 'not-yet' : 'possible',
+    reason: daysToExpiry !== null && daysToExpiry <= 90
+      ? `Your permit expires in ~${daysToExpiry} days. Apply to extend immediately. File at least 30 days before expiry to maintain legal status.`
+      : profile.workPermitType === 'closed'
+      ? 'Closed work permits are employer-specific. To change employers, you need a new work permit. Consider switching to an open work permit if eligible.'
+      : 'Apply to extend your work permit before it expires. Filing 3+ months in advance is recommended.',
+  })
+
+  if (cecEligible || canMonths >= 9) {
+    pathways.push({
+      id: 'bridging-owp', name: 'Bridging Open Work Permit (BOWP)',
+      status: 'possible',
+      reason: 'If you have applied for PR and your work permit expires before a decision, you may qualify for a Bridging OWP. You must have applied for PR under CEC/FSW/FST and your permit must expire within 4 months.',
+    })
+  }
+
+  return pathways
+}
+
+// ─── Risk Flags — 2026 ────────────────────────────────────────────────────────
 
 function buildRiskFlags(profile: IntakeData): RiskFlag[] {
   const flags: RiskFlag[] = []
@@ -413,21 +706,39 @@ function buildRiskFlags(profile: IntakeData): RiskFlag[] {
   if (profile.lostStatus === 'yes') {
     flags.push({
       level: 'critical',
-      message: 'You reported a previous loss of status or overstay. This is a serious risk factor that can result in a refusal or inadmissibility finding. You should consult a licensed RCIC or immigration lawyer before submitting any application.',
+      message: 'You reported a loss of status, overstay, or status problem. This can create refusal or inadmissibility risk. Get advice from a licensed RCIC or immigration lawyer before submitting any application.',
     })
   }
 
   if (profile.previousRefusals === 'yes') {
     flags.push({
       level: 'warning',
-      message: 'You reported a previous refusal. Refusals must be disclosed in new applications. A licensed RCIC or lawyer can help you understand how this affects your eligibility and how to address it.',
+      message: 'You reported a previous refusal. Previous refusals must be disclosed. Your next application should directly address the reasons for that refusal.',
     })
   }
 
-  if (profile.status === 'visitor' && profile.goal === 'pr') {
+  if (
+    profile.status === 'visitor' &&
+    (profile.goal === 'work' || profile.goal === 'work-permit') &&
+    profile.canApplyInsideCanadaException !== 'yes'
+  ) {
     flags.push({
       level: 'warning',
-      message: 'Visitors inside Canada generally cannot directly apply for PR without first obtaining a temporary resident status (work or study permit). Express Entry requires a valid job offer or Canadian work/study experience. A consultant can help you map a transition path.',
+      message: 'Most visitors cannot apply for a work permit from inside Canada. The temporary visitor-to-work-permit public policy ended August 28, 2024. Do not work without authorization.',
+    })
+  }
+
+  if (profile.status === 'student' && profile.canadianWorkWhileFullTimeStudent === 'yes') {
+    flags.push({
+      level: 'warning',
+      message: 'Work gained while studying full-time generally should not be counted toward the CEC 1-year requirement. Only post-graduation work on a PGWP or other work permit typically counts.',
+    })
+  }
+
+  if (!profile.settlementFunds && profile.goal === 'pr') {
+    flags.push({
+      level: 'warning',
+      message: 'Settlement funds are not entered. FSW normally requires proof of funds unless you are exempt (authorized to work in Canada with a valid job offer).',
     })
   }
 
@@ -452,7 +763,6 @@ export function calculateScore(profile: IntakeData): ScoreResult {
     l: parseFloat(profile.langListening),
     s: parseFloat(profile.langSpeaking),
   }
-
   const clb = convertToCLB(profile.langTestType, rawLang)
   if (!clb) missing.push('Language test scores')
 
@@ -474,29 +784,28 @@ export function calculateScore(profile: IntakeData): ScoreResult {
 
   const foreignYears = parseFloat(profile.foreignWorkYears) || 0
   const canMonths = parseFloat(profile.canadianWorkMonths) || 0
-  const teer = profile.teerLevel
-  const jobOffer = profile.hasJobOffer === 'yes'
   const minCLB = clb ? Math.min(clb.r, clb.w, clb.l, clb.s) : 0
 
   // ── CRS Core ──
-  const langTotal = clb!
-    ? firstLangPts(clb!.r, spouseComing) + firstLangPts(clb!.w, spouseComing) +
-      firstLangPts(clb!.l, spouseComing) + firstLangPts(clb!.s, spouseComing)
+  const langTotal = clb
+    ? firstLangPts(clb.r, spouseComing) + firstLangPts(clb.w, spouseComing) +
+      firstLangPts(clb.l, spouseComing) + firstLangPts(clb.s, spouseComing)
     : 0
 
+  const frenchBonus = secondLangPts(frenchClb, clb)
   const spouseFactors = calculateSpouseFactors(profile)
-
   const pnpNomination = profile.pnpNomination === 'yes'
 
   const breakdown: CRSBreakdown = {
     age: agePts(age, spouseComing),
-    education: educationPts(profile.educationLevel),
+    education: educationPts(profile.educationLevel, spouseComing),
     firstLanguage: langTotal,
-    secondLanguage: secondLangPts(frenchClb, clb),
+    secondLanguage: frenchBonus,
     spouseFactors,
     canadianExperience: canadianWorkPts(canMonths, spouseComing),
     skillTransferability: skillTransferabilityPts(profile.educationLevel, clb, foreignYears, canMonths),
-    additional: additionalPts(jobOffer, teer, profile.canadianEducation, profile.canadianSibling, pnpNomination),
+    // Job offer no longer adds CRS points as of March 25, 2025
+    additional: additionalPts(profile.canadianEducation, profile.canadianSibling, pnpNomination, frenchBonus),
     total: 0,
   }
   breakdown.total = breakdown.age + breakdown.education + breakdown.firstLanguage +
@@ -504,161 +813,60 @@ export function calculateScore(profile: IntakeData): ScoreResult {
     breakdown.skillTransferability + breakdown.additional
 
   // ── FSW 67/100 ──
-  const fswLang = fswLangPts(clb)
-  const fswEdu = fswEduPts(profile.educationLevel)
-  const fswWork = fswWorkPts(foreignYears)
-  const fswAge = fswAgePts(age)
-  const fswJob = jobOffer ? 10 : 0
-  const fswAdapt = canMonths >= 12 ? 10 : (profile.canadianEducation !== '' && profile.canadianEducation !== 'none' ? 5 : 0)
-  const fswTotal = fswLang + fswEdu + fswWork + fswAge + fswJob + fswAdapt
-  const meetsWorkReq = foreignYears >= 1 && (teer === '0' || teer === '1' || teer === '2' || teer === '3')
-
-  // Settlement funds check
-  const familySize = parseInt(profile.familySize) || 1
-  const funds = parseFloat(profile.settlementFunds) || 0
-  const requiredFunds = getRequiredFunds(familySize)
-  const meetsMinFunds = !profile.settlementFunds || funds >= requiredFunds
-
-  const fsw: FSWResult = {
-    score: fswTotal,
-    eligible: meetsWorkReq && minCLB >= 7 && fswTotal >= 67 && meetsMinFunds,
-    meetsWorkRequirement: meetsWorkReq,
-    meetsMinFunds,
-    breakdown: { language: fswLang, education: fswEdu, workExperience: fswWork, age: fswAge, jobOffer: fswJob, adaptability: fswAdapt },
-  }
+  const fsw = assessFSW(profile, clb, age)
 
   // ── Pathway eligibility ──
   const pathways: PathwayStatus[] = []
   const canYears = Math.floor(canMonths / 12)
-  const cecMinCLB = (teer === '0' || teer === '1') ? 7 : 5
-  const cecEligible = canMonths >= 12 && ['0','1','2','3'].includes(teer) && minCLB >= cecMinCLB
-  const cecMonthsLeft = Math.max(0, 12 - canMonths)
 
-  pathways.push({
-    id: 'cec',
-    name: 'Canadian Experience Class',
-    status: cecEligible ? 'eligible' : (canMonths > 0 && teer && ['0','1','2','3'].includes(teer)) ? 'not-yet' : 'not-applicable',
-    reason: cecEligible
-      ? 'You meet the 12-month Canadian skilled work requirement.'
-      : cecMonthsLeft > 0 && ['0','1','2','3'].includes(teer)
-      ? `${Math.ceil(cecMonthsLeft)} more months of TEER ${teer} work needed.`
-      : 'No Canadian skilled work experience on record.',
-  })
+  // CEC
+  const cecResult = assessCEC(profile, clb, canMonths)
+  pathways.push(cecResult)
+  const cecEligible = cecResult.status === 'eligible'
 
+  // FSW
   pathways.push({
     id: 'fsw',
     name: 'Federal Skilled Worker',
-    status: fsw.eligible ? 'eligible' : (minCLB >= 7 && fswTotal >= 50) ? 'possible' : 'not-yet',
+    status: fsw.eligible ? 'eligible' : (minCLB >= 7 && fsw.score >= 50) ? 'possible' : 'not-yet',
     reason: fsw.eligible
-      ? `${fswTotal}/100 — above the 67-point threshold.`
-      : !meetsWorkReq
-      ? 'Need 1+ year of TEER 0/1/2/3 skilled work experience.'
+      ? `${fsw.score}/100 — above the 67-point threshold.`
+      : !fsw.meetsWorkRequirement
+      ? 'Need 1+ year of continuous TEER 0/1/2/3 skilled work experience.'
       : minCLB < 7
-      ? 'Language must be CLB 7+ in all 4 skills.'
-      : !meetsMinFunds && profile.settlementFunds
-      ? `Settlement funds below the minimum required ($${requiredFunds.toLocaleString()} for family of ${familySize}).`
-      : `${fswTotal}/100 — below 67-point pass mark.`,
+      ? 'Language must be CLB 7+ in all 4 skills for FSW.'
+      : !fsw.meetsMinFunds && profile.settlementFunds
+      ? `Settlement funds below the minimum required for FSW.`
+      : `${fsw.score}/100 — below 67-point pass mark.`,
   })
 
+  // PNP
   pathways.push({
     id: 'pnp',
     name: 'Provincial Nominee Program',
     status: 'possible',
     reason: profile.intendedProvince && profile.intendedProvince !== 'Any'
-      ? `Check ${profile.intendedProvince} PNP streams for your NOC${profile.noc ? ` (${profile.noc})` : ''} and work profile.`
-      : 'Depends on target province, job offer, and occupation.',
+      ? `Check ${profile.intendedProvince} PNP streams for your NOC${profile.noc ? ` (${profile.noc})` : ''} and work profile. PNP rules change frequently — verify at the provincial website.`
+      : 'PNP eligibility depends on target province, occupation, work history, education, and status. A job offer may strengthen some PNP streams.',
   })
 
-  if (profile.status === 'student') {
-    const programMonths = parseFloat(profile.programLengthMonths) || 0
-    const pgwpEligibleLevel = ['college-diploma','bachelor','master','doctoral'].includes(profile.programLevel)
-    const pgwpLikely = pgwpEligibleLevel && programMonths >= 8
+  // Student pathways
+  const pgwpResult = assessPGWP(profile)
+  if (pgwpResult) pathways.push(pgwpResult)
+  const studyExtension = assessStudyPermitExtension(profile)
+  if (studyExtension) pathways.push(studyExtension)
 
-    pathways.push({
-      id: 'pgwp',
-      name: 'PGWP → CEC pathway',
-      status: pgwpLikely ? 'possible' : 'not-yet',
-      reason: pgwpLikely
-        ? `PGWP length matches your program (${programMonths} months). After graduation, complete 12 months of TEER 0–3 work to qualify for CEC.`
-        : programMonths < 8
-        ? 'PGWP requires an 8+ month program at a designated learning institution (DLI). Programs under 8 months do not qualify.'
-        : 'Confirm your program level is PGWP-eligible (college diploma, bachelor, master, or doctoral).',
-    })
+  // Visitor pathways
+  const visitorPathways = buildVisitorPathways(profile, fsw)
+  pathways.push(...visitorPathways)
 
-    // Study permit extension guidance
-    const gradDate = profile.graduationDate ? new Date(profile.graduationDate) : null
-    const today = new Date()
-    const monthsToGrad = gradDate ? Math.floor((gradDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)) : null
-    pathways.push({
-      id: 'study-permit-extension',
-      name: 'Study permit extension',
-      status: 'possible',
-      reason: monthsToGrad !== null && monthsToGrad <= 6
-        ? `Graduation in ~${monthsToGrad} month${monthsToGrad !== 1 ? 's' : ''}. Apply to extend at least 30 days before your current study permit expires. You may change DLIs but must notify IRCC.`
-        : 'Apply to extend your study permit at least 30 days before expiry. If changing schools, you need a new letter of acceptance and must update IRCC.',
-    })
-  }
+  // Worker pathways
+  const workerPathways = buildWorkerPathways(profile, cecEligible, canMonths)
+  pathways.push(...workerPathways)
 
-  // Visitor pathway guidance
-  if (profile.status === 'visitor') {
-    pathways.push({
-      id: 'change-of-status',
-      name: 'Change of status (visitor → worker/student)',
-      status: 'possible',
-      reason: 'Visitors inside Canada can apply to change status to a work or study permit without leaving. You must apply before your current status expires. A job offer (for work permit) or acceptance letter (for study permit) is required.',
-    })
-
-    pathways.push({
-      id: 'implied-status',
-      name: 'Implied status',
-      status: 'possible',
-      reason: 'If you applied to extend your visitor record before it expired and are still waiting for a decision, you are on implied status and may remain in Canada legally. Implied status ends when a decision is made.',
-    })
-
-    if (profile.goal === 'pr') {
-      pathways.push({
-        id: 'visitor-to-pr',
-        name: 'Visitor → PR pathway',
-        status: 'not-yet',
-        reason: 'Visitors cannot directly apply for PR. You must first obtain a work or study permit, build Canadian experience, and then apply through Express Entry (CEC or FSW) or a PNP stream. A valid job offer may accelerate this path.',
-      })
-    }
-  }
-
-  // Work permit extension and bridging
-  if (profile.status === 'work-permit') {
-    const expiry = profile.permitExpiry ? new Date(profile.permitExpiry + '-01') : null
-    const daysToExpiry = expiry ? Math.floor((expiry.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null
-
-    pathways.push({
-      id: 'work-permit-extension',
-      name: 'Work permit extension',
-      status: daysToExpiry !== null && daysToExpiry <= 90 ? 'not-yet' : 'possible',
-      reason: daysToExpiry !== null && daysToExpiry <= 90
-        ? `Your permit expires in ~${daysToExpiry} days. Apply to extend immediately to maintain legal status. File at least 30 days before expiry to trigger implied status protection.`
-        : profile.workPermitType === 'closed'
-        ? 'Closed work permits are employer-specific. To change employers, you need a new work permit. Consider switching to an open work permit if eligible.'
-        : 'Apply to extend your work permit before it expires. Filing 3+ months in advance is recommended due to processing times.',
-    })
-
-    if (cecEligible || canMonths >= 9) {
-      pathways.push({
-        id: 'bridging-owp',
-        name: 'Bridging Open Work Permit (BOWP)',
-        status: 'possible',
-        reason: 'If you have applied for PR and your work permit expires before a decision is made, you may qualify for a Bridging OWP. Eligible if: applied for PR under a CEC/FSW/FST class and your current permit expires within 4 months.',
-      })
-    }
-
-    if (profile.workPermitType === 'closed') {
-      pathways.push({
-        id: 'lmia-vs-exempt',
-        name: 'LMIA-exempt work permit options',
-        status: 'possible',
-        reason: 'Some work permits do not require an LMIA (Labour Market Impact Assessment). Check if your employer qualifies under CUSMA/USMCA, intra-company transfer (ICT), International Mobility Program (IMP), or if your NOC qualifies under a free trade agreement.',
-      })
-    }
-  }
+  // Maintained status (replaces old "implied status")
+  const maintainedStatus = assessMaintainedStatus(profile)
+  if (maintainedStatus) pathways.push(maintainedStatus)
 
   // ── Improvements ──
   const improvements: Improvement[] = []
@@ -672,9 +880,8 @@ export function calculateScore(profile: IntakeData): ScoreResult {
         action: 'CLB 7 is the minimum threshold for Express Entry. On IELTS General, this means roughly R:6.0 W:6.0 L:6.0 S:6.0.',
       })
     } else if (minL < 9) {
-      const current = langTotal
       const projected = [9,9,9,9].reduce((s,c) => s + firstLangPts(c, spouseComing), 0)
-      const gain = projected - current
+      const gain = projected - langTotal
       if (gain > 0) {
         improvements.push({
           label: 'Improve language to CLB 9 in all skills',
@@ -683,9 +890,8 @@ export function calculateScore(profile: IntakeData): ScoreResult {
         })
       }
     } else if (minL === 9) {
-      const current = langTotal
       const projected = [10,10,10,10].reduce((s,c) => s + firstLangPts(c, spouseComing), 0)
-      const gain = projected - current
+      const gain = projected - langTotal
       improvements.push({
         label: 'Push language to CLB 10 in all skills',
         impact: `+${gain} CRS`,
@@ -697,7 +903,7 @@ export function calculateScore(profile: IntakeData): ScoreResult {
   if (canYears < 1) {
     const gain = canadianWorkPts(12, spouseComing) - breakdown.canadianExperience
     improvements.push({
-      label: 'Gain 12 months of skilled Canadian work',
+      label: 'Gain 12 months of authorized skilled Canadian work',
       impact: `+${gain} CRS`,
       action: 'Work full-time in a TEER 0, 1, 2, or 3 occupation. This also unlocks Canadian Experience Class.',
     })
@@ -713,15 +919,7 @@ export function calculateScore(profile: IntakeData): ScoreResult {
     improvements.push({
       label: 'Complete 3 years of Canadian skilled work',
       impact: `+${gain} CRS`,
-      action: 'Reaching 3 years adds more Canadian experience points toward your CRS.',
-    })
-  }
-
-  if (!jobOffer && teer && ['1','2','3'].includes(teer)) {
-    improvements.push({
-      label: 'Secure a valid Canadian job offer',
-      impact: '+50 CRS',
-      action: 'A permanent, full-time, non-seasonal offer from a Canadian employer (LMIA-backed or LMIA-exempt) adds 50 points for TEER 1–3 roles.',
+      action: 'Reaching 3 years adds more Canadian experience points.',
     })
   }
 
@@ -734,16 +932,12 @@ export function calculateScore(profile: IntakeData): ScoreResult {
   }
 
   if (!profile.settlementFunds && profile.goal === 'pr') {
+    const familySize = parseInt(profile.familySize) || 1
+    const requiredFunds = getRequiredFunds(familySize)
     improvements.push({
       label: 'Confirm your settlement funds',
       impact: 'FSW eligibility',
-      action: `Federal Skilled Worker requires proof of settlement funds. For a family of ${familySize}, you need at least $${requiredFunds.toLocaleString()} CAD. Update your profile with your available funds.`,
-    })
-  } else if (profile.settlementFunds && !meetsMinFunds) {
-    improvements.push({
-      label: 'Increase settlement funds',
-      impact: 'Required for FSW',
-      action: `You need at least $${requiredFunds.toLocaleString()} CAD for a family of ${familySize}. Current amount does not meet the FSW minimum. This does not affect CEC or PNP.`,
+      action: `FSW requires proof of settlement funds. For a family of ${familySize}, you need at least $${requiredFunds.toLocaleString()} CAD. Update your profile with your available funds.`,
     })
   }
 

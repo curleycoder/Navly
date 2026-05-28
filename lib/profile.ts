@@ -178,6 +178,24 @@ export type IntakeData = {
   accompanyingCitizenSpouseAbroad: string // 'yes' | 'no' | '' — time abroad counts if accompanying citizen spouse
   workingAbroadForCanadianEmployer: string // 'yes' | 'no' | '' — time abroad counts if employed by Canadian gov/business
 
+  // Work authorization checks (CEC / FSW accuracy)
+  canadianWorkAuthorized: string           // 'yes' | 'no' | '' — was Canadian work legally authorized?
+  canadianWorkWhileFullTimeStudent: string // 'yes' | 'no' | '' — work counted during full-time study?
+  currentlyAuthorizedToWorkCanada: string  // 'yes' | 'no' | '' — for FSW funds exemption check
+  hasValidJobOfferForFundsExemption: string // 'yes' | 'no' | '' — job offer that exempts from FSW funds
+
+  // PGWP 2026 eligibility checks
+  programPgwpEligible: string     // 'yes' | 'no' | '' — is program on PGWP-eligible list?
+  pgwpLanguageMet: string         // 'yes' | 'no' | '' — language proof requirement met?
+  fieldOfStudyRequired: string    // 'yes' | 'no' | '' — does program need CIP code check?
+  cipCodeEligible: string         // 'yes' | 'no' | '' — CIP code on eligible field-of-study list?
+  schoolIsDLI: string             // 'yes' | 'no' | '' — school is a designated learning institution?
+  graduatedFromFlightSchool: string // 'yes' | 'no' | '' — flight school (exempt from field-of-study)
+
+  // Visitor / maintained status
+  canApplyInsideCanadaException: string // 'yes' | 'no' | '' — falls under inside-Canada WP/SP exception?
+  appliedBeforeStatusExpiry: string     // 'yes' | 'no' | '' — applied before current status expired?
+
   // Account state (set by auth flow, not user-editable)
   phoneVerified: string    // 'yes' | 'no' | ''
   duplicateStatus: string  // 'clean' | 'duplicate' | ''
@@ -311,6 +329,18 @@ export const EMPTY_PROFILE: IntakeData = {
   daysOutsideCanada5yr: '',
   accompanyingCitizenSpouseAbroad: '',
   workingAbroadForCanadianEmployer: '',
+  canadianWorkAuthorized: '',
+  canadianWorkWhileFullTimeStudent: '',
+  currentlyAuthorizedToWorkCanada: '',
+  hasValidJobOfferForFundsExemption: '',
+  programPgwpEligible: '',
+  pgwpLanguageMet: '',
+  fieldOfStudyRequired: '',
+  cipCodeEligible: '',
+  schoolIsDLI: '',
+  graduatedFromFlightSchool: '',
+  canApplyInsideCanadaException: '',
+  appliedBeforeStatusExpiry: '',
   phoneVerified: '',
   duplicateStatus: '',
 }
