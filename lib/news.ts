@@ -26,16 +26,27 @@ export type NewsCategory =
 
 export type NewsImportance = 'low' | 'medium' | 'high'
 
+export type NewsSourceName =
+  | 'IRCC'
+  | 'IRCC Notices'
+  | 'Express Entry'
+  | 'Canada Gazette'
+  | 'CIC News'
+  | 'CanadaVisa'
+
+export type NewsSourceType = 'official' | 'third_party'
+
 export type NewsUpdate = {
   id: string
   title: string
-  summary: string         // plain-English summary (AI-generated in production)
+  summary: string
   sourceUrl: string
-  sourceName: 'IRCC' | 'Canada Gazette' | 'IRCC Notices'
-  publishedAt: string     // ISO date string 'YYYY-MM-DD'
+  sourceName: NewsSourceName
+  sourceType: NewsSourceType  // 'official' = government source; 'third_party' = news/commentary
+  publishedAt: string         // ISO date string 'YYYY-MM-DD' or full ISO timestamp
   category: NewsCategory
   importance: NewsImportance
-  affectedUsers: string[] // matches IntakeData.status or IntakeData.goal values
+  affectedUsers: string[]     // matches IntakeData.status or IntakeData.goal values
 }
 
 export const categoryLabels: Record<NewsCategory, string> = {
@@ -71,10 +82,75 @@ export const importanceDot: Record<NewsImportance, string> = {
 // ─── Fallback data — real verified IRCC policy changes ───────────────────────
 // These are shown when the Supabase DB is empty or unavailable.
 // The cron job at /api/cron/news fetches live items from canada.ca RSS feeds
-// and upserts them into the ircc_news table — these are only a safety net.
+// and upserts them into the immigration_news table — these are only a safety net.
 // Sources: canada.ca/en/immigration-refugees-citizenship/news and /notices
 
 export const mockUpdates: NewsUpdate[] = [
+  {
+    id: 'cicnews-ee-french-draw-409-2026-05-28',
+    title: 'French-speaking Express Entry candidates receive invitations at higher CRS cut-off',
+    summary:
+      'IRCC issued 4,500 Invitations to Apply (ITAs) in a French-language-proficiency Express Entry draw on May 28, 2026. The minimum CRS cut-off for this draw was 409. To be considered, candidates needed a CRS score of at least 409 and a valid Express Entry profile with French language proficiency. French-speaking candidates continue to receive dedicated draws separate from all-program rounds.',
+    sourceUrl: 'https://www.cicnews.com/',
+    sourceName: 'CIC News',
+    sourceType: 'third_party',
+    publishedAt: '2026-05-28',
+    category: 'express-entry',
+    importance: 'high',
+    affectedUsers: ['express-entry', 'pr'],
+  },
+  {
+    id: 'cicnews-work-permit-wait-times-2026-05-28',
+    title: 'Work permit wait times are on the rise, latest IRCC data shows',
+    summary:
+      'IRCC updated its processing time estimates on May 26, 2026, covering work permits, study permits, visitor visas, and super visas. Improvements to wait times have been modest, with many countries seeing stagnant or notably increased timelines for work permit applications. Applicants should check the IRCC processing times tool for their specific country before planning travel or employment start dates.',
+    sourceUrl: 'https://www.cicnews.com/',
+    sourceName: 'CIC News',
+    sourceType: 'third_party',
+    publishedAt: '2026-05-28',
+    category: 'work',
+    importance: 'high',
+    affectedUsers: ['work-permit', 'student'],
+  },
+  {
+    id: 'cicnews-pr-residency-obligation-traps-2026-05-28',
+    title: 'Maintaining your Canadian PR status: The residency obligation traps that catch new permanent residents',
+    summary:
+      'Permanent residents can lose PR status through simple misunderstandings of the residency obligation. The rule requires 730 days physically inside Canada in every rolling 5-year period. Common traps include counting days incorrectly, assuming employment abroad with a Canadian company counts automatically, and not realising that time spent outside Canada with a Canadian citizen spouse only applies in specific circumstances. New PRs should track their travel carefully from day one.',
+    sourceUrl: 'https://www.cicnews.com/',
+    sourceName: 'CIC News',
+    sourceType: 'third_party',
+    publishedAt: '2026-05-28',
+    category: 'pr',
+    importance: 'low',
+    affectedUsers: ['pr'],
+  },
+  {
+    id: 'cicnews-ee-pool-501-600-2026-05-28',
+    title: '93% of Express Entry pool growth driven by candidates scoring in the 501–600 range',
+    summary:
+      "Canada's Express Entry pool grew by 4,395 profiles between April 26 and May 24, 2026. Of that growth, 4,085 profiles — 93% — came from candidates in the 501–600 CRS score range. This concentration signals that the competitive band for all-program draws is likely to remain in this range in the near term. Candidates below 500 should focus on score improvement actions such as language retesting or securing a provincial nomination.",
+    sourceUrl: 'https://www.cicnews.com/',
+    sourceName: 'CIC News',
+    sourceType: 'third_party',
+    publishedAt: '2026-05-28',
+    category: 'express-entry',
+    importance: 'low',
+    affectedUsers: ['express-entry', 'pr'],
+  },
+  {
+    id: 'cicnews-study-cbsa-interview-2026-05-28',
+    title: 'Coming to Canada to study? Here are the questions you can expect immigration officers to ask',
+    summary:
+      'When arriving in Canada as an international student, CBSA officers verify that you meet entry requirements and have genuine temporary resident intent. Common questions cover your program, institution, funding, ties to your home country, and plans after graduation. Officers are checking that you intend to study and leave (or transition through a legal pathway) — not that you intend to overstay. Being clear, consistent, and prepared with your acceptance letter, proof of funds, and study permit will help your entry go smoothly.',
+    sourceUrl: 'https://www.cicnews.com/',
+    sourceName: 'CIC News',
+    sourceType: 'third_party',
+    publishedAt: '2026-05-28',
+    category: 'study',
+    importance: 'low',
+    affectedUsers: ['student'],
+  },
   {
     id: 'ircc-job-offer-crs-removed-2025-03-25',
     title: 'Express Entry: Job offer no longer adds points to CRS score',
@@ -85,6 +161,7 @@ export const mockUpdates: NewsUpdate[] = [
     publishedAt: '2025-03-25',
     category: 'express-entry',
     importance: 'high',
+    sourceType: 'official',
     affectedUsers: ['work-permit', 'pr', 'express-entry'],
   },
   {
@@ -97,6 +174,7 @@ export const mockUpdates: NewsUpdate[] = [
     publishedAt: '2024-11-01',
     category: 'study',
     importance: 'high',
+    sourceType: 'official',
     affectedUsers: ['student', 'study-permit'],
   },
   {
@@ -109,7 +187,60 @@ export const mockUpdates: NewsUpdate[] = [
     publishedAt: '2024-10-24',
     category: 'pr',
     importance: 'high',
+    sourceType: 'official',
     affectedUsers: ['work-permit', 'student', 'pr', 'express-entry', 'pnp'],
+  },
+  {
+    id: 'ircc-temp-residents-5pct-target-2024-03-21',
+    title: 'Canada sets target to reduce temporary residents to 5% of population by 2025',
+    summary:
+      'The federal government announced a plan to reduce the share of temporary residents in Canada from approximately 6.5% of the total population to 5% by the end of 2025. This affects the overall volume of study permits, work permits, and visitor visas that will be approved going forward. The target was cited alongside major cuts to immigration levels and signals that Canada is actively reducing temporary immigration across all streams, not just permanent residence. Workers and students on temporary status in Canada should plan their pathways carefully, as future permit extensions and renewals may face higher rejection rates as IRCC manages down overall temporary resident volumes.',
+    sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/news.html',
+    sourceName: 'IRCC',
+    publishedAt: '2024-03-21',
+    category: 'general',
+    importance: 'high',
+    sourceType: 'official',
+    affectedUsers: ['work-permit', 'student', 'visitor'],
+  },
+  {
+    id: 'ircc-student-off-campus-work-20hr-limit-2024-04-30',
+    title: 'International students: off-campus work limit returns to 20 hours per week',
+    summary:
+      'The temporary COVID-era public policy that allowed eligible international students to work more than 20 hours per week off-campus ended April 30, 2024. Students are now subject to the standard 20-hour-per-week off-campus work limit during regular academic sessions. Students may still work unlimited hours during scheduled breaks (winter holidays, summer break) if they are actively enrolled in a program. Exceeding the 20-hour limit outside of scheduled breaks is a condition violation that can affect PGWP eligibility. Authorized on-campus work and co-op/internship hours are separate and not subject to this limit.',
+    sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/news/notices.html',
+    sourceName: 'IRCC Notices',
+    publishedAt: '2024-04-30',
+    category: 'study',
+    importance: 'high',
+    sourceType: 'official',
+    affectedUsers: ['student', 'study-permit'],
+  },
+  {
+    id: 'ircc-low-wage-tfw-lmia-restrictions-2024-08-26',
+    title: 'IRCC tightens Temporary Foreign Worker Program rules for low-wage positions',
+    summary:
+      'Effective August 26, 2024, IRCC introduced significant restrictions on LMIA approvals for low-wage temporary foreign worker positions. Employers in census metropolitan areas with an unemployment rate of 6% or higher are no longer eligible to hire low-wage TFWs through the Temporary Foreign Worker Program for most sectors. Employers already over a 10% low-wage TFW workforce cap cannot apply for new low-wage LMIA approvals in affected sectors. Exceptions apply for food security, healthcare, and construction. This change does not affect high-wage LMIA applications or LMIA-exempt categories such as CUSMA workers, ICT intracompany transferees, or open work permits.',
+    sourceUrl: 'https://www.canada.ca/en/employment-social-development/news/2024/08/canada-strengthens-temporary-foreign-worker-program-to-put-canadians-first.html',
+    sourceName: 'IRCC',
+    publishedAt: '2024-08-26',
+    category: 'work',
+    importance: 'high',
+    sourceType: 'official',
+    affectedUsers: ['work-permit'],
+  },
+  {
+    id: 'ircc-rural-community-immigration-pilot-2024',
+    title: 'Rural Community Immigration Pilot: PR only available through smaller communities outside major cities',
+    summary:
+      'IRCC launched the Rural Community Immigration Pilot (RCIP), replacing the former Rural and Northern Immigration Pilot (RNIP). This permanent residence pathway is only available through designated smaller communities — it is explicitly not available to applicants who intend to settle in major urban centres such as Toronto, Vancouver, Calgary, Edmonton, or Montréal. Each designated community sets its own job offer and labour market requirements. Applicants must have a qualifying full-time, non-seasonal job offer from an employer in a designated community, and must genuinely intend to live and work there. The program gives communities with labour shortages direct control over recruiting the workers they need for PR.',
+    sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/rural-community-immigration-pilot.html',
+    sourceName: 'IRCC',
+    publishedAt: '2024-03-01',
+    category: 'pnp',
+    importance: 'high',
+    sourceType: 'official',
+    affectedUsers: ['work-permit', 'pr', 'pnp'],
   },
   {
     id: 'ircc-visitor-work-permit-policy-ended-2024-08-28',
@@ -121,6 +252,7 @@ export const mockUpdates: NewsUpdate[] = [
     publishedAt: '2024-08-28',
     category: 'work',
     importance: 'high',
+    sourceType: 'official',
     affectedUsers: ['visitor', 'work-permit'],
   },
   {
@@ -133,6 +265,46 @@ export const mockUpdates: NewsUpdate[] = [
     publishedAt: '2024-01-22',
     category: 'study',
     importance: 'high',
+    sourceType: 'official',
+    affectedUsers: ['student', 'study-permit'],
+  },
+  {
+    id: 'ircc-pnp-allocations-reduced-2024',
+    title: 'Provincial Nominee Program allocations reduced as part of lower immigration targets',
+    summary:
+      'As part of the revised 2025–2027 Immigration Levels Plan, IRCC reduced the annual allocation for Provincial Nominee Programs (PNPs). Each province receives a fixed number of nominations per year; once that quota is reached, new applications in most streams are paused until the following year. In 2025, the combined PNP allocation across all provinces and territories is lower than previous years. Candidates waiting for a provincial nomination should monitor their target province\'s stream status and apply as early in the year as possible, as popular streams such as Ontario\'s Human Capital Priority and BC PNP Skills Immigration can exhaust their allocations before year-end.',
+    sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/provincial-nominees.html',
+    sourceName: 'IRCC',
+    publishedAt: '2024-10-24',
+    category: 'pnp',
+    importance: 'high',
+    sourceType: 'official',
+    affectedUsers: ['work-permit', 'student', 'pr', 'pnp'],
+  },
+  {
+    id: 'ircc-pr-card-renewal-delays-2024',
+    title: 'PR card renewals: IRCC warns of extended processing times',
+    summary:
+      'IRCC has flagged that PR card renewal applications are experiencing above-average processing times. Permanent residents who plan to travel outside Canada should apply for PR card renewal well in advance — IRCC recommends applying at least six months before the card expiry date or before any planned international travel. If a PR card expires while a resident is outside Canada, they will need to apply for a Permanent Resident Travel Document (PRTD) from a Canadian visa office abroad before they can board a flight back. Holding an expired PR card does not affect PR status itself, but it does restrict re-entry by air.',
+    sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/new-immigrants/pr-card/apply-renew-replace.html',
+    sourceName: 'IRCC',
+    publishedAt: '2024-06-01',
+    category: 'pr',
+    importance: 'medium',
+    sourceType: 'official',
+    affectedUsers: ['pr'],
+  },
+  {
+    id: 'ircc-study-permit-cap-extended-2025',
+    title: 'Study permit cap extended: provincial allocations maintained for 2025',
+    summary:
+      'IRCC confirmed that the two-year study permit cap introduced in January 2024 continues into 2025 with revised provincial allocations. The 2025 national target for new approved study permits is approximately 437,000 — down significantly from pre-cap levels. Each province and territory receives a fixed share. Graduate-level programs (master\'s and doctoral) remain exempt from the cap. Applicants at institutions in provinces already at or near their allocation may experience delays or refusals regardless of application quality. Prospective students should confirm their designated learning institution (DLI) and their province\'s remaining capacity before applying.',
+    sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/news.html',
+    sourceName: 'IRCC',
+    publishedAt: '2025-01-22',
+    category: 'study',
+    importance: 'high',
+    sourceType: 'official',
     affectedUsers: ['student', 'study-permit'],
   },
   {
@@ -145,9 +317,24 @@ export const mockUpdates: NewsUpdate[] = [
     publishedAt: '2023-05-31',
     category: 'express-entry',
     importance: 'high',
+    sourceType: 'official',
     affectedUsers: ['work-permit', 'pr', 'express-entry'],
   },
+  {
+    id: 'ircc-citizenship-physical-presence-clarification-2023',
+    title: 'Citizenship: Physical presence must be verified — travel days carefully reviewed',
+    summary:
+      'IRCC has increased scrutiny of physical presence calculations in citizenship applications. Applicants must demonstrate 1,095 days physically present in Canada in the 5 years before applying. IRCC cross-references declared travel history with CBSA entry/exit records. Days spent working remotely from outside Canada, even for a Canadian employer, do not count. Half-day credit for pre-PR days as a temporary resident (student, worker, or visitor) is capped at 365 days credit total. Applicants with significant travel outside Canada or periods of remote work abroad should consult a certified immigration consultant before filing.',
+    sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/become-canadian-citizen/eligibility.html',
+    sourceName: 'IRCC',
+    publishedAt: '2023-03-01',
+    category: 'general',
+    importance: 'medium',
+    sourceType: 'official',
+    affectedUsers: ['pr'],
+  },
 ]
+
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -158,6 +345,7 @@ function rowToUpdate(row: Record<string, unknown>): NewsUpdate {
     summary:       row.summary as string,
     sourceUrl:     row.source_url as string,
     sourceName:    row.source_name as NewsUpdate['sourceName'],
+    sourceType:    (row.source_type as NewsSourceType) ?? 'official',
     publishedAt:   (row.published_at as string).slice(0, 10),
     category:      row.category as NewsCategory,
     importance:    row.importance as NewsImportance,
@@ -173,66 +361,68 @@ function anonDb() {
   )
 }
 
-/** Returns the N most recent updates from Supabase, falling back to mock data. */
+/** Returns the N most recent updates, always merging live DB items with curated mock items. */
 export async function getUpdates(opts?: { limit?: number; category?: NewsCategory }): Promise<NewsUpdate[]> {
+  let liveItems: NewsUpdate[] = []
+
   try {
     const db = anonDb()
 
     let query = db
-      .from('ircc_news')
-      .select('*')
-      .order('published_at', { ascending: false })
-      .limit(opts?.limit ?? 20)
-
-    if (opts?.category) query = query.eq('category', opts.category)
-
-    const { data, error } = await query
-    if (error || !data || data.length === 0) throw new Error(error?.message ?? 'empty')
-
-    return data.map(rowToUpdate)
-  } catch {
-    // Fall back to mock data if DB is unavailable or table not yet populated
-    let list = [...mockUpdates].sort(
-      (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-    )
-    if (opts?.category) list = list.filter((u) => u.category === opts.category)
-    if (opts?.limit) list = list.slice(0, opts.limit)
-    return list
-  }
-}
-
-/** Returns updates relevant to a user's status and goal */
-export async function getPersonalizedUpdates(status: string, goal: string): Promise<NewsUpdate[]> {
-  try {
-    const db = anonDb()
-
-    const { data, error } = await db
-      .from('ircc_news')
+      .from('immigration_news')
       .select('*')
       .order('published_at', { ascending: false })
       .limit(50)
 
-    if (error || !data) throw new Error(error?.message ?? 'empty')
-
-    const all: NewsUpdate[] = data.map(rowToUpdate)
-    const relevant = all.filter(
-      (u: NewsUpdate) => u.affectedUsers.includes(status) || u.affectedUsers.includes(goal)
-    )
-    const general = all.filter(
-      (u: NewsUpdate) => u.category === 'general' && u.importance === 'high' && !relevant.includes(u)
-    )
-    return [...relevant, ...general]
+    const { data, error } = await query
+    if (!error && data && data.length > 0) liveItems = data.map(rowToUpdate)
   } catch {
-    const relevant = mockUpdates.filter(
-      (u) => u.affectedUsers.includes(status) || u.affectedUsers.includes(goal)
-    )
-    const general = mockUpdates.filter(
-      (u) => u.category === 'general' && u.importance === 'high' && !relevant.includes(u)
-    )
-    return [...relevant, ...general].sort(
-      (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-    )
+    // DB unavailable — curated items still shown below
   }
+
+  // Always include curated items; DB items win on ID collision
+  const liveIds = new Set(liveItems.map((i) => i.id))
+  let merged = [
+    ...liveItems,
+    ...mockUpdates.filter((m) => !liveIds.has(m.id)),
+  ].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+
+  if (opts?.category) merged = merged.filter((u) => u.category === opts.category)
+  if (opts?.limit) merged = merged.slice(0, opts.limit)
+  return merged
+}
+
+/** Returns updates relevant to a user's status and goal, always merging live DB items with curated mock items. */
+export async function getPersonalizedUpdates(status: string, goal: string): Promise<NewsUpdate[]> {
+  let liveItems: NewsUpdate[] = []
+
+  try {
+    const db = anonDb()
+    const { data, error } = await db
+      .from('immigration_news')
+      .select('*')
+      .order('published_at', { ascending: false })
+      .limit(50)
+
+    if (!error && data && data.length > 0) liveItems = data.map(rowToUpdate)
+  } catch {
+    // DB unavailable — curated items still shown below
+  }
+
+  // Always include curated items; DB items win on ID collision
+  const liveIds = new Set(liveItems.map((i) => i.id))
+  const all = [
+    ...liveItems,
+    ...mockUpdates.filter((m) => !liveIds.has(m.id)),
+  ].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+
+  const relevant = all.filter(
+    (u) => u.affectedUsers.includes(status) || u.affectedUsers.includes(goal)
+  )
+  const general = all.filter(
+    (u) => u.category === 'general' && u.importance === 'high' && !relevant.includes(u)
+  )
+  return [...relevant, ...general]
 }
 
 export function formatDate(iso: string): string {

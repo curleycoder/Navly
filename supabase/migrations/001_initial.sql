@@ -89,29 +89,33 @@ create policy "Anyone can read active consultants"
 
 -- Admin writes via service role key — no user-level insert/update policy.
 
--- ─── ircc_news ───────────────────────────────────────────────────────────────
+-- ─── immigration_news ────────────────────────────────────────────────────────
 -- Populated by the /api/cron/news endpoint. Publicly readable.
+-- Mixes official sources (IRCC, Canada Gazette) and third-party commentary
+-- (CIC News, CanadaVisa). source_type distinguishes them in the UI.
 
-create table if not exists ircc_news (
+create table if not exists immigration_news (
   id             text primary key,   -- GUID or URL from RSS feed
   title          text not null,
   summary        text not null default '',
   source_url     text not null,
   source_name    text not null default 'IRCC',
+  source_type    text not null default 'official' check (source_type in ('official', 'third_party')),
   published_at   timestamptz not null,
   category       text not null default 'general',
   importance     text not null default 'low' check (importance in ('high', 'medium', 'low')),
   affected_users text[] not null default '{}',
+  notified_at    timestamptz,        -- set by cron after email digest is sent
   created_at     timestamptz not null default now()
 );
 
-create index if not exists ircc_news_published_at_idx on ircc_news(published_at desc);
-create index if not exists ircc_news_category_idx on ircc_news(category);
+create index if not exists immigration_news_published_at_idx on immigration_news(published_at desc);
+create index if not exists immigration_news_category_idx on immigration_news(category);
 
-alter table ircc_news enable row level security;
+alter table immigration_news enable row level security;
 
 create policy "Anyone can read news"
-  on ircc_news for select
+  on immigration_news for select
   using (true);
 
 -- ─── presence_logs ───────────────────────────────────────────────────────────

@@ -67,8 +67,15 @@ function UpdateCard({ update, highlight }: { update: NewsUpdate; highlight?: boo
           className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-[#0B1F3A] hover:text-[#0B1F3A] transition-colors"
         >
           <ExternalLink className="h-3.5 w-3.5" />
-          Read official update — {update.sourceName}
+          {update.sourceType === 'official'
+            ? `Official source — ${update.sourceName}`
+            : `Read more — ${update.sourceName}`}
         </a>
+        {update.sourceType === 'third_party' && (
+          <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+            Third-party summary — not official IRCC
+          </span>
+        )}
         <Link
           href="/dashboard/chat"
           className="inline-flex items-center gap-1.5 rounded-lg bg-[#0B1F3A] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#162d52] transition-colors"
@@ -119,7 +126,7 @@ export default function NewsPage() {
         <p className="text-sm font-semibold uppercase tracking-wide text-[#D62828]">Immigration Updates</p>
         <h1 className="mt-1 text-3xl font-bold text-[#0B1F3A]">News & Policy Updates</h1>
         <p className="mt-2 text-slate-500">
-          Official updates from IRCC, Canada Gazette, and government notices. Updates highlighted with{' '}
+          Official updates from IRCC and Canada Gazette, plus immigration news and commentary from third-party sources. Updates highlighted with{' '}
           <span className="inline-flex items-center gap-1 rounded-full bg-[#D62828]/10 px-2 py-0.5 text-xs font-bold text-[#D62828]">
             <Bell className="h-3 w-3" /> Affects you
           </span>{' '}
@@ -148,26 +155,50 @@ export default function NewsPage() {
         <div className="flex justify-center py-16">
           <Loader2 className="h-8 w-8 animate-spin text-slate-300" />
         </div>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {updates.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-500">
-              No updates in this category yet.
-            </div>
-          ) : (
-            updates.map((update) => (
-              <UpdateCard
-                key={update.id}
-                update={update}
-                highlight={personalizedIds.has(update.id)}
-              />
-            ))
-          )}
-        </div>
-      )}
+      ) : (() => {
+        const officialUpdates = updates.filter((u) => u.sourceType === 'official')
+        const thirdPartyUpdates = updates.filter((u) => u.sourceType === 'third_party')
+        return (
+          <div className="flex flex-col gap-8">
+            {officialUpdates.length === 0 && thirdPartyUpdates.length === 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-500">
+                No updates in this category yet.
+              </div>
+            ) : (
+              <>
+                {officialUpdates.length > 0 && (
+                  <section>
+                    <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-400">Official Updates</h2>
+                    <div className="flex flex-col gap-4">
+                      {officialUpdates.map((update) => (
+                        <UpdateCard key={update.id} update={update} highlight={personalizedIds.has(update.id)} />
+                      ))}
+                    </div>
+                  </section>
+                )}
+                {thirdPartyUpdates.length > 0 && (
+                  <section>
+                    <div className="mb-3 flex items-center gap-2">
+                      <h2 className="text-sm font-bold uppercase tracking-wide text-slate-400">Immigration News & Commentary</h2>
+                      <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                        Third-party — not official IRCC
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-4">
+                      {thirdPartyUpdates.map((update) => (
+                        <UpdateCard key={update.id} update={update} highlight={personalizedIds.has(update.id)} />
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
+            )}
+          </div>
+        )
+      })()}
 
       <p className="mt-8 text-center text-xs text-slate-400">
-        All updates are sourced from official Canadian government channels. Summaries are provided for educational purposes only and are not legal advice. Always verify at canada.ca.
+        Official updates are sourced from IRCC and Canada Gazette. Third-party summaries are for context only — always verify policy changes at canada.ca. Nothing here is legal advice.
       </p>
     </div>
   )

@@ -1,11 +1,15 @@
 /**
- * Cron route — fetches latest IRCC news from the canada.ca RSS feed and
- * upserts into the ircc_news Supabase table.
+ * Cron route — fetches latest IRCC news from RSS feeds and upserts into immigration_news.
+ * Also sends email digest for new high/medium importance items.
  *
- * Called by Vercel Cron (see vercel.json) or manually via GET with
- * Authorization: Bearer <CRON_SECRET>
+ * Called by Vercel Cron (see vercel.json) twice daily, or manually via:
+ *   GET /api/cron/news  (Authorization: Bearer <CRON_SECRET>)
+ *
+ * Note: /api/news already fetches live from RSS on every request.
+ * This cron's main job is email notifications + keeping DB warm.
  */
 import { createClient } from '@supabase/supabase-js'
+import { fetchNewsFromRSS } from '@/lib/ircc-rss'
 
 function adminDb() {
   return createClient(
@@ -14,78 +18,7 @@ function adminDb() {
   )
 }
 
-// Simple RSS XML parser — no external dependencies needed
-function parseRSS(xml: string): Array<{ guid: string; title: string; link: string; description: string; pubDate: string }> {
-  const items: Array<{ guid: string; title: string; link: string; description: string; pubDate: string }> = []
-
-  const itemRegex = /<item>([\s\S]*?)<\/item>/g
-  let match: RegExpExecArray | null
-
-  while ((match = itemRegex.exec(xml)) !== null) {
-    const block = match[1]
-    const get = (tag: string) => {
-      const m = block.match(new RegExp(`<${tag}[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/${tag}>`, 'i'))
-      return m ? m[1].trim() : ''
-    }
-    const guid = get('guid') || get('link')
-    const title = get('title')
-    const link = get('link')
-    const description = get('description')
-    const pubDate = get('pubDate')
-    if (title && link) items.push({ guid, title, link, description, pubDate })
-  }
-
-  return items
-}
-
-function classifyCategory(title: string, desc: string): string {
-  const text = (title + ' ' + desc).toLowerCase()
-  if (text.includes('express entry') || text.includes('crs') || text.includes('invitation to apply')) return 'express-entry'
-  if (text.includes('provincial nominee') || text.includes('pnp')) return 'pnp'
-  if (text.includes('study permit') || text.includes('pgwp') || text.includes('student')) return 'study'
-  if (text.includes('work permit') || text.includes('lmia') || text.includes('open work')) return 'work'
-  if (text.includes('family sponsorship') || text.includes('spousal') || text.includes('spouse')) return 'family'
-  if (text.includes('refugee') || text.includes('asylum') || text.includes('protected person')) return 'refugee'
-  if (text.includes('visitor') || text.includes('eta') || text.includes('tourism')) return 'visitor'
-  if (text.includes('permanent residen') || text.includes('pr ') || text.includes(' pr,')) return 'pr'
-  return 'general'
-}
-
-function classifyImportance(title: string, desc: string): string {
-  const text = (title + ' ' + desc).toLowerCase()
-  if (
-    text.includes('draw') || text.includes('invitation') || text.includes('cap') ||
-    text.includes('suspended') || text.includes('new policy') || text.includes('cutoff') ||
-    text.includes('processing times') || text.includes('intake')
-  ) return 'high'
-  if (
-    text.includes('update') || text.includes('change') || text.includes('extended') ||
-    text.includes('threshold') || text.includes('allocation')
-  ) return 'medium'
-  return 'low'
-}
-
-function classifyAffectedUsers(category: string): string[] {
-  const map: Record<string, string[]> = {
-    'express-entry': ['work-permit', 'pr', 'express-entry'],
-    'pnp': ['work-permit', 'student', 'pr', 'pnp'],
-    'study': ['student', 'study-permit'],
-    'work': ['work-permit'],
-    'family': ['family', 'family-member'],
-    'refugee': ['refugee'],
-    'visitor': ['visitor'],
-    'pr': ['work-permit', 'student', 'pr'],
-    'general': [],
-  }
-  return map[category] ?? []
-}
-
-const IRCC_RSS_FEEDS = [
-  'https://www.canada.ca/en/immigration-refugees-citizenship/news/rss.xml',
-  'https://www.canada.ca/en/immigration-refugees-citizenship/news/notices/rss.xml',
-]
-
-// ── Email helpers ────────────────────────────────────────────────────────────
+// ── Email helpers ─────────────────────────────────────────────────────────────
 
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
@@ -108,7 +41,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
   })
 }
 
-type NewsItem = { title: string; summary: string; source_url: string; source_name: string; importance: string }
+type NewsItem = { id: string; title: string; summary: string; source_url: string; source_name: string; importance: string }
 
 function newsDigestHtml(items: NewsItem[]): string {
   const importanceLabel: Record<string, string> = {
@@ -152,10 +85,9 @@ function newsDigestHtml(items: NewsItem[]): string {
   `
 }
 
-// ── Main cron handler ────────────────────────────────────────────────────────
+// ── Main cron handler ─────────────────────────────────────────────────────────
 
 export async function GET(req: Request) {
-  // Auth check
   const secret = process.env.CRON_SECRET
   const auth = req.headers.get('authorization')
   if (secret && auth !== `Bearer ${secret}`) {
@@ -163,55 +95,40 @@ export async function GET(req: Request) {
   }
 
   const db = adminDb()
-  let totalUpserted = 0
   const errors: string[] = []
+  let totalUpserted = 0
 
-  for (const feedUrl of IRCC_RSS_FEEDS) {
-    try {
-      const res = await fetch(feedUrl, {
-        headers: { 'User-Agent': 'Navly-NewsBot/1.0' },
-        next: { revalidate: 0 },
-      })
-      if (!res.ok) {
-        errors.push(`Feed ${feedUrl}: HTTP ${res.status}`)
-        continue
-      }
-      const xml = await res.text()
-      const items = parseRSS(xml)
+  // Fetch from all RSS feeds using shared lib
+  const rssItems = await fetchNewsFromRSS(15000).catch((e) => {
+    errors.push(`RSS fetch failed: ${(e as Error).message}`)
+    return []
+  })
 
-      for (const item of items.slice(0, 20)) {
-        const category = classifyCategory(item.title, item.description)
-        const importance = classifyImportance(item.title, item.description)
-        const affectedUsers = classifyAffectedUsers(category)
-        const publishedAt = item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString()
-        const sourceName = feedUrl.includes('notices') ? 'IRCC Notices' : 'IRCC'
-
-        const { error } = await db.from('ircc_news').upsert({
-          id: item.guid || item.link,
-          title: item.title.slice(0, 500),
-          summary: item.description.replace(/<[^>]+>/g, '').trim().slice(0, 1000),
-          source_url: item.link,
-          source_name: sourceName,
-          published_at: publishedAt,
-          category,
-          importance,
-          affected_users: affectedUsers,
-          // notified_at is omitted — existing value is preserved on conflict
-        }, { onConflict: 'id' })
-
-        if (error) errors.push(`Upsert error: ${error.message}`)
-        else totalUpserted++
-      }
-    } catch (e) {
-      errors.push(`Feed ${feedUrl}: ${(e as Error).message}`)
-    }
+  for (const item of rssItems) {
+    const { error } = await db.from('immigration_news').upsert(
+      {
+        id:             item.id,
+        title:          item.title,
+        summary:        item.summary,
+        source_url:     item.sourceUrl,
+        source_name:    item.sourceName,
+        published_at:   item.publishedAt,
+        category:       item.category,
+        importance:     item.importance,
+        affected_users: item.affectedUsers,
+        // notified_at omitted — existing value preserved on conflict
+      },
+      { onConflict: 'id' }
+    )
+    if (error) errors.push(`Upsert ${item.id}: ${error.message}`)
+    else totalUpserted++
   }
 
-  // ── Send notification emails for new high/medium items ──────────────────────
+  // ── Email digest for new high/medium items not yet notified ─────────────────
   let emailsSent = 0
 
   const { data: newItems } = await db
-    .from('ircc_news')
+    .from('immigration_news')
     .select('id, title, summary, source_url, source_name, importance')
     .in('importance', ['high', 'medium'])
     .is('notified_at', null)
@@ -219,7 +136,6 @@ export async function GET(req: Request) {
     .limit(10)
 
   if (newItems && newItems.length > 0) {
-    // Fetch all user emails via service role
     const { data: { users } } = await db.auth.admin.listUsers({ perPage: 1000 })
 
     const subject = newItems.length === 1
@@ -237,16 +153,14 @@ export async function GET(req: Request) {
       }
     }
 
-    // Mark all notified items so they are not re-sent on the next cron run
-    const ids = newItems.map((n: NewsItem & { id: string }) => n.id)
     await db
-      .from('ircc_news')
+      .from('immigration_news')
       .update({ notified_at: new Date().toISOString() })
-      .in('id', ids)
+      .in('id', newItems.map((n: NewsItem) => n.id))
   }
 
   return Response.json({
-    ok: true,
+    ok: errors.length === 0,
     upserted: totalUpserted,
     emailsSent,
     errors: errors.length > 0 ? errors : undefined,
