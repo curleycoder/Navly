@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Plus, Trash2, ListChecks, ChevronDown, ChevronUp, MapPin } from 'lucide-react'
+import Link from 'next/link'
+import { Plus, ListChecks, ChevronRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +12,7 @@ import { calculateScore } from '@/lib/scoring'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/lib/useToast'
 import { Toast } from '@/components/ui/Toast'
+import { TASK_GUIDES } from '@/lib/task-guides'
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -50,18 +52,13 @@ export default function TasksPage() {
     showToast(task.done ? 'Marked incomplete' : 'Task completed')
   }
 
-  function remove(id: string) {
-    update(tasks.filter((t) => t.id !== id))
-    showToast('Task removed')
-  }
-
   function addTask() {
     const title = newTitle.trim()
     if (!title) return
     const task: Task = {
       id: `task-${Date.now()}`,
       title,
-      category: 'Settlement & Living', 
+      category: 'Settlement & Living',
       done: false,
       createdAt: new Date().toISOString(),
     }
@@ -130,7 +127,7 @@ export default function TasksPage() {
            </div>
            <div className="flex flex-col">
               {catTasks.map(task => (
-                 <TaskRow key={task.id} task={task} onToggle={toggle} onRemove={remove} />
+                 <TaskRow key={task.id} task={task} onToggle={toggle} />
               ))}
            </div>
         </div>
@@ -148,7 +145,7 @@ export default function TasksPage() {
           </div>
           <div className="flex flex-col opacity-60 hover:opacity-100 transition-opacity">
             {completedTasks.map((task) => (
-              <TaskRow key={task.id} task={task} onToggle={toggle} onRemove={remove} />
+              <TaskRow key={task.id} task={task} onToggle={toggle} />
             ))}
           </div>
         </div>
@@ -193,83 +190,56 @@ export default function TasksPage() {
 function TaskRow({
   task,
   onToggle,
-  onRemove,
 }: {
   task: Task
   onToggle: (id: string) => void
-  onRemove: (id: string) => void
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const hasGuide = Boolean(TASK_GUIDES[task.id])
 
   return (
     <div
       className={cn(
-        'group flex flex-col gap-0 rounded-2xl border transition-all overflow-hidden mb-3',
+        'group flex items-center gap-4 rounded-2xl border p-4 transition-all mb-3',
         task.done ? 'border-slate-100 bg-slate-50 shadow-none' : 'border-slate-200 bg-white shadow-sm hover:border-[#0B1F3A]/20 hover:shadow-md'
       )}
     >
-      <div 
-         onClick={() => setExpanded(!expanded)}
-         className={cn("flex items-center gap-4 p-4", task.details ? "cursor-pointer" : "")}
-      >
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggle(task.id); }}
-          className={cn(
-            'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all focus:outline-none',
-            task.done ? 'border-[#10b981] bg-[#10b981]' : 'border-slate-300 hover:border-[#10b981] hover:bg-green-50'
-          )}
-        >
-          {task.done && (
-            <svg className="h-3.5 w-3.5 text-white animate-fade-in" fill="none" viewBox="0 0 12 12">
-              <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          )}
-        </button>
-
-        <div className="flex-1 min-w-0">
-          <span
-            className={cn(
-              'block text-[15px] font-semibold truncate',
-              task.done ? 'text-slate-400 line-through' : 'text-[#0B1F3A]'
-            )}
-          >
-            {task.title}
-          </span>
-          {task.details && !expanded && !task.done && (
-             <p className="text-xs text-slate-400 truncate mt-0.5 max-w-[90%]">
-               <span className="text-[#D62828] font-semibold mr-1">TIPS:</span> 
-               {task.details}
-             </p>
-          )}
-        </div>
-
-        {task.details && !task.done && (
-          <div className="shrink-0 text-slate-300 transition-colors group-hover:text-[#0B1F3A]">
-             {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </div>
+      <button
+        onClick={() => onToggle(task.id)}
+        className={cn(
+          'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all focus:outline-none cursor-pointer',
+          task.done ? 'border-[#10b981] bg-[#10b981]' : 'border-slate-300 hover:border-[#10b981] hover:bg-green-50'
         )}
+      >
+        {task.done && (
+          <svg className="h-3.5 w-3.5 text-white animate-fade-in" fill="none" viewBox="0 0 12 12">
+            <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </button>
 
-        <button
-          onClick={(e) => { e.stopPropagation(); onRemove(task.id); }}
+      <div className="flex-1 min-w-0">
+        <span
           className={cn(
-            "ml-2 shrink-0 p-2 rounded-lg transition-colors focus:outline-none",
-            task.done ? "text-slate-300 hover:text-red-400 hover:bg-red-50" : "text-slate-300 opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-50"
+            'block text-[15px] font-semibold truncate',
+            task.done ? 'text-slate-400 line-through' : 'text-[#0B1F3A]'
           )}
-          title="Remove"
         >
-          <Trash2 className="h-4 w-4" />
-        </button>
+          {task.title}
+        </span>
+        {task.details && !task.done && (
+          <p className="text-xs text-slate-400 truncate mt-0.5 max-w-[90%]">{task.details}</p>
+        )}
       </div>
 
-      {expanded && task.details && (
-        <div className="px-13 pb-5 pt-1 animate-fade-in text-sm text-slate-600 leading-relaxed bg-slate-50/50">
-          <div className="p-4 bg-[#0B1F3A]/5 rounded-xl border border-[#0B1F3A]/10 text-[#0B1F3A]">
-            <div className="flex gap-2 items-start">
-               <MapPin className="h-4 w-4 shrink-0 mt-0.5 text-[#D62828]" />
-               <p>{task.details}</p>
-            </div>
-          </div>
-        </div>
+      {hasGuide && !task.done && (
+        <Link
+          href={`/dashboard/tasks/${task.id}`}
+          className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:border-[#0B1F3A] hover:text-[#0B1F3A] transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
+          More info
+          <ChevronRight className="h-3.5 w-3.5" />
+        </Link>
       )}
     </div>
   )
