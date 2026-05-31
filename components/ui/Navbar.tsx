@@ -18,7 +18,7 @@ export function Navbar() {
     <header className="fixed top-0 z-50 w-full border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
       <div className="mx-auto grid h-20 max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-6">
         {/* Left: Logo */}
-        <div className="flex items-center justify-start">
+        <div className="col-start-1 flex items-center justify-start">
           <Link
             href="/"
             aria-label="Navly home"
@@ -45,28 +45,25 @@ export function Navbar() {
           ))}
         </nav>
 
-        {/* Right: Desktop buttons */}
-        <div className="hidden items-center justify-end gap-3 md:flex">
+        {/* Right: Desktop buttons + Mobile hamburger */}
+        <div className="col-start-3 flex items-center justify-end gap-3">
           <Link
             href="/login"
-            className="inline-flex h-12 items-center justify-center rounded-2xl border border-slate-300 px-6 text-sm font-bold text-[#0B1F3A] transition hover:border-[#D62828] hover:text-[#D62828]"
+            className="hidden h-12 items-center justify-center rounded-2xl border border-slate-300 px-6 text-sm font-bold text-[#0B1F3A] transition hover:border-[#D62828] hover:text-[#D62828] md:inline-flex"
           >
             Log in
           </Link>
 
           <Link
             href="/onboarding"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[#D62828] px-6 text-sm font-bold text-white transition hover:bg-[#B91C1C]"
+            className="hidden h-12 items-center justify-center gap-2 rounded-2xl bg-[#D62828] px-6 text-sm font-bold text-white transition hover:bg-[#B91C1C] md:inline-flex"
           >
             Check My PR Pathway <ArrowRight className="h-4 w-4" />
           </Link>
-        </div>
 
-        {/* Mobile hamburger */}
-        <div className="flex items-center justify-end md:hidden">
           <button
             type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-[#0B1F3A] transition hover:bg-slate-100"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-[#0B1F3A] transition hover:bg-slate-100 md:hidden"
             onClick={() => setOpen((value) => !value)}
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}

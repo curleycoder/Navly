@@ -166,12 +166,12 @@ export default async function Home() {
   const updates = await getUpdates({ limit: 3 });
 
   return (
-    <main className="min-h-screen bg-white pt-16 text-[#0B1F3A]">
+    <main className="min-h-screen bg-white pt-20 text-[#0B1F3A]">
       <Navbar />
 
       {/* Hero */}
       {/* Hero */}
-<section className="relative overflow-hidden bg-[#0B1F3A] px-6 py-16 md:py-20">
+<section className="relative overflow-hidden bg-[#0B1F3A] px-4 py-12 sm:px-6 md:py-20">
   <div className="absolute inset-0 opacity-25">
     <div className="absolute left-[-10%] top-[-20%] h-72 w-72 rounded-full bg-[#D62828]/30 blur-3xl" />
     <div className="absolute bottom-[-20%] right-[-10%] h-96 w-96 rounded-full bg-white/10 blur-3xl" />
@@ -185,7 +185,7 @@ export default async function Home() {
         Educational planning — not legal advice
       </div>
 
-      <h1 className="mt-6 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
+      <h1 className="mt-6 text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-6xl">
         Your Canadian PR pathway,{" "}
         <span className="text-[#D62828]">made clear.</span>
       </h1>
@@ -198,28 +198,28 @@ export default async function Home() {
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <Link
           href="/onboarding"
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#D62828] px-6 text-sm font-bold text-white transition hover:bg-[#B91C1C]"
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#D62828] px-6 text-sm font-bold text-white transition hover:bg-[#B91C1C] sm:w-auto"
         >
           Check My PR Pathway <ArrowRight className="h-4 w-4" />
         </Link>
 
         <a
           href="#how"
-          className="inline-flex h-12 items-center justify-center rounded-xl border border-white/20 px-6 text-sm font-bold text-white transition hover:border-white/40 hover:bg-white/5"
+          className="inline-flex h-12 w-full items-center justify-center rounded-xl border border-white/20 px-6 text-sm font-bold text-white transition hover:border-white/40 hover:bg-white/5 sm:w-auto"
         >
           See How It Works
         </a>
       </div>
 
       {/* Trust chips */}
-      <div className="mt-8 flex flex-wrap gap-3">
+      <div className="mt-8 flex gap-2">
         {["No passport number", "No SIN", "No documents required"].map(
           (item) => (
             <div
               key={item}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-200"
+              className="flex items-center justify-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-1.5 text-center text-[10px] font-semibold leading-tight text-slate-200"
             >
-              <XCircle className="h-4 w-4 shrink-0 text-[#D62828]" />
+              <XCircle className="h-2.5 w-2.5 shrink-0 text-[#D62828]" />
               <span>{item}</span>
             </div>
           )
@@ -253,7 +253,7 @@ export default async function Home() {
 </section>
 
       {/* Trust Strip */}
-      <section className="border-b border-slate-200 bg-white px-6 py-8">
+      <section className="border-b border-slate-200 bg-white px-4 py-8 sm:px-6">
         <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-3">
           {trustItems.map((item) => {
             const Icon = item.icon;
@@ -280,13 +280,13 @@ export default async function Home() {
       </section>
 
       {/* Who Navly Helps */}
-      <section className="bg-[#F8FAFC] px-6 py-8 md:py-10">
+      <section className="bg-[#F8FAFC] px-4 py-10 sm:px-6 md:py-14">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">
               Who Navly Helps
             </p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#0B1F3A] sm:text-3xl md:text-4xl">
               Built for different immigration stages.
             </h2>
             <p className="mt-3 text-slate-500">
@@ -323,13 +323,13 @@ export default async function Home() {
       </section>
 
       {/* Features */}
-      <section id="features" className="bg-white px-6 py-8 md:py-10">
+      <section id="features" className="bg-white px-4 py-10 sm:px-6 md:py-14">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">
               Features
             </p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#0B1F3A] sm:text-3xl md:text-4xl">
               Built for clarity, not confusion.
             </h2>
             <p className="mt-3 text-slate-500">
@@ -368,13 +368,13 @@ export default async function Home() {
       </section>
 
       {/* How It Works */}
-      <section id="how" className="bg-[#F4F6F9] px-6 py-8 md:py-10">
+      <section id="how" className="bg-[#F4F6F9] px-4 py-10 sm:px-6 md:py-14">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 text-center">
             <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">
               How It Works
             </p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#0B1F3A] sm:text-3xl md:text-4xl">
               From confusion to a clear next step.
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-slate-500">
@@ -407,7 +407,7 @@ export default async function Home() {
       </section>
 
       {/* Official Updates */}
-      <section className="bg-white px-6 py-8 md:py-10">
+      <section className="bg-white px-4 py-10 sm:px-6 md:py-14">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -415,7 +415,7 @@ export default async function Home() {
                 Official Updates
               </p>
 
-              <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#0B1F3A] sm:text-3xl md:text-4xl">
                 Latest immigration updates.
               </h2>
 
@@ -486,14 +486,14 @@ export default async function Home() {
       </section>
 
       {/* What Navly Does Not Do */}
-      <section className="bg-[#0B1F3A] px-6 py-8 text-white md:py-10">
+      <section className="bg-[#0B1F3A] px-4 py-10 text-white sm:px-6 md:py-14">
         <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-center">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">
               Trust and Safety
             </p>
 
-            <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
+            <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
               Clear planning. No fake promises.
             </h2>
 
@@ -520,14 +520,14 @@ export default async function Home() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="bg-[#F4F6F9] px-6 py-8 md:py-10">
+      <section id="pricing" className="bg-[#F4F6F9] px-4 py-10 sm:px-6 md:py-14">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 text-center">
             <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">
               Pricing
             </p>
 
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#0B1F3A] md:text-4xl">
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#0B1F3A] sm:text-3xl md:text-4xl">
               Start free. Upgrade when ready.
             </h2>
 
@@ -623,11 +623,11 @@ export default async function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="bg-[#D62828] px-6 py-8 md:py-10">
+      <section className="bg-[#D62828] px-4 py-12 sm:px-6 md:py-16">
         <div className="mx-auto max-w-3xl text-center">
           <CheckCircle2 className="mx-auto mb-4 h-10 w-10 text-white/80" />
 
-          <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+          <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl">
             Know what to work on before you spend money.
           </h2>
 
@@ -638,7 +638,7 @@ export default async function Home() {
 
           <Link
             href="/onboarding"
-            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-[#D62828] transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-[#D62828] transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
           >
             Check My PR Pathway <ArrowRight className="h-4 w-4" />
           </Link>
@@ -646,7 +646,7 @@ export default async function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#0B1F3A] px-6 py-10">
+      <footer className="bg-[#0B1F3A] px-4 py-10 sm:px-6">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
             <div>
