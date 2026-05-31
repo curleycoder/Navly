@@ -674,6 +674,14 @@ export default async function Home() {
               >
                 Support
               </a>
+              <a
+                href="https://www.instagram.com/navly.ca"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition hover:text-white"
+              >
+                Instagram
+              </a>
             </nav>
           </div>
 
