@@ -668,7 +668,7 @@ export default function PRTrackerPage() {
 
       {/* ── Gated: full breakdown for paid users ── */}
       <PlanGate
-        plan="report"
+        plan="tracker"
         fallback={
           <div className="mb-8">
             {score && score.pathways.length > 0 && (() => {
@@ -717,7 +717,7 @@ export default function PRTrackerPage() {
       </div>
     </div>
     {showUpgradeModal && (
-      <UpgradeModal plan="report" onClose={() => setShowUpgradeModal(false)} />
+      <UpgradeModal plan="tracker" onClose={() => setShowUpgradeModal(false)} />
     )}
     </>
   )

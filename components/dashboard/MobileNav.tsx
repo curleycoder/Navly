@@ -19,8 +19,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/tasks': 'Tasks',
   '/dashboard/news': 'Immigration News',
   '/dashboard/chat': 'AI Assistant',
-  '/dashboard/prep': 'Consultation Checklist',
-  '/dashboard/consultants': 'Find a Consultant',
+  '/dashboard/consultants': 'Consultant',
   '/dashboard/profile': 'My Profile',
 }
 

@@ -17,32 +17,6 @@ type Message = {
 }
 
 const CHAT_KEY = 'navly_chat_history'
-const WEEKLY_KEY = 'navly_chat_weekly'
-const FREE_WEEKLY_LIMIT = 1
-
-type WeeklyUsage = { weekStart: string; count: number }
-
-function getWeekStart(): string {
-  const d = new Date()
-  d.setHours(0, 0, 0, 0)
-  d.setDate(d.getDate() - d.getDay())
-  return d.toISOString()
-}
-
-function loadWeeklyUsage(): WeeklyUsage {
-  try {
-    const raw = localStorage.getItem(WEEKLY_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw) as WeeklyUsage
-      if (parsed.weekStart === getWeekStart()) return parsed
-    }
-  } catch { /* ignore */ }
-  return { weekStart: getWeekStart(), count: 0 }
-}
-
-function saveWeeklyUsage(usage: WeeklyUsage): void {
-  localStorage.setItem(WEEKLY_KEY, JSON.stringify(usage))
-}
 
 // ─── Suggestions ──────────────────────────────────────────────────────────────
 
@@ -186,23 +160,27 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [profile, setProfile] = useState<IntakeData | null>(null)
-const [weeklyCount, setWeeklyCount] = useState(0)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const { plan } = usePlan()
-  const isPaid = hasPlan(plan, 'report')
-  const limitReached = !isPaid && weeklyCount >= FREE_WEEKLY_LIMIT
+  const isPaid = hasPlan(plan, 'tracker')
 
-  // Load profile, persisted messages, and weekly usage
+  // Load profile and persisted messages
   useEffect(() => {
     setProfile(loadProfile())
     try {
       const saved = localStorage.getItem(CHAT_KEY)
       if (saved) setMessages(JSON.parse(saved))
     } catch { /* ignore */ }
-    setWeeklyCount(loadWeeklyUsage().count)
   }, [])
+
+  // Auto-show upgrade modal for free users
+  useEffect(() => {
+    if (plan !== null && !isPaid) {
+      setShowUpgradeModal(true)
+    }
+  }, [plan, isPaid])
 
   // Persist messages whenever they change
   useEffect(() => {
@@ -223,15 +201,7 @@ const [weeklyCount, setWeeklyCount] = useState(0)
 
   async function send(text?: string) {
     const content = (text ?? input).trim()
-    if (!content || loading || limitReached) return
-
-    // Track weekly usage for free tier
-    if (!isPaid) {
-      const usage = loadWeeklyUsage()
-      usage.count++
-      saveWeeklyUsage(usage)
-      setWeeklyCount(usage.count)
-    }
+    if (!content || loading || !isPaid) return
 
     const userMessage: Message = { role: 'user', content }
     const next = [...messages, userMessage]
@@ -417,25 +387,20 @@ const [weeklyCount, setWeeklyCount] = useState(0)
       {/* Input */}
       <div className="border-t border-slate-200 bg-white px-4 py-3 md:px-6 md:py-4">
         <div className="mx-auto max-w-2xl">
-          {limitReached ? (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-center">
-              <p className="text-sm font-semibold text-[#0B1F3A]">You've used your free question this week.</p>
-              <p className="mt-1 text-sm text-slate-500">
-                Upgrade your plan to ask unlimited questions and get the most out of Navly.
-              </p>
-              <button
-                onClick={() => setShowUpgradeModal(true)}
-                className="mt-3 inline-flex items-center gap-2 rounded-xl bg-[#D62828] px-5 py-2 text-sm font-bold text-white hover:bg-[#B91C1C] transition-colors"
-              >
-                Upgrade plan
-              </button>
-            </div>
+          {!isPaid ? (
+            <button
+              onClick={() => setShowUpgradeModal(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-[#D62828]/40 bg-[#D62828]/5 px-5 py-4 text-sm font-semibold text-[#D62828] transition hover:bg-[#D62828]/10"
+            >
+              <Send className="h-4 w-4" />
+              Upgrade to unlock the AI assistant
+            </button>
           ) : (
             <>
               <div className="flex gap-3">
                 <Textarea
                   ref={inputRef}
-                  placeholder={isPaid ? 'Ask an immigration question…' : `Ask a question (${FREE_WEEKLY_LIMIT - weeklyCount} free this week)`}
+                  placeholder="Ask an immigration question…"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
@@ -459,12 +424,7 @@ const [weeklyCount, setWeeklyCount] = useState(0)
                 </Button>
               </div>
               <p className="mt-2 text-center text-xs text-slate-400">
-                {isPaid
-                  ? 'Enter to send · Shift+Enter for new line · Conversation saved automatically'
-                  : `Free plan: ${FREE_WEEKLY_LIMIT} question per week. `}
-                {!isPaid && (
-                  <button onClick={() => setShowUpgradeModal(true)} className="font-semibold text-[#D62828] hover:underline">Upgrade for unlimited access.</button>
-                )}
+                Enter to send · Shift+Enter for new line · Conversation saved automatically
               </p>
             </>
           )}
@@ -472,7 +432,7 @@ const [weeklyCount, setWeeklyCount] = useState(0)
       </div>
     </div>
     {showUpgradeModal && (
-      <UpgradeModal plan="report" onClose={() => setShowUpgradeModal(false)} />
+      <UpgradeModal plan="tracker" onClose={() => setShowUpgradeModal(false)} />
     )}
     </>
   )

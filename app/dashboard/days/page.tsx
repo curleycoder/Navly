@@ -119,7 +119,7 @@ export default function DaysPage() {
   const currentMissedDay = missedDays[0] ?? null
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-6 py-10">
+    <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
       {/* Header */}
       <div className="mb-8">
         <p className="hidden md:block text-sm font-semibold uppercase tracking-wide text-[#D62828]">Days in Canada</p>
@@ -145,13 +145,13 @@ export default function DaysPage() {
           )}
           {checkedIn ? (
             <div className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 px-4 py-3">
-              <CalendarCheck className="h-5 w-5 text-green-600" />
+              <CalendarCheck className="h-5 w-5 shrink-0 text-green-600" />
               <p className="text-sm font-semibold text-green-800">Checked in for today — come back tomorrow.</p>
             </div>
           ) : (
-            <div className="flex items-center justify-between rounded-xl border border-dashed border-slate-200 px-4 py-3">
+            <div className="flex flex-col gap-3 rounded-xl border border-dashed border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-slate-600">Are you in Canada today?</p>
-              <Button onClick={handleCheckIn} size="sm" className="gap-1.5 bg-[#D62828] text-white hover:bg-[#B91C1C]">
+              <Button onClick={handleCheckIn} size="sm" className="gap-1.5 bg-[#D62828] text-white hover:bg-[#B91C1C] sm:shrink-0">
                 <CalendarCheck className="h-4 w-4" />
                 Yes, I'm here
               </Button>
@@ -203,7 +203,7 @@ export default function DaysPage() {
             value={presence.arrivalDate || ''}
             max={new Date().toISOString().slice(0, 10)}
             onChange={(e) => handleArrivalDate(e.target.value)}
-            className="max-w-xs rounded-xl border-slate-200 bg-white text-sm text-[#0B1F3A] focus-visible:ring-[#D62828]"
+            className="w-full max-w-xs rounded-xl border-slate-200 bg-white text-sm text-[#0B1F3A] focus-visible:ring-[#D62828]"
           />
           {!presence.arrivalDate && (
             <p className="mt-2 text-xs text-amber-600 font-semibold">
@@ -258,7 +258,7 @@ export default function DaysPage() {
                   weekday: 'long', month: 'long', day: 'numeric',
                 })}?
               </p>
-              <div className="mt-3 flex gap-3">
+              <div className="mt-3 flex flex-wrap gap-2">
                 <Button size="sm" onClick={() => handleConfirmDay(currentMissedDay)} className="bg-amber-600 text-white hover:bg-amber-700">
                   Yes, I was in Canada
                 </Button>
@@ -378,23 +378,21 @@ function TripRow({ entry, onRemove }: { entry: TravelEntry; onRemove: (id: strin
     : null
 
   return (
-    <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
-      <div className="flex items-center gap-3">
-        <Plane className="h-4 w-4 shrink-0 text-slate-400" />
-        <div>
-          <p className="text-sm font-semibold text-[#0B1F3A]">
-            {entry.country}
-            {entry.reason ? <span className="ml-1 font-normal text-slate-500">— {entry.reason}</span> : ''}
-          </p>
-          <p className="text-xs text-slate-400">
-            {start} → {end}
-            {days !== null ? ` (${days} day${days !== 1 ? 's' : ''})` : ' (still away)'}
-          </p>
-        </div>
+    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
+      <Plane className="h-4 w-4 shrink-0 text-slate-400" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-[#0B1F3A]">
+          {entry.country}
+          {entry.reason ? <span className="ml-1 font-normal text-slate-500">— {entry.reason}</span> : ''}
+        </p>
+        <p className="text-xs text-slate-400">
+          {start} → {end}
+          {days !== null ? ` (${days} day${days !== 1 ? 's' : ''})` : ' (still away)'}
+        </p>
       </div>
       <button
         onClick={() => onRemove(entry.id)}
-        className="ml-3 rounded-lg p-1.5 text-slate-300 transition hover:bg-red-50 hover:text-red-500"
+        className="shrink-0 rounded-lg p-1.5 text-slate-300 transition hover:bg-red-50 hover:text-red-500"
       >
         <Trash2 className="h-4 w-4" />
       </button>

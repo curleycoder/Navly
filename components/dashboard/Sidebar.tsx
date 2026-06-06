@@ -8,7 +8,6 @@ import {
   Flame,
   ListChecks,
   MessageSquare,
-  ShieldCheck,
   UserCircle,
   Users,
   LogOut,
@@ -28,8 +27,7 @@ const allNavItems = [
   { href: '/dashboard/tasks', label: 'Tasks', icon: ListChecks, outsideOk: true },
   { href: '/dashboard/news', label: 'Immigration News', icon: Newspaper, outsideOk: true },
   { href: '/dashboard/chat', label: 'AI Assistant', icon: MessageSquare, outsideOk: true },
-  { href: '/dashboard/prep', label: 'Consultation Checklist', icon: ShieldCheck, outsideOk: true },
-  { href: '/dashboard/consultants', label: 'Find a Consultant', icon: Users, outsideOk: true },
+  { href: '/dashboard/consultants', label: 'Consultant', icon: Users, outsideOk: true },
 ]
 
 // Keep this export for MobileNav

@@ -1,25 +1,103 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { fetchConsultants, getClaimedCodes, claimPromoCode, type ConsultantListing } from '@/lib/consultants'
+import type { ConsultantListing } from '@/lib/consultants'
+import { loadProfile, statusLabels, goalLabels, type IntakeData } from '@/lib/profile'
+import { calculateScore, type ScoreResult } from '@/lib/scoring'
+import { loadPresence, type PresenceData } from '@/lib/presence'
+import { loadTasks, type Task } from '@/lib/tasks'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ShieldCheck, MapPin, Globe, Briefcase, ExternalLink, Star, Loader2 } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
+import { Separator } from '@/components/ui/separator'
+import {
+  ShieldCheck, MapPin, Globe, Briefcase, ExternalLink, Star, Loader2,
+  Copy, Check, Mail, Download, Printer, AlertTriangle, TrendingUp, Target, Lock,
+  Scale, DollarSign,
+} from 'lucide-react'
+import { usePlan, hasPlan } from '@/lib/subscription'
+import { UpgradeModal } from '@/components/ui/UpgradeModal'
+
+const NOTES_KEY = 'navly_prep_notes'
+
+// ─── Summary text builder ────────────────────────────────────────────────────
+
+function buildSummaryText(profile: IntakeData | null, score: ScoreResult | null, presence: PresenceData, tasks: Task[], notes: string): string {
+  const pendingTasks = tasks.filter((t) => !t.done)
+  const lines: string[] = [
+    'NAVLY — CONSULTATION SUMMARY', '─'.repeat(40), '',
+    'IMMIGRATION PROFILE',
+    `Current status:    ${profile ? (statusLabels[profile.status] ?? profile.status) : 'Not provided'}`,
+    `Country of origin: ${profile?.originCountry || 'Not provided'}`,
+    `Currently in:      ${profile?.currentCountry || 'Not provided'}`,
+    `Main goal:         ${profile ? (goalLabels[profile.goal] ?? profile.goal) : 'Not provided'}`,
+  ]
+  if (score?.hasEnoughData && score.crs) {
+    lines.push('', 'PR SCORE ESTIMATE', `CRS score: ${score.crs.total} / ~1,200`)
+    if (score.fsw) lines.push(`FSW 67-pt grid: ${score.fsw.score} / 100 (${score.fsw.eligible ? 'passes' : 'below threshold'})`)
+    if (score.pathways.length > 0) {
+      lines.push('', 'Pathway eligibility:')
+      score.pathways.forEach((p) => lines.push(`  ${p.name}: ${p.status} — ${p.reason}`))
+    }
+    if (score.improvements.length > 0) {
+      lines.push('', 'Top improvements:')
+      score.improvements.slice(0, 3).forEach((imp) => lines.push(`  • ${imp.label} (${imp.impact})`))
+    }
+  }
+  lines.push('', 'DAYS IN CANADA', `Streak: ${presence.streak} day${presence.streak !== 1 ? 's' : ''}`, `Total: ${presence.totalDays}`)
+  if (pendingTasks.length > 0) {
+    lines.push('', 'OPEN TASKS')
+    pendingTasks.forEach((t) => lines.push(`  ☐ ${t.title}`))
+  }
+  if (notes.trim()) { lines.push('', 'QUESTIONS FOR MY CONSULTANT', notes.trim()) }
+  lines.push('', '─'.repeat(40), 'Note: This summary was created with Navly for organizational purposes only. Not legal advice.')
+  return lines.join('\n')
+}
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-xs text-slate-500">{label}</dt>
+      <dd className="mt-0.5 text-sm font-semibold text-[#0B1F3A]">{value}</dd>
+    </div>
+  )
+}
+
+function SummarySection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-400">{title}</h3>
+      {children}
+    </div>
+  )
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function ConsultantsPage() {
-  const [consultants, setConsultants] = useState<ConsultantListing[]>([])
-  const [loading, setLoading] = useState(true)
-  const [claimed, setClaimed] = useState<Record<string, string>>({})
-  const [claiming, setClaiming] = useState<string | null>(null)
-  const [initial, setInitial] = useState('')
+  // Profile / checklist state
+  const [profile, setProfile] = useState<IntakeData | null>(null)
+  const [score, setScore] = useState<ScoreResult | null>(null)
+  const [presence, setPresence] = useState<PresenceData>({ totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null, lastAcknowledgedDate: null, arrivalDate: null, travelLog: [] })
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [notes, setNotes] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [shared, setShared] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const { plan } = usePlan()
+  const isPaid = hasPlan(plan, 'report')
 
   useEffect(() => {
-    setClaimed(getClaimedCodes())
-    fetchConsultants().then((data) => {
-      setConsultants(data)
-      setLoading(false)
-    })
+    const p = loadProfile()
+    setProfile(p)
+    if (p) setScore(calculateScore(p))
+    setPresence(loadPresence())
+    setTasks(loadTasks())
+    const saved = localStorage.getItem(NOTES_KEY)
+    if (saved) setNotes(saved)
   }, [])
 
   function handleClaim(consultant: ConsultantListing) {
@@ -30,159 +108,306 @@ export default function ConsultantsPage() {
     setInitial('')
   }
 
+  function handleNotesChange(val: string) {
+    setNotes(val)
+    localStorage.setItem(NOTES_KEY, val)
+  }
+
+  async function copyToClipboard() {
+    await navigator.clipboard.writeText(buildSummaryText(profile, score, presence, tasks, notes))
+    setCopied(true); setTimeout(() => setCopied(false), 2000)
+  }
+
+  function shareByEmail() {
+    const text = buildSummaryText(profile, score, presence, tasks, notes)
+    window.location.href = `mailto:?subject=${encodeURIComponent('My Immigration Profile — Navly Summary')}&body=${encodeURIComponent(text)}`
+    setShared(true); setTimeout(() => setShared(false), 3000)
+  }
+
+  function downloadTxt() {
+    const blob = new Blob([buildSummaryText(profile, score, presence, tasks, notes)], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = 'navly-consultation-summary.txt'; a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const pendingTasks = tasks.filter((t) => !t.done)
+
   return (
-    <div className="mx-auto w-full max-w-4xl px-6 py-10">
-      <div className="mb-2">
-        <p className="hidden md:block text-sm font-semibold uppercase tracking-wide text-[#D62828]">Partner Network</p>
-        <h1 className="hidden md:block mt-1 text-3xl font-bold text-[#0B1F3A]">Find a Certified Consultant</h1>
-        <p className="mt-2 max-w-2xl text-slate-500">
-          Navly partners with certified RCICs and immigration lawyers. Browse the directory and claim your exclusive 20% discount code.
-        </p>
-        <p className="mt-2 text-xs text-slate-400">
-          Consultants are independent professionals. Navly does not provide immigration consulting services.
-        </p>
-      </div>
+    <>
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
 
-      {loading ? (
-        <div className="mt-16 flex justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-300" />
+
+      {/* ── 2. Consultation checklist ── */}
+      <div className="mb-8">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="mb-1 text-base font-bold text-[#0B1F3A]">Consultation checklist</h2>
+            <p className="text-sm text-slate-500">A clean summary of your situation to share with a consultant or lawyer.</p>
+          </div>
+          {!isPaid && (
+            <span className="flex shrink-0 items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+              <Lock className="h-3 w-3" /> Report required
+            </span>
+          )}
         </div>
-      ) : consultants.length === 0 ? (
-        <div className="mt-16 text-center">
-          <p className="text-slate-400">No consultants listed yet. Check back soon.</p>
-        </div>
-      ) : (
-        <div className="mt-8 flex flex-col gap-6">
-          {consultants.map((c) => (
-            <Card
-              key={c.id}
-              className={`rounded-2xl border ${c.sponsored ? 'border-emerald-200 bg-emerald-50/50' : 'border-slate-200 bg-white'}`}
-            >
-              <CardContent className="p-6">
-                {c.sponsored && (
-                  <span className="mb-3 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800">
-                    <Star className="h-3 w-3" /> Sponsored
-                  </span>
+
+        {isPaid ? (
+          <>
+            {/* Export actions */}
+            <div className="mb-1 flex flex-wrap gap-2 print:hidden">
+              {[
+                { label: copied ? 'Copied!' : 'Copy', icon: copied ? Check : Copy, action: copyToClipboard },
+                { label: shared ? 'Opened!' : 'Email', icon: shared ? Check : Mail, action: shareByEmail },
+                { label: 'Download', icon: Download, action: downloadTxt },
+                { label: 'Print', icon: Printer, action: () => window.print() },
+              ].map(({ label, icon: Icon, action }) => (
+                <Button key={label} onClick={action} variant="outline" size="sm" className="gap-1.5 border-slate-200 text-slate-600 hover:border-[#0B1F3A] hover:text-[#0B1F3A]">
+                  <Icon className="h-3.5 w-3.5" />{label}
+                </Button>
+              ))}
+            </div>
+
+            <Card className="rounded-2xl border-slate-200 bg-white">
+              <CardContent className="p-5 sm:p-6">
+                {profile ? (
+                  <>
+                    <div className="mb-5 grid gap-3 sm:grid-cols-3">
+                      <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0B1F3A]/8">
+                          <Briefcase className="h-3.5 w-3.5 text-[#0B1F3A]" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs text-slate-500">Status</p>
+                          <p className="truncate text-sm font-bold text-[#0B1F3A]">{statusLabels[profile.status] ?? profile.status}</p>
+                        </div>
+                      </div>
+                      {score?.hasEnoughData && score.crs && (
+                        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#D62828]/10">
+                            <TrendingUp className="h-3.5 w-3.5 text-[#D62828]" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500">CRS Score</p>
+                            <p className="text-sm font-bold text-[#0B1F3A]">{score.crs.total}</p>
+                          </div>
+                        </div>
+                      )}
+                      {score?.pathways?.[0] && (
+                        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+                            <Target className="h-3.5 w-3.5 text-emerald-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs text-slate-500">Top pathway</p>
+                            <p className="truncate text-sm font-bold text-[#0B1F3A]">{score.pathways[0].name}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <Separator className="mb-5" />
+                  </>
+                ) : (
+                  <p className="mb-5 text-sm text-slate-400">
+                    <a href="/onboarding" className="font-semibold text-[#D62828] hover:underline">Complete your profile</a> to populate this summary.
+                  </p>
                 )}
-                <div className="flex flex-col gap-6 md:flex-row">
-                  {c.avatar_url ? (
-                    <img
-                      src={c.avatar_url}
-                      alt={c.name}
-                      className="h-20 w-20 rounded-full border border-slate-200 object-cover"
-                    />
+                <SummarySection title="Immigration profile">
+                  {profile ? (
+                    <dl className="grid gap-3 sm:grid-cols-2">
+                      <SummaryRow label="Current status" value={statusLabels[profile.status] ?? profile.status} />
+                      <SummaryRow label="Country of origin" value={profile.originCountry || '—'} />
+                      <SummaryRow label="Currently in" value={profile.currentCountry || '—'} />
+                      <SummaryRow label="Main goal" value={goalLabels[profile.goal] ?? profile.goal} />
+                    </dl>
                   ) : (
-                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-[#0B1F3A] text-2xl font-bold text-white">
-                      {c.name.charAt(0)}
-                    </div>
+                    <p className="text-sm text-slate-400">No profile found. <a href="/onboarding" className="font-semibold text-[#D62828] hover:underline">Complete the intake</a> to populate this.</p>
                   )}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-xl font-bold text-[#0B1F3A]">{c.name}</h2>
-                      {c.verified && <ShieldCheck className="h-5 w-5 text-emerald-600" />}
-                    </div>
-                    <p className="mb-4 text-sm font-semibold text-slate-600">{c.business_name}</p>
+                </SummarySection>
 
-                    <div className="grid grid-cols-1 gap-x-4 gap-y-3 text-sm text-slate-600 sm:grid-cols-2">
-                      <div className="flex items-start gap-2">
-                        <Briefcase className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                        <span>
-                          {c.certification_type}
-                          {c.license_number && (
-                            <span className="text-slate-400"> ({c.license_number})</span>
-                          )}
-                        </span>
+                {score?.hasEnoughData && score.crs && (
+                  <>
+                    <Separator className="my-5" />
+                    <SummarySection title="PR score estimate">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <SummaryRow label="CRS score" value={`${score.crs.total} / ~1,200`} />
+                        {score.fsw && <SummaryRow label="FSW 67-pt grid" value={`${score.fsw.score} / 100 — ${score.fsw.eligible ? 'passes' : 'below threshold'}`} />}
                       </div>
-                      {(c.city || c.province) && (
-                        <div className="flex items-start gap-2">
-                          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                          <span>{[c.city, c.province].filter(Boolean).join(', ')}</span>
+                      {score.pathways.length > 0 && (
+                        <div className="mt-3">
+                          <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">Pathway eligibility</p>
+                          <ul className="flex flex-col gap-1">
+                            {score.pathways.map((p) => (
+                              <li key={p.id} className="text-sm text-slate-700"><span className="font-semibold text-[#0B1F3A]">{p.name}:</span> {p.reason}</li>
+                            ))}
+                          </ul>
                         </div>
                       )}
-                      {c.languages?.length > 0 && (
-                        <div className="flex items-start gap-2">
-                          <Globe className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                          <span>{c.languages.join(', ')}</span>
+                      {score.improvements.length > 0 && (
+                        <div className="mt-3">
+                          <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">Top improvements</p>
+                          <ul className="flex flex-col gap-1">
+                            {score.improvements.slice(0, 3).map((imp, i) => (
+                              <li key={i} className="text-sm text-slate-700">• <span className="font-semibold">{imp.label}</span> <span className="text-green-700">({imp.impact})</span></li>
+                            ))}
+                          </ul>
                         </div>
                       )}
-                    </div>
+                    </SummarySection>
+                  </>
+                )}
 
-                    {c.services?.length > 0 && (
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {c.services.map((s) => (
-                          <span
-                            key={s}
-                            className="rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600"
-                          >
-                            {s}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                <Separator className="my-5" />
+                <SummarySection title="Days in Canada">
+                  <div className="flex gap-6">
+                    <div><dt className="text-xs text-slate-500">Streak</dt><dd className="mt-0.5 text-sm font-semibold text-[#0B1F3A]">{presence.streak} day{presence.streak !== 1 ? 's' : ''}</dd></div>
+                    <div><dt className="text-xs text-slate-500">Total logged</dt><dd className="mt-0.5 text-sm font-semibold text-[#0B1F3A]">{presence.totalDays}</dd></div>
                   </div>
+                </SummarySection>
 
-                  <div className="flex shrink-0 flex-col items-stretch justify-center gap-3 mt-4 md:mt-0 md:w-56 md:border-l md:border-slate-200 md:pl-6">
-                    {claimed[c.id] ? (
-                      <div className="flex w-full flex-col items-stretch gap-2 text-center">
-                        <span className="text-xs font-bold uppercase text-emerald-700">Your Promo Code:</span>
-                        <div className="select-all rounded-lg bg-slate-800 px-3 py-2.5 font-mono text-sm font-bold tracking-wider text-white">
-                          {claimed[c.id]}
-                        </div>
-                        {c.booking_link && (
-                          <a
-                            href={c.booking_link}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0B1F3A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1f375a]"
-                          >
-                            Book Now <ExternalLink className="h-4 w-4" />
-                          </a>
-                        )}
-                      </div>
-                    ) : claiming === c.id ? (
-                      <div className="flex w-full flex-col gap-2">
-                        <span className="text-xs font-semibold text-slate-500">Enter your first initial (e.g. J)</span>
-                        <Input
-                          maxLength={1}
-                          placeholder="Your initial"
-                          value={initial}
-                          onChange={(e) => setInitial(e.target.value)}
-                          className="rounded-xl border-slate-200 text-center text-lg font-bold uppercase"
-                        />
-                        <div className="flex gap-2">
-                          <Button onClick={() => handleClaim(c)} className="flex-1 bg-[#D62828] text-white hover:bg-[#B91C1C]">
-                            Get Code
-                          </Button>
-                          <Button variant="outline" onClick={() => { setClaiming(null); setInitial('') }} className="flex-1">
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex w-full flex-col items-stretch gap-2 text-center">
-                        <span className="text-xs font-semibold text-slate-500">Consultation discount</span>
-                        <Button onClick={() => setClaiming(c.id)} className="w-full bg-[#D62828] text-white hover:bg-[#B91C1C]">
-                          Get 20% Off Code
-                        </Button>
-                        {c.booking_link && (
-                          <a
-                            href={c.booking_link}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex items-center justify-center gap-1 text-xs font-semibold text-slate-500 hover:text-[#0B1F3A]"
-                          >
-                            Visit website <ExternalLink className="h-3 w-3" />
-                          </a>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                {pendingTasks.length > 0 && (
+                  <>
+                    <Separator className="my-5" />
+                    <SummarySection title="Open tasks">
+                      <ul className="flex flex-col gap-1">
+                        {pendingTasks.map((t) => <li key={t.id} className="text-sm text-slate-700">☐ {t.title}</li>)}
+                      </ul>
+                    </SummarySection>
+                  </>
+                )}
+
+                <Separator className="my-5" />
+                <SummarySection title="Questions for my consultant">
+                  <Textarea
+                    placeholder="Write down the questions you want to ask during your consultation…"
+                    value={notes}
+                    onChange={(e) => handleNotesChange(e.target.value)}
+                    className="min-h-28 rounded-xl border-slate-200 bg-white text-sm text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
+                  />
+                  <p className="mt-2 text-xs text-slate-400">Your notes are saved automatically.</p>
+                </SummarySection>
               </CardContent>
             </Card>
-          ))}
+
+            <div className="mt-3 flex gap-3 rounded-xl border border-[#0B1F3A]/10 bg-[#0B1F3A]/5 p-3 print:hidden">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#0B1F3A]" />
+              <p className="text-xs leading-5 text-slate-600">
+                This summary is for organizational purposes only. It does not constitute legal advice and does not replace a licensed immigration consultant or lawyer.
+              </p>
+            </div>
+          </>
+        ) : (
+          /* Locked state for free users */
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-8 text-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
+              <Lock className="h-4 w-4 text-amber-600" />
+            </div>
+            <div>
+              <p className="font-bold text-[#0B1F3A]">Unlock your consultation checklist</p>
+              <p className="mt-1 text-sm text-slate-500">Get your Readiness Report to copy, email, download, or print your full profile summary.</p>
+            </div>
+            <button
+              onClick={() => setShowUpgradeModal(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1F3A] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#162d52] transition-colors"
+            >
+              Get Personalized Report — $29.99
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── 3. Consultant directory ── */}
+      <div className="flex flex-col gap-4">
+        <p className="text-xs text-slate-400">
+          Consultants are independent professionals. Navly does not provide immigration consulting services.
+        </p>
+
+        {/* Immigration consultants */}
+        <div>
+          <div className="mb-2 flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0B1F3A]/8">
+              <ShieldCheck className="h-5 w-5 text-[#0B1F3A]" />
+            </div>
+            <div>
+              <h2 className="mt-2 text-base font-bold text-[#0B1F3A]">Immigration Consultants</h2>
+              <p className="text-xs text-slate-500">Certified RCICs for PR applications, permits, and pathway advice</p>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="mb-2 flex flex-wrap gap-2">
+              {['Express Entry', 'Canadian Experience Class', 'PNP streams', 'Work permits', 'Study permits', 'PR applications'].map((tag) => (
+                <span key={tag} className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{tag}</span>
+              ))}
+            </div>
+            <p className="mb-4 text-sm text-slate-600">
+              Regulated Canadian Immigration Consultants (RCICs) are authorized to advise and represent you in immigration matters. They can review your eligibility, help prepare applications, and guide you through PR pathways.
+            </p>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600">
+              Immigration consultant listings coming soon — we&apos;re vetting certified RCICs across Canada.
+            </div>
+          </div>
+        </div>{/* end immigration consultants */}
+
+        {/* Legal advisors */}
+        <div>
+          <div className="mb-2 flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50">
+              <Scale className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="mt-2 text-base font-bold text-[#0B1F3A]">Legal Advisors</h2>
+              <p className="text-xs text-slate-500">Immigration lawyers for refusals, appeals, sponsorships, and complex cases</p>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="mb-4 flex flex-wrap gap-2">
+              {['Refusal appeals', 'Inadmissibility', 'Sponsorship disputes', 'Judicial review', 'Refugee claims', 'PGWP issues'].map((tag) => (
+                <span key={tag} className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">{tag}</span>
+              ))}
+            </div>
+            <p className="mb-4 text-sm text-slate-600">
+              Immigration lawyers are licensed to give legal advice and represent you before the Immigration and Refugee Board. They handle high-stakes and complex situations that go beyond what an RCIC can do.
+            </p>
+            <div className="rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-semibold text-blue-700">
+              Legal advisor listings coming soon — we&apos;re vetting qualified immigration lawyers across Canada.
+            </div>
+          </div>
         </div>
-      )}
+
+        {/* Financial advisors */}
+        <div>
+          <div className="mb-2 flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50">
+              <DollarSign className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div>
+              <h2 className="mt-2 text-base font-bold text-[#0B1F3A]">Financial Advisors</h2>
+              <p className="text-xs text-slate-500">Newcomer-focused advisors for settlement funds, tax, and banking</p>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="mb-4 flex flex-wrap gap-2">
+              {['Settlement funds planning', 'Newcomer banking', 'Tax filing (T1)', 'RRSP & TFSA setup', 'Credit building', 'Investment accounts'].map((tag) => (
+                <span key={tag} className="rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{tag}</span>
+              ))}
+            </div>
+            <p className="mb-4 text-sm text-slate-600">
+              Financial advisors who specialize in newcomers can help you navigate Canadian banking, meet IRCC settlement fund requirements, file your first tax return, and start building credit in Canada.
+            </p>
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-3 text-sm font-semibold text-emerald-700">
+              Financial advisor listings coming soon — we&apos;re partnering with newcomer-focused financial professionals.
+            </div>
+          </div>
+        </div>
+
+      </div>{/* end directory */}
     </div>
+
+    {showUpgradeModal && (
+      <UpgradeModal plan="report" onClose={() => setShowUpgradeModal(false)} />
+    )}
+    </>
   )
 }

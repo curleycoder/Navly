@@ -14,7 +14,7 @@ import {
 import Link from 'next/link'
 import { useLocale } from '@/lib/i18n'
 import { loadProfile, loadProfileFromSupabase, statusLabels, getPermitWarning, type IntakeData } from '@/lib/profile'
-import { loadPresence, isCheckedInToday, getDaysInCanada, type PresenceData } from '@/lib/presence'
+import { loadPresence, checkIn, isCheckedInToday, type PresenceData } from '@/lib/presence'
 
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
 import { recordScoreSnapshot } from '@/lib/history'
@@ -86,6 +86,10 @@ export default function DashboardPage() {
   const topPathway = score?.pathways.find((p) => p.status === 'eligible' || p.status === 'possible')
   const improvement = score?.improvements[0]
   const checkedInToday = isCheckedInToday(presence)
+
+  function handleHomeCheckIn() {
+    setPresence(checkIn())
+  }
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-4 px-4 py-6">
@@ -199,61 +203,35 @@ export default function DashboardPage() {
 
       {/* Streak / daily check-in */}
       {!isOutside && (
-        <Link
-          href="/dashboard/days"
-          aria-label={checkedInToday
-            ? `Canada streak: ${presence.streak} day${presence.streak !== 1 ? 's' : ''}. Tap to view tracker.`
-            : 'Tap to log your Canada check-in for today'}
-          className={`group flex min-h-[96px] items-center gap-4 rounded-2xl p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-offset-2 ${
-            checkedInToday
-              ? 'bg-[#0B1F3A] focus-visible:ring-[#0B1F3A]'
-              : 'border-2 border-dashed border-orange-400 bg-orange-50 focus-visible:ring-orange-400'
-          }`}
-        >
-          <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ${checkedInToday ? 'bg-white/10' : 'bg-orange-100'}`}>
-            <Flame className={`h-7 w-7 ${checkedInToday ? 'text-orange-400' : 'text-orange-500'}`} aria-hidden="true" />
+        <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${checkedInToday ? 'border-orange-100 bg-orange-50' : 'border-dashed border-orange-300 bg-orange-50'}`}>
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-100">
+            <Flame className={`h-5 w-5 ${checkedInToday ? 'text-orange-500' : 'text-orange-400'}`} aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className={`text-xs font-bold uppercase tracking-widest ${checkedInToday ? 'text-orange-400' : 'text-orange-600'}`}>
-              {checkedInToday ? 'Streak active' : 'Daily check-in needed'}
+            <p className="text-xs font-semibold text-orange-700">Canada streak</p>
+            <p className="text-sm font-bold text-[#0B1F3A]">
+              {presence.streak} day{presence.streak !== 1 ? 's' : ''}
+              {checkedInToday && <span className="ml-2 text-xs font-semibold text-green-600">✓ Checked in</span>}
             </p>
-            <div className="mt-1 flex items-baseline gap-2">
-              <span className={`text-4xl font-bold leading-none ${checkedInToday ? 'text-white' : 'text-[#0B1F3A]'}`}>
-                {presence.streak}
-              </span>
-              <span className={`text-base font-semibold ${checkedInToday ? 'text-white/80' : 'text-slate-700'}`}>
-                day{presence.streak !== 1 ? 's' : ''} in Canada
-              </span>
+          </div>
+          {checkedInToday ? (
+            <Link href="/dashboard/days" className="shrink-0 text-xs font-semibold text-slate-400 hover:text-[#0B1F3A]">
+              View tracker →
+            </Link>
+          ) : (
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                onClick={handleHomeCheckIn}
+                className="rounded-lg bg-[#D62828] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#B91C1C] transition-colors"
+              >
+                Check in
+              </button>
+              <Link href="/dashboard/days" className="text-xs font-semibold text-slate-400 hover:text-[#0B1F3A]">
+                More →
+              </Link>
             </div>
-            <p className={`mt-1 text-sm ${checkedInToday ? 'text-white/75' : 'font-semibold text-orange-700'}`}>
-              {checkedInToday
-                ? `${getDaysInCanada(presence).toLocaleString()} total days · checked in today ✓`
-                : 'Tap to confirm you were in Canada today'}
-            </p>
-          </div>
-          <ChevronRight className={`h-5 w-5 shrink-0 transition group-hover:translate-x-1 ${checkedInToday ? 'text-white/50 group-hover:text-white' : 'text-orange-400'}`} aria-hidden="true" />
-        </Link>
-      )}
-
-      {/* Next best action */}
-      {profile && (
-        <Link
-          href="/dashboard/pr-tracker"
-          className="group flex min-h-[108px] flex-col justify-between rounded-2xl bg-[#0B1F3A] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#0B1F3A] focus-visible:ring-offset-2"
-        >
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">Your next action</p>
-            <p className="mt-2 text-base font-bold leading-snug text-white">
-              {improvement?.label ?? (hasData ? "You're on track — review your pathways" : 'Complete your profile to unlock guidance')}
-            </p>
-            {improvement && (
-              <p className="mt-1.5 text-sm leading-relaxed text-white/80 line-clamp-2">{improvement.action}</p>
-            )}
-          </div>
-          <p className="mt-4 flex items-center gap-1 text-sm font-semibold text-white/75 transition group-hover:text-white">
-            View full breakdown <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-1" aria-hidden="true" />
-          </p>
-        </Link>
+          )}
+        </div>
       )}
 
       {/* Next task */}
@@ -279,25 +257,6 @@ export default function DashboardPage() {
           <ChevronRight className="h-5 w-5 shrink-0 text-slate-300 transition group-hover:translate-x-1 group-hover:text-[#D62828]" aria-hidden="true" />
         </Link>
       )}
-
-      {/* AI Assistant */}
-      <Link
-        href="/dashboard/chat"
-        aria-label="Open AI immigration assistant"
-        className="group flex min-h-[88px] items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-r from-[#0B1F3A] to-[#1a3660] p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#0B1F3A] focus-visible:ring-offset-2"
-      >
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-white/10">
-          <Sparkles className="h-7 w-7 text-white" aria-hidden="true" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#D62828]">AI Assistant</p>
-          <p className="mt-1 text-base font-bold text-white">Ask anything about your immigration journey</p>
-          <p className="mt-1 hidden text-sm text-white/75 sm:line-clamp-1">
-            "What PNP streams match my NOC?" · "When can I apply for citizenship?"
-          </p>
-        </div>
-        <ChevronRight className="h-5 w-5 shrink-0 text-white/50 transition group-hover:translate-x-1 group-hover:text-white" aria-hidden="true" />
-      </Link>
 
       {/* News */}
       <div className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -327,12 +286,22 @@ export default function DashboardPage() {
         )}
       </div>
 
+      {/* Consultant card */}
+      <Link
+        href="/dashboard/consultants"
+        className="group block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#0B1F3A] focus-visible:ring-offset-2"
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Need professional advice?</p>
+          <ChevronRight className="h-4 w-4 text-slate-300 transition group-hover:translate-x-1 group-hover:text-[#D62828]" aria-hidden="true" />
+        </div>
+        <p className="text-sm font-bold text-[#0B1F3A]">Find a certified immigration consultant</p>
+        <p className="mt-1 text-xs text-slate-500">Browse RCICs, immigration lawyers, and financial advisors. Navly does not provide legal advice.</p>
+      </Link>
+
       {/* Disclaimer */}
       <p className="pb-2 text-center text-xs text-slate-400">
-        {t('common.disclaimer')}{' '}
-        <Link href="/dashboard/consultants" className="underline hover:text-slate-600 focus-visible:text-slate-600">
-          {t('dashboard.findConsultant')} →
-        </Link>
+        {t('common.disclaimer')}
       </p>
     </div>
   )
