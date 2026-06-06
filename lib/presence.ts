@@ -62,6 +62,39 @@ export function loadPresence(): PresenceData {
   }
 }
 
+// ─── Supabase sync ────────────────────────────────────────────────────────────
+// Saves presence data to profiles.presence_data so users don't lose their
+// streak and travel log when switching devices or clearing the browser.
+
+export async function syncPresenceToSupabase(userId: string, data: PresenceData): Promise<void> {
+  try {
+    const { supabase } = await import('./supabase/client')
+    await supabase
+      .from('profiles')
+      .update({ presence_data: data })
+      .eq('id', userId)
+  } catch {
+    // Non-fatal — localStorage is the primary store; DB is the backup
+  }
+}
+
+// Returns presence data from the database, or null if none exists yet.
+// Used as a fallback when localStorage is empty (e.g. new device).
+export async function loadPresenceFromSupabase(userId: string): Promise<PresenceData | null> {
+  try {
+    const { supabase } = await import('./supabase/client')
+    const { data } = await supabase
+      .from('profiles')
+      .select('presence_data')
+      .eq('id', userId)
+      .maybeSingle()
+    if (!data?.presence_data || Object.keys(data.presence_data).length === 0) return null
+    return { ...EMPTY_PRESENCE, ...(data.presence_data as Partial<PresenceData>), travelLog: (data.presence_data as Partial<PresenceData>).travelLog ?? [] }
+  } catch {
+    return null
+  }
+}
+
 // Advance a YYYY-MM-DD date string by one day
 function addOneDay(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00')

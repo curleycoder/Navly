@@ -107,27 +107,37 @@ export async function GET(req: Request) {
   let checkinReminders = 0
   const errors: string[] = []
 
-  // Fetch all users with profile data
-  const { data: profiles, error: profilesErr } = await db
-    .from('profiles')
-    .select('id, profile_data')
-
-  if (profilesErr) {
-    return Response.json({ error: profilesErr.message }, { status: 500 })
+  // Fetch all users with profile data — paginated to handle any number of users
+  const PAGE_SIZE = 500
+  let profiles: { id: string; profile_data: Record<string, string> }[] = []
+  let offset = 0
+  while (true) {
+    const { data: page, error: pageErr } = await db
+      .from('profiles')
+      .select('id, profile_data')
+      .range(offset, offset + PAGE_SIZE - 1)
+    if (pageErr) return Response.json({ error: pageErr.message }, { status: 500 })
+    if (!page || page.length === 0) break
+    profiles = profiles.concat(page)
+    if (page.length < PAGE_SIZE) break
+    offset += PAGE_SIZE
   }
 
-  // Fetch user emails via auth.users (service role required)
-  const { data: { users }, error: usersErr } = await db.auth.admin.listUsers({ perPage: 1000 })
-  if (usersErr) {
-    return Response.json({ error: usersErr.message }, { status: 500 })
-  }
-
+  // Fetch user emails via auth.users — paginated to handle any number of users
   const emailById: Record<string, string> = {}
-  for (const u of users) {
-    if (u.email) emailById[u.id] = u.email
+  let authPage = 1
+  while (true) {
+    const { data: { users }, error: usersErr } = await db.auth.admin.listUsers({ page: authPage, perPage: 1000 })
+    if (usersErr) return Response.json({ error: usersErr.message }, { status: 500 })
+    if (!users || users.length === 0) break
+    for (const u of users) {
+      if (u.email) emailById[u.id] = u.email
+    }
+    if (users.length < 1000) break
+    authPage++
   }
 
-  for (const row of profiles ?? []) {
+  for (const row of profiles) {
     const email = emailById[row.id]
     if (!email) continue
 

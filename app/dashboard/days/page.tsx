@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { loadProfile } from '@/lib/profile'
 import {
   loadPresence,
+  savePresence,
   checkIn,
   confirmMissedDay,
   declineMissedDay,
@@ -21,9 +22,12 @@ import {
   getDaysInCanada,
   getDaysSinceArrival,
   getPresenceGoal,
+  syncPresenceToSupabase,
+  loadPresenceFromSupabase,
   type PresenceData,
   type TravelEntry,
 } from '@/lib/presence'
+import { supabase } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
 export default function DaysPage() {
@@ -34,56 +38,75 @@ export default function DaysPage() {
   const [missedDays, setMissedDays] = useState<string[]>([])
   const [goal, setGoal] = useState<{ days: number; label: string } | null>(null)
   const [checkedIn, setCheckedIn] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
   const [newTrip, setNewTrip] = useState({ departureDate: '', returnDate: '', country: '', reason: '' })
 
   useEffect(() => {
-    const profile = loadProfile()
-    if (profile?.goal) setGoal(getPresenceGoal(profile.goal))
-    const data = loadPresence()
-    if (!data.arrivalDate && profile?.arrivalDate) {
-      const updated = setArrivalDate(profile.arrivalDate)
-      setPresence(updated)
-      setMissedDays(getMissedDays(updated))
-    } else {
+    async function init() {
+      const profile = loadProfile()
+      if (profile?.goal) setGoal(getPresenceGoal(profile.goal))
+
+      // Get auth user for Supabase sync
+      const { data: { user } } = await supabase.auth.getUser()
+      const uid = user?.id ?? null
+      setUserId(uid)
+
+      // Load from localStorage first
+      let data = loadPresence()
+
+      // If localStorage is empty and user is logged in, try to restore from DB
+      if (uid && data.lastCheckIn === null && data.totalDays === 0) {
+        const remote = await loadPresenceFromSupabase(uid)
+        if (remote) {
+          savePresence(remote)  // write back to localStorage
+          data = remote
+        }
+      }
+
+      // Seed arrival date from profile if not already set
+      if (!data.arrivalDate && profile?.arrivalDate) {
+        data = setArrivalDate(profile.arrivalDate)
+      }
+
       setPresence(data)
       setMissedDays(getMissedDays(data))
+      setCheckedIn(isCheckedInToday(data))
     }
-    setCheckedIn(isCheckedInToday(data))
+    init()
   }, [])
 
-  function handleCheckIn() {
-    const updated = checkIn()
+  function sync(updated: PresenceData) {
     setPresence(updated)
+    if (userId) syncPresenceToSupabase(userId, updated)
+  }
+
+  function handleCheckIn() {
+    sync(checkIn())
     setCheckedIn(true)
   }
 
   function handleConfirmDay(date: string) {
-    const updated = confirmMissedDay(date)
-    setPresence(updated)
+    sync(confirmMissedDay(date))
     setMissedDays((prev) => prev.filter((d) => d !== date))
   }
 
   function handleDeclineDay(date: string) {
-    const updated = declineMissedDay(date)
-    setPresence(updated)
+    sync(declineMissedDay(date))
     setMissedDays((prev) => prev.filter((d) => d !== date))
   }
 
   function handleAddTrip() {
     if (!newTrip.departureDate || !newTrip.country) return
-    const updated = addTravel(newTrip)
-    setPresence(updated)
+    sync(addTravel(newTrip))
     setNewTrip({ departureDate: '', returnDate: '', country: '', reason: '' })
   }
 
   function handleRemoveTrip(id: string) {
-    const updated = removeTravel(id)
-    setPresence(updated)
+    sync(removeTravel(id))
   }
 
   function handleArrivalDate(date: string) {
-    const updated = setArrivalDate(date)
-    setPresence(updated)
+    sync(setArrivalDate(date))
   }
 
   // Core computed values — these drive PR / citizenship planning

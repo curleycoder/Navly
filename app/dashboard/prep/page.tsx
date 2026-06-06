@@ -81,7 +81,7 @@ function buildSummaryText(
 export default function PrepPage() {
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
-  const [presence, setPresence] = useState<PresenceData>({ totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null, arrivalDate: null, travelLog: [] })
+  const [presence, setPresence] = useState<PresenceData>({ totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null, lastAcknowledgedDate: null, arrivalDate: null, travelLog: [] })
   const [tasks, setTasks] = useState<Task[]>([])
   const [notes, setNotes] = useState('')
   const [copied, setCopied] = useState(false)

@@ -66,7 +66,7 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
   const [presence, setPresence] = useState<PresenceData>({
-    totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null, arrivalDate: null, travelLog: [],
+    totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null, lastAcknowledgedDate: null, arrivalDate: null, travelLog: [],
   })
   const [news, setNews] = useState<NewsUpdate[]>([])
   const [loaded, setLoaded] = useState(false)

@@ -474,7 +474,7 @@ export function getPermitWarning(profile: IntakeData): {
     renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada.html',
   }
   const expiryDate = expiry.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })
-  return { daysLeft, urgent: daysLeft <= 30, expiryDate, ...info }
+  return { daysLeft, urgent: daysLeft <= 30, expiryDate, permitLabel: info.label, renewalFee: info.fee, renewalUrl: info.renewalUrl }
 }
 
 export const plannedEntryLabels: Record<string, string> = {
