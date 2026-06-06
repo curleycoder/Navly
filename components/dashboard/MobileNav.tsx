@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { ChevronLeft, Menu, LogOut, UserCircle } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import { Menu, LogOut, UserCircle } from 'lucide-react'
 import { Sheet, SheetContent, SheetClose } from '@/components/ui/sheet'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { navItems } from '@/components/dashboard/Sidebar'
@@ -12,12 +12,23 @@ import { loadProfile } from '@/lib/profile'
 import { supabase } from '@/lib/supabase/client'
 import { countUnread, type NewsUpdate } from '@/lib/news'
 
+const PAGE_TITLES: Record<string, string> = {
+  '/dashboard': 'Overview',
+  '/dashboard/pr-tracker': 'PR Readiness',
+  '/dashboard/days': 'Days in Canada',
+  '/dashboard/tasks': 'Tasks',
+  '/dashboard/news': 'Immigration News',
+  '/dashboard/chat': 'AI Assistant',
+  '/dashboard/prep': 'Consultation Checklist',
+  '/dashboard/consultants': 'Find a Consultant',
+  '/dashboard/profile': 'My Profile',
+}
+
 export function MobileNav() {
   const [open, setOpen] = useState(false)
   const [isOutside, setIsOutside] = useState(false)
   const [newsUnread, setNewsUnread] = useState(0)
   const pathname = usePathname()
-  const router = useRouter()
 
   useEffect(() => {
     const profile = loadProfile()
@@ -32,41 +43,37 @@ export function MobileNav() {
   }, [])
 
   const visibleItems = navItems.filter((item) => !isOutside || item.outsideOk)
-  const isRoot = pathname === '/dashboard'
+  const pageTitle = PAGE_TITLES[pathname] ?? 'Dashboard'
 
   return (
     <header className="flex h-14 items-center border-b border-slate-200 bg-white px-3 md:hidden">
-      {/* Left: back arrow (fixed width to balance right side) */}
-      <div className="flex w-9 shrink-0 items-center justify-start">
-        {!isRoot && (
-          <button
-            onClick={() => router.back()}
-            aria-label="Go back"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 active:bg-slate-200"
-          >
-            <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
-          </button>
-        )}
+      {/* Left: hamburger */}
+      <div className="flex w-10 shrink-0 items-center justify-start">
+        <button
+          onClick={() => setOpen(true)}
+          className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 active:bg-slate-200"
+          aria-label="Open menu"
+          aria-expanded={open}
+          aria-controls="mobile-nav-sheet"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
       </div>
 
-      {/* Center: wordmark */}
-      <div className="flex flex-1 items-center justify-center pt-1">
-        <Link href="/dashboard" onClick={() => setOpen(false)} aria-label="Dashboard home">
+      {/* Center: page title */}
+      <div className="flex flex-1 items-center justify-center px-2">
+        <span className="truncate text-sm font-bold text-[#0B1F3A]">{pageTitle}</span>
+      </div>
+
+      {/* Right: Navly logo */}
+      <div className="flex w-10 shrink-0 items-center justify-end">
+        <Link href="/dashboard" aria-label="Dashboard home" onClick={() => setOpen(false)}>
           <NavlyLogo size="sm" showWordmark={false} />
         </Link>
       </div>
 
-      {/* Right: hamburger */}
-      <div className="flex w-9 shrink-0 items-center justify-end">
-        <button
-          onClick={() => setOpen(true)}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 active:bg-slate-200"
-          aria-label="Open menu"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent side="left" showCloseButton={false} className="w-64 p-0">
+      <Sheet open={open} onOpenChange={setOpen}>
+          <SheetContent id="mobile-nav-sheet" side="left" showCloseButton={false} className="w-64 p-0">
             <div className="flex h-14 items-center border-b border-slate-200 px-5">
               <NavlyLogo size="sm" />
             </div>
@@ -139,8 +146,7 @@ export function MobileNav() {
               </div>
             </div>
           </SheetContent>
-        </Sheet>
-      </div>
+      </Sheet>
     </header>
   )
 }

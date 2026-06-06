@@ -28,6 +28,79 @@ import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import { PlanGate } from '@/components/ui/PlanGate'
 import { matchPNPStreams, pnpStatusLabels, pnpStatusColors, type PNPStream } from '@/lib/pnp'
 
+// ─── Status Roadmap ───────────────────────────────────────────────────────────
+
+const ROADMAPS: Record<string, { steps: string[]; label: string }> = {
+  student: {
+    label: 'Your path to PR as a student',
+    steps: ['Finish your program', 'Apply for PGWP', '12 months skilled work on PGWP', 'Express Entry / CEC → PR'],
+  },
+  'work-permit': {
+    label: 'Your path to PR as a worker',
+    steps: ['12 months TEER 0–3 work', 'Enter Express Entry pool', 'Receive ITA', 'PR via CEC or FSW'],
+  },
+  'family-member': {
+    label: 'Your path to PR as a family member',
+    steps: ['Maintain valid permit', '12 months skilled work', 'Express Entry / PNP', 'PR'],
+  },
+  visitor: {
+    label: 'Path from visitor status',
+    steps: ['Obtain work or study permit', 'Gain Canadian experience', 'Express Entry / PNP', 'PR'],
+  },
+  outside: {
+    label: 'Path to PR from outside Canada',
+    steps: ['Meet language + work requirements', 'Create Express Entry profile', 'Wait for Invitation to Apply', 'Submit PR application'],
+  },
+  pr: {
+    label: 'Path to Canadian citizenship',
+    steps: ['Maintain PR (730 days/5 yrs)', '1,095 days physically in Canada', 'Language & tax proof', 'Apply for citizenship'],
+  },
+}
+
+function StatusRoadmap({ status, score }: { status: string; score: ScoreResult }) {
+  const roadmap = ROADMAPS[status] ?? ROADMAPS.outside
+
+  // Determine active step index
+  let activeStep = 0
+  if (status === 'student') {
+    const pgwpPath = score.pathways.find(p => p.id === 'pgwp')
+    const cecPath = score.pathways.find(p => p.id === 'cec')
+    if (cecPath?.status === 'eligible') activeStep = 3
+    else if (pgwpPath?.status === 'eligible' || pgwpPath?.status === 'possible') activeStep = 2
+    else if (pgwpPath) activeStep = 1
+  } else if (status === 'work-permit') {
+    const cecPath = score.pathways.find(p => p.id === 'cec')
+    if (cecPath?.status === 'eligible') activeStep = 2
+    else activeStep = 1
+  } else if (status === 'outside') {
+    if (score.fsw?.eligible) activeStep = 1
+  }
+
+  return (
+    <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="mb-4 text-xs font-bold uppercase tracking-widest text-[#D62828]">{roadmap.label}</p>
+      <ol className="flex flex-col gap-3">
+        {roadmap.steps.map((step, i) => {
+          const done = i < activeStep
+          const active = i === activeStep
+          return (
+            <li key={i} className="flex items-center gap-3">
+              <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                done ? 'bg-green-600 text-white' : active ? 'bg-[#0B1F3A] text-white' : 'bg-slate-100 text-slate-400'
+              }`}>
+                {done ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : i + 1}
+              </div>
+              <span className={`text-sm ${done ? 'text-slate-400 line-through' : active ? 'font-semibold text-[#0B1F3A]' : 'text-slate-500'}`}>
+                {step}
+              </span>
+            </li>
+          )
+        })}
+      </ol>
+    </div>
+  )
+}
+
 // ─── Score Tracker ────────────────────────────────────────────────────────────
 
 function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) {
@@ -40,6 +113,8 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
 
   const currentScore = calculateScore(simulatedProfile)
   const crs = currentScore.crs || { total: 0, age: 0, education: 0, firstLanguage: 0, canadianExperience: 0, skillTransferability: 0, additional: 0 }
+
+  // Language card — universal
   const langDetails = currentScore.clb ? [
     { label: 'Reading', value: `CLB ${currentScore.clb.r}` },
     { label: 'Writing', value: `CLB ${currentScore.clb.w}` },
@@ -50,32 +125,13 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
   const langStatus = minLang >= 9 ? 'Complete' : minLang >= 7 ? 'In Progress' : 'Required'
 
   const eduLabels: Record<string, string> = {
-    'less-than-secondary': 'None', secondary: 'High School', '1-year': '1 Year', '2-year': '2 Years', bachelors: "Bachelor's", 'two-credentials': 'Two Certs', masters: "Master's", doctoral: 'Doctorate',
+    'less-than-secondary': 'None', secondary: 'High School', '1-year': '1 Year', '2-year': '2 Years',
+    bachelors: "Bachelor's", 'two-credentials': 'Two Certs', masters: "Master's", doctoral: 'Doctorate',
   }
-  const eduVal = simulatedProfile.educationLevel ? eduLabels[simulatedProfile.educationLevel] || simulatedProfile.educationLevel : 'Not set'
+  const eduVal = simulatedProfile.educationLevel ? eduLabels[simulatedProfile.educationLevel] ?? simulatedProfile.educationLevel : 'Not set'
   const hasECA = simulatedProfile.ecaCompleted === 'yes'
-  const eduDetails = [
-    { label: 'Level', value: eduVal },
-    { label: 'ECA', value: hasECA ? 'Yes' : 'No' },
-    { label: 'Can. Study', value: (!simulatedProfile.canadianEducation || simulatedProfile.canadianEducation === 'none') ? 'No' : 'Yes' },
-  ]
-  const advEdu = ['bachelors', 'two-credentials', 'masters', 'doctoral'].includes(simulatedProfile.educationLevel)
-  const eduStatus = advEdu && hasECA ? 'Complete' : 'In Progress'
-
   const canWork = parseFloat(simulatedProfile.canadianWorkMonths) || 0
   const forWork = parseFloat(simulatedProfile.foreignWorkYears) || 0
-  const workDetails = [
-    { label: 'Canadian', value: `${Math.floor(canWork / 12)} Yrs` },
-    { label: 'Foreign', value: `${forWork} Yrs` },
-    { label: 'TEER', value: simulatedProfile.teerLevel || 'Unknown' },
-    { label: 'Job Offer', value: simulatedProfile.hasJobOffer === 'yes' ? 'Yes' : 'No' },
-  ]
-  const workStatus = canWork >= 12 || forWork >= 3 ? 'Complete' : 'In Progress'
-
-  const pathwayDetails = currentScore.pathways.slice(0, 3).map((p) => ({
-    label: p.id.toUpperCase(),
-    value: p.status === 'eligible' ? 'Eligible' : 'Not Yet',
-  }))
   const isEligible = currentScore.pathways.some((p) => p.status === 'eligible')
 
   const handleSave = () => {
@@ -84,56 +140,149 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
     window.location.reload()
   }
 
+  // ── Status-specific card configs ──────────────────────────────────────────
+
+  const status = profile.status
+
+  // Card 2 — Education context varies by status
+  const eduCard = status === 'student' ? {
+    title: 'Program & graduation',
+    details: [
+      { label: 'Level', value: eduVal },
+      { label: 'Canadian', value: 'Yes' },
+      { label: 'PGWP eligible', value: simulatedProfile.programLengthMonths && parseFloat(simulatedProfile.programLengthMonths) >= 8 ? 'Likely' : 'Check DLI' },
+      { label: 'Full-time', value: simulatedProfile.fullTimeStudy === 'yes' ? 'Yes' : 'No' },
+    ],
+    status: (eduLabels[simulatedProfile.educationLevel] ? 'In Progress' : 'Required') as 'In Progress' | 'Required',
+    progress: simulatedProfile.educationLevel ? 60 : 20,
+  } : {
+    title: 'Education & ECA',
+    details: [
+      { label: 'Level', value: eduVal },
+      { label: 'ECA', value: hasECA ? 'Yes' : 'No' },
+      { label: 'Can. Study', value: (!simulatedProfile.canadianEducation || simulatedProfile.canadianEducation === 'none') ? 'No' : 'Yes' },
+    ],
+    status: (['bachelors','two-credentials','masters','doctoral'].includes(simulatedProfile.educationLevel) && hasECA ? 'Complete' : 'In Progress') as 'Complete' | 'In Progress',
+    progress: ['bachelors','two-credentials','masters','doctoral'].includes(simulatedProfile.educationLevel) && hasECA ? 100 : 50,
+  }
+
+  // Card 3 — Work context varies by status
+  const workCard = status === 'student' ? {
+    title: 'Post-graduation work',
+    details: [
+      { label: 'Post-grad months', value: canWork > 0 ? `${Math.round(canWork)} mo` : 'Not yet' },
+      { label: 'TEER', value: simulatedProfile.teerLevel || 'Unknown' },
+      { label: 'CEC target', value: '12 months' },
+      { label: 'Progress', value: canWork >= 12 ? 'Done ✓' : `${Math.round(canWork)}/12 mo` },
+    ],
+    status: (canWork >= 12 ? 'Complete' : canWork > 0 ? 'In Progress' : 'Required') as 'Complete' | 'In Progress' | 'Required',
+    progress: Math.min(Math.round((canWork / 12) * 100), 100),
+  } : status === 'pr' ? {
+    title: 'Residency obligation',
+    details: [
+      { label: '730 days / 5 yrs', value: 'Required' },
+      { label: 'Citizenship', value: '1,095 days' },
+      { label: 'Tax filings', value: simulatedProfile.taxFilingComplete === 'yes' ? 'On track' : 'Check' },
+    ],
+    status: 'In Progress' as 'In Progress',
+    progress: 50,
+  } : {
+    title: 'Work experience',
+    details: [
+      { label: 'Canadian', value: canWork >= 12 ? `${Math.floor(canWork / 12)} yr${Math.floor(canWork / 12) !== 1 ? 's' : ''}` : `${Math.round(canWork)} mo` },
+      { label: 'Foreign', value: `${forWork} yr${forWork !== 1 ? 's' : ''}` },
+      { label: 'TEER', value: simulatedProfile.teerLevel || 'Unknown' },
+      { label: 'Job offer', value: simulatedProfile.hasJobOffer === 'yes' ? 'Yes' : 'No' },
+    ],
+    status: (canWork >= 12 || forWork >= 3 ? 'Complete' : 'In Progress') as 'Complete' | 'In Progress',
+    progress: canWork >= 12 || forWork >= 3 ? 100 : 50,
+  }
+
+  // Card 4 — Key pathway card tailored to status
+  const card4 = status === 'student' ? (() => {
+    const pgwp = currentScore.pathways.find(p => p.id === 'pgwp')
+    const cec = currentScore.pathways.find(p => p.id === 'cec')
+    return {
+      title: 'PGWP & CEC readiness',
+      details: [
+        { label: 'PGWP', value: pgwp ? (pgwp.status === 'eligible' ? 'Eligible' : pgwp.status === 'possible' ? 'Likely' : 'Check') : 'Pending' },
+        { label: 'CEC', value: cec ? (cec.status === 'eligible' ? 'Eligible' : 'Not yet') : 'Not yet' },
+        { label: 'Min lang', value: minLang >= 7 ? `CLB ${minLang} ✓` : `CLB ${minLang || '?'} (need 7)` },
+      ],
+      status: (cec?.status === 'eligible' ? 'Complete' : pgwp?.status === 'eligible' ? 'In Progress' : 'Required') as 'Complete' | 'In Progress' | 'Required',
+      progress: cec?.status === 'eligible' ? 100 : pgwp?.status === 'eligible' ? 65 : 30,
+    }
+  })() : status === 'pr' ? {
+    title: 'Citizenship readiness',
+    details: [
+      { label: '1,095 days', value: 'Required' },
+      { label: 'Language', value: simulatedProfile.langTestType ? 'Recorded' : 'Enter scores' },
+      { label: 'Tax proof', value: 'Required' },
+    ],
+    status: 'In Progress' as 'In Progress',
+    progress: 40,
+  } : {
+    title: 'Pathway eligibility',
+    details: currentScore.pathways.filter(p => p.status !== 'not-applicable').slice(0, 3).map(p => ({
+      label: p.name.replace('Federal Skilled Worker', 'FSW').replace('Canadian Experience Class', 'CEC').replace('Provincial Nominee', 'PNP'),
+      value: p.status === 'eligible' ? 'Eligible ✓' : p.status === 'possible' ? 'Possible' : 'Not yet',
+    })),
+    status: (isEligible ? 'Complete' : currentScore.pathways.some(p => p.status === 'possible') ? 'In Progress' : 'Under Review') as 'Complete' | 'In Progress' | 'Under Review',
+    progress: isEligible ? 100 : currentScore.pathways.some(p => p.status === 'possible') ? 70 : 40,
+  }
+
   return (
     <div className="animate-fade-in relative">
-      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <RequirementCard
-            icon={BookOpen}
-            title="Language Score"
-            status={langStatus}
-            details={langDetails}
-            progress={minLang >= 9 ? 100 : minLang >= 7 ? 65 : 30}
-            onClick={() => setActiveCategory('language')}
-          />
-          <RequirementCard
-            icon={GraduationCap}
-            title="Education & ECA"
-            status={eduStatus}
-            details={eduDetails}
-            progress={eduStatus === 'Complete' ? 100 : 50}
-            onClick={() => setActiveCategory('education')}
-          />
-          <RequirementCard
-            icon={Briefcase}
-            title="Work Experience"
-            status={workStatus}
-            details={workDetails}
-            progress={workStatus === 'Complete' ? 100 : 50}
-            onClick={() => setActiveCategory('work')}
-          />
-          <RequirementCard
-            icon={Award}
-            title="Pathway Eligibility"
-            status={isEligible ? 'Complete' : 'Under Review'}
-            details={pathwayDetails.length > 0 ? pathwayDetails : [{ label: 'Pathways', value: 'Calculating…' }]}
-            progress={isEligible ? 100 : currentScore.pathways.some((p) => p.status === 'possible') ? 70 : 40}
-          />
+      <StatusRoadmap status={profile.status} score={currentScore} />
+
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <RequirementCard
+          icon={BookOpen}
+          title="Language score"
+          status={langStatus}
+          details={langDetails}
+          progress={minLang >= 9 ? 100 : minLang >= 7 ? 65 : 30}
+          onClick={() => setActiveCategory('language')}
+        />
+        <RequirementCard
+          icon={GraduationCap}
+          title={eduCard.title}
+          status={eduCard.status}
+          details={eduCard.details}
+          progress={eduCard.progress}
+          onClick={() => setActiveCategory('education')}
+        />
+        <RequirementCard
+          icon={Briefcase}
+          title={workCard.title}
+          status={workCard.status}
+          details={workCard.details}
+          progress={workCard.progress}
+          onClick={status !== 'pr' ? () => setActiveCategory('work') : undefined}
+        />
+        <RequirementCard
+          icon={Award}
+          title={card4.title}
+          status={card4.status}
+          details={card4.details.length > 0 ? card4.details : [{ label: 'Pathways', value: 'Calculating…' }]}
+          progress={card4.progress}
+        />
       </div>
 
       {currentScore.improvements.length > 0 && (
-        <div className="mb-8 rounded-3xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
-            <ShieldAlert className="h-5 w-5 text-amber-600" />
-            <h3 className="text-sm font-bold uppercase tracking-wide text-amber-800">Highest-Impact Next Steps</h3>
+            <ShieldAlert className="h-5 w-5 text-amber-600" aria-hidden="true" />
+            <h3 className="text-sm font-bold uppercase tracking-widest text-amber-800">Highest-impact next steps</h3>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="flex flex-col gap-3">
             {currentScore.improvements.slice(0, 2).map((imp, i) => (
-              <div key={i} className="flex flex-col justify-between rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
-                <div className="mb-3 flex items-start justify-between">
-                  <span className="font-bold text-[#0b1f3a]">{imp.label}</span>
-                  <span className="ml-2 whitespace-nowrap rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-bold text-green-700 shadow-sm">{imp.impact}</span>
+              <div key={i} className="flex flex-col rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
+                <div className="mb-2 flex items-start justify-between gap-3">
+                  <span className="font-bold leading-snug text-[#0b1f3a]">{imp.label}</span>
+                  <span className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-bold text-green-700">{imp.impact}</span>
                 </div>
-                <p className="text-sm leading-6 text-slate-600">{imp.action}</p>
+                <p className="text-sm leading-relaxed text-slate-600">{imp.action}</p>
               </div>
             ))}
           </div>
@@ -283,18 +432,18 @@ function PNPStreamsCard({ streams }: { streams: PNPStream[] }) {
         <div className="flex flex-col gap-3">
           {streams.map((s) => (
             <div key={s.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-              <div className="mb-1.5 flex items-center justify-between gap-3">
-                <span className="font-semibold text-sm text-[#0B1F3A]">{s.streamName}</span>
-                <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${pnpStatusColors[s.status]}`}>
+              <div className="mb-2 flex items-start justify-between gap-3">
+                <span className="font-semibold text-sm text-[#0B1F3A] leading-snug">{s.streamName}</span>
+                <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-bold ${pnpStatusColors[s.status]}`}>
                   {pnpStatusLabels[s.status]}
                 </span>
               </div>
               <p className="text-sm text-slate-600">{s.reason}</p>
               {s.missingItems.length > 0 && (
-                <ul className="mt-2 flex flex-col gap-1">
+                <ul className="mt-2 flex flex-col gap-1.5">
                   {s.missingItems.map((item, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs text-slate-500">
-                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
+                    <li key={i} className="flex items-start gap-2 text-sm text-slate-500">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" aria-hidden="true" />
                       {item}
                     </li>
                   ))}
@@ -311,58 +460,6 @@ function PNPStreamsCard({ streams }: { streams: PNPStream[] }) {
   )
 }
 
-// ─── Free CRS Summary Card ────────────────────────────────────────────────────
-
-function CRSSummaryCard({ crs }: { crs: number }) {
-  const [cutoff, setCutoff] = useState<number | null>(null)
-
-  useEffect(() => {
-    fetch('/api/draws')
-      .then(r => r.json())
-      .then((data: { cutoff: number }[]) => { if (data[0]?.cutoff) setCutoff(data[0].cutoff) })
-      .catch(() => {})
-  }, [])
-
-  const gap = cutoff !== null && crs > 0 ? cutoff - crs : null
-  const isAbove = gap !== null && gap <= 0
-
-  return (
-    <Card className="mb-6 rounded-2xl border-slate-200 bg-white shadow-sm">
-      <CardContent className="p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-5">
-            <div className="flex flex-col items-center justify-center rounded-2xl bg-[#0B1F3A] px-5 py-3 text-white">
-              <span className="text-3xl font-bold leading-none">{crs > 0 ? crs : '—'}</span>
-              <span className="mt-1 text-[10px] font-bold uppercase tracking-wide text-white/60">Your CRS</span>
-            </div>
-            {cutoff !== null && (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3">
-                <span className="text-3xl font-bold leading-none text-[#0B1F3A]">{cutoff}</span>
-                <span className="mt-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">Last draw</span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            {gap === null && crs === 0 && (
-              <p className="text-sm text-slate-500">Complete your profile to see your CRS score.</p>
-            )}
-            {gap !== null && (
-              <p className={`text-lg font-bold ${isAbove ? 'text-green-700' : 'text-[#0B1F3A]'}`}>
-                {isAbove
-                  ? `You are ${Math.abs(gap)} point${Math.abs(gap) !== 1 ? 's' : ''} above the last cutoff ✓`
-                  : `You are ${gap} point${gap !== 1 ? 's' : ''} away 👀`}
-              </p>
-            )}
-            {cutoff !== null && gap !== null && !isAbove && (
-              <p className="text-sm text-slate-500">Last draw cutoff was {cutoff} CRS</p>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
 
 // ─── EE Draws Card ────────────────────────────────────────────────────────────
 
@@ -395,14 +492,14 @@ function EEDrawsCard({ crs }: { crs: number }) {
           <span className="text-xs text-slate-400">Source: IRCC</span>
         </div>
 
-        <div className="mb-4 flex flex-col gap-2">
+        <div className="mb-4 flex flex-col gap-2 overflow-x-auto">
           {draws.map((d) => (
-            <div key={d.date} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-2.5 text-sm">
-              <div>
-                <span className="font-semibold text-[#0B1F3A]">{d.date}</span>
-                <span className="ml-2 text-slate-500">{d.type}</span>
+            <div key={d.date} className="flex min-w-0 items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-semibold text-[#0B1F3A] whitespace-nowrap">{d.date}</span>
+                <span className="truncate text-slate-500">{d.type}</span>
               </div>
-              <span className="font-bold text-[#0B1F3A]">{d.cutoff} CRS</span>
+              <span className="ml-3 shrink-0 font-bold text-[#0B1F3A]">{d.cutoff} CRS</span>
             </div>
           ))}
         </div>
@@ -429,6 +526,7 @@ export default function PRTrackerPage() {
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
   const [pnpStreams, setPnpStreams] = useState<PNPStream[]>([])
+  const [cutoff, setCutoff] = useState<number | null>(null)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -449,6 +547,10 @@ export default function PRTrackerPage() {
       setLoaded(true)
     }
     init()
+    fetch('/api/draws')
+      .then(r => r.json())
+      .then((data: { cutoff: number }[]) => { if (data[0]?.cutoff) setCutoff(data[0].cutoff) })
+      .catch(() => {})
   }, [])
 
   if (!loaded) return <DashboardSkeleton />
@@ -457,15 +559,15 @@ export default function PRTrackerPage() {
   const isQuebec = profile?.intendedProvince === 'QC'
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-6 py-10">
+    <div className="mx-auto w-full max-w-2xl px-4 py-6">
       {/* Header */}
-      <div className="mb-8">
-        <Link href="/dashboard" className="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#0B1F3A]">
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to overview
+      <div className="mb-6">
+        <Link href="/dashboard" className="mb-3 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-[#0B1F3A] focus-visible:text-[#0B1F3A]">
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to overview
         </Link>
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#D62828]">PR Readiness</p>
-        <h1 className="mt-1 text-3xl font-bold text-[#0B1F3A]">Score & pathway analysis</h1>
-        <p className="mt-2 text-slate-500">Your estimated CRS score, pathway strength, and what to improve next.</p>
+        <p className="text-sm font-semibold uppercase tracking-widest text-[#D62828]">PR Readiness</p>
+        <h1 className="mt-1 text-2xl font-bold text-[#0B1F3A] sm:text-3xl">Score & pathway analysis</h1>
+        <p className="mt-2 text-sm text-slate-500">Your estimated CRS score, pathway strength, and what to improve next.</p>
       </div>
 
       {!profile && (
@@ -497,48 +599,66 @@ export default function PRTrackerPage() {
 
       {/* ── CRS gauge — always visible, never gated ── */}
       {profile && score && (
-        <div className="mb-6 flex flex-col items-start gap-4 lg:flex-row lg:items-stretch">
-          <div className="flex w-full shrink-0 flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:w-[350px]">
+        <div className="mb-6 flex flex-col gap-4">
+          {!score.hasEnoughData && score.missingFields.length > 0 && (
+            <div className="flex items-start gap-3 rounded-2xl border border-[#D62828]/20 bg-[#D62828]/5 p-4">
+              <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-[#D62828]" aria-hidden="true" />
+              <div>
+                <p className="font-semibold text-[#0B1F3A]">Profile incomplete — score estimate unavailable</p>
+                <p className="mt-1 text-sm text-slate-600">
+                  Missing: <span className="font-medium text-[#D62828]">{score.missingFields.join(', ')}</span>
+                </p>
+                <Link href="/onboarding" className="mt-3 inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-[#D62828] hover:underline">
+                  Update profile <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </div>
+            </div>
+          )}
+          <div className="flex flex-col items-center rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <ProgressGauge
               value={score.crs?.total ?? 0}
               max={600}
               label="Complete"
               sublabel="Competitive Express Entry scores typically range 480–550+"
             />
-            <div className="flex w-full items-center justify-center gap-8 border-t border-slate-100 pt-4">
-              <div className="flex flex-col text-center">
-                <span className="text-3xl font-bold text-[#0B1F3A]">{score.crs?.total ?? 0}</span>
-                <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">CRS Points</span>
+            <div className="mt-4 w-full border-t border-slate-100 pt-4">
+              <div className="flex items-center justify-around gap-2">
+                <div className="flex flex-col items-center text-center">
+                  <span className="text-3xl font-bold text-[#0B1F3A]">{score.crs?.total ?? 0}</span>
+                  <span className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-500">Your CRS</span>
+                </div>
+                {cutoff !== null && (
+                  <>
+                    <div className="h-10 w-px bg-slate-200" />
+                    <div className="flex flex-col items-center text-center">
+                      <span className="text-3xl font-bold text-[#0B1F3A]">{cutoff}</span>
+                      <span className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-500">Last draw</span>
+                    </div>
+                  </>
+                )}
+                {profile.status !== 'student' && profile.status !== 'pr' && score.fsw && score.fsw.score > 0 && (
+                  <>
+                    <div className="h-10 w-px bg-slate-200" />
+                    <div className="flex flex-col items-center text-center">
+                      <span className="text-3xl font-bold text-[#0B1F3A]">{score.fsw.score}</span>
+                      <span className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-500">FSW Grid</span>
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="h-10 w-px bg-slate-200" />
-              <div className="flex flex-col text-center">
-                <span className="text-3xl font-bold text-[#0B1F3A]">{score.fsw?.score ?? 0}</span>
-                <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">FSW Grid</span>
-              </div>
+              {cutoff !== null && score.crs && score.crs.total > 0 && (() => {
+                const gap = cutoff - score.crs.total
+                const above = gap <= 0
+                return (
+                  <div className={`mt-3 rounded-xl px-4 py-2.5 text-sm font-semibold text-center ${above ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
+                    {above
+                      ? `${Math.abs(gap)} point${Math.abs(gap) !== 1 ? 's' : ''} above the last cutoff ✓`
+                      : `${gap} point${gap !== 1 ? 's' : ''} below the last cutoff`}
+                  </div>
+                )
+              })()}
             </div>
             <ScoreTimelineChart />
-          </div>
-
-          <div className="flex flex-1 flex-col gap-4">
-            {!score.hasEnoughData && score.missingFields.length > 0 && (
-              <Card className="rounded-2xl border-[#D62828]/20 bg-[#D62828]/5">
-                <CardContent className="p-5">
-                  <div className="flex items-start gap-3">
-                    <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-[#D62828]" />
-                    <div>
-                      <p className="font-semibold text-[#0B1F3A]">Profile incomplete — score estimate unavailable</p>
-                      <p className="mt-1 text-sm text-slate-600">
-                        Missing: <span className="font-medium text-[#D62828]">{score.missingFields.join(', ')}</span>.
-                      </p>
-                      <Link href="/onboarding" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#D62828] hover:underline">
-                        Update profile <ArrowRight className="h-3.5 w-3.5" />
-                      </Link>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            <CRSSummaryCard crs={score.crs?.total ?? 0} />
           </div>
         </div>
       )}
@@ -552,7 +672,7 @@ export default function PRTrackerPage() {
               const top = score.pathways.find(p => p.status === 'eligible' || p.status === 'possible') ?? score.pathways[0]
               return (
                 <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Top pathway preview</p>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">Top pathway preview</p>
                   <div className="flex items-center justify-between">
                     <p className="font-bold text-[#0B1F3A]">{top.name}</p>
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${top.status === 'eligible' ? 'bg-green-100 text-green-700' : top.status === 'possible' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
@@ -568,7 +688,7 @@ export default function PRTrackerPage() {
               className="flex items-center justify-between rounded-2xl border border-dashed border-[#D62828]/40 bg-[#D62828]/5 p-5 transition hover:bg-[#D62828]/10"
             >
               <div>
-                <p className="font-bold text-[#0B1F3A]">Unlock the full breakdown →</p>
+                <p className="font-bold text-[#0B1F3A]">Unlock the full breakdown</p>
                 <p className="mt-0.5 text-sm text-slate-500">See your CRS score by category, all pathway eligibility, and the exact improvements that would move your score.</p>
               </div>
               <ArrowRight className="ml-4 h-5 w-5 shrink-0 text-[#D62828]" />

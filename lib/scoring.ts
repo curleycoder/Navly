@@ -735,7 +735,7 @@ function buildRiskFlags(profile: IntakeData): RiskFlag[] {
     })
   }
 
-  if (!profile.settlementFunds && profile.goal === 'pr') {
+  if (!profile.settlementFunds && profile.goal === 'pr' && profile.status !== 'student' && profile.hasJobOffer !== 'yes') {
     flags.push({
       level: 'warning',
       message: 'Settlement funds are not entered. FSW normally requires proof of funds unless you are exempt (authorized to work in Canada with a valid job offer).',
@@ -931,7 +931,13 @@ export function calculateScore(profile: IntakeData): ScoreResult {
     })
   }
 
-  if (!profile.settlementFunds && profile.goal === 'pr') {
+  // Settlement funds only required for FSW — students and work permit holders with a job offer are exempt
+  const fswFundsNeeded =
+    !profile.settlementFunds &&
+    profile.goal === 'pr' &&
+    profile.status !== 'student' &&
+    profile.hasJobOffer !== 'yes'
+  if (fswFundsNeeded) {
     const familySize = parseInt(profile.familySize) || 1
     const requiredFunds = getRequiredFunds(familySize)
     improvements.push({
