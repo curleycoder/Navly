@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Sidebar } from '@/components/dashboard/Sidebar'
 import { MobileNav } from '@/components/dashboard/MobileNav'
+import { BottomNav } from '@/components/dashboard/BottomNav'
 import { AuthGuard } from '@/components/dashboard/AuthGuard'
 
 // Dashboard pages are behind auth — prevent search engine indexing
@@ -19,11 +20,12 @@ export default function DashboardLayout({
         <Sidebar />
         <div className="flex flex-1 flex-col overflow-hidden">
           <MobileNav />
-          <main id="main-content" className="flex-1 overflow-y-auto" tabIndex={-1}>
+          <main id="main-content" className="flex-1 overflow-y-auto pb-16 md:pb-0" tabIndex={-1}>
             {children}
           </main>
         </div>
       </div>
+      <BottomNav />
     </AuthGuard>
   )
 }
