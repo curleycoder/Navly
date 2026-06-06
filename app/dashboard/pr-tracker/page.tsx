@@ -26,6 +26,7 @@ import { ActionableScoreSheet, type CategoryKey } from '@/components/dashboard/A
 import { ScoreTimelineChart } from '@/components/dashboard/ScoreTimelineChart'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import { PlanGate } from '@/components/ui/PlanGate'
+import { UpgradeModal } from '@/components/ui/UpgradeModal'
 import { matchPNPStreams, pnpStatusLabels, pnpStatusColors, type PNPStream } from '@/lib/pnp'
 
 // ─── Status Roadmap ───────────────────────────────────────────────────────────
@@ -528,6 +529,7 @@ export default function PRTrackerPage() {
   const [pnpStreams, setPnpStreams] = useState<PNPStream[]>([])
   const [cutoff, setCutoff] = useState<number | null>(null)
   const [loaded, setLoaded] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   useEffect(() => {
     async function init() {
@@ -559,6 +561,7 @@ export default function PRTrackerPage() {
   const isQuebec = profile?.intendedProvince === 'QC'
 
   return (
+    <>
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
       {/* Header */}
       <div className="mb-6">
@@ -683,16 +686,16 @@ export default function PRTrackerPage() {
                 </div>
               )
             })()}
-            <Link
-              href="/pricing"
-              className="flex items-center justify-between rounded-2xl border border-dashed border-[#D62828]/40 bg-[#D62828]/5 p-5 transition hover:bg-[#D62828]/10"
+            <button
+              onClick={() => setShowUpgradeModal(true)}
+              className="flex w-full items-center justify-between rounded-2xl border border-dashed border-[#D62828]/40 bg-[#D62828]/5 p-5 text-left transition hover:bg-[#D62828]/10"
             >
               <div>
                 <p className="font-bold text-[#0B1F3A]">Unlock the full breakdown</p>
                 <p className="mt-0.5 text-sm text-slate-500">See your CRS score by category, all pathway eligibility, and the exact improvements that would move your score.</p>
               </div>
               <ArrowRight className="ml-4 h-5 w-5 shrink-0 text-[#D62828]" />
-            </Link>
+            </button>
           </div>
         }
       >
@@ -713,5 +716,9 @@ export default function PRTrackerPage() {
         </p>
       </div>
     </div>
+    {showUpgradeModal && (
+      <UpgradeModal plan="report" onClose={() => setShowUpgradeModal(false)} />
+    )}
+    </>
   )
 }

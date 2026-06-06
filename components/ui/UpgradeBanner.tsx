@@ -16,8 +16,8 @@ const config: Record<Plan, {
 }> = {
   report: {
     icon: Zap,
-    plan: 'Readiness Report',
-    price: '$29 one-time',
+    plan: 'Persolized Report',
+    price: '$29.99 one-time',
     teaser: 'Understand exactly where you stand today',
     features: ['Full CRS + FSW score breakdown', 'Top 3 PR pathways ranked', 'Score improvement roadmap', 'Province-by-province PNP match', 'Consultant-ready PDF summary'],
     cta: 'Get My Report',

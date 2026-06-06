@@ -14,6 +14,7 @@ import {
 } from '@/lib/news'
 import { loadProfile } from '@/lib/profile'
 import { usePlan, hasPlan } from '@/lib/subscription'
+import { UpgradeModal } from '@/components/ui/UpgradeModal'
 import { cn } from '@/lib/utils'
 
 const categories: { value: NewsCategory | 'all'; label: string }[] = [
@@ -45,7 +46,7 @@ const importanceBorder: Record<NewsUpdate['importance'], string> = {
 }
 
 function UpdateCard({ update, highlight, isPaid }: { update: NewsUpdate; highlight?: boolean; isPaid: boolean }) {
-  const [showUpgrade, setShowUpgrade] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   return (
     <div className={cn(
@@ -96,17 +97,14 @@ function UpdateCard({ update, highlight, isPaid }: { update: NewsUpdate; highlig
         ) : (
           <div className="ml-auto flex flex-col items-end gap-1">
             <button
-              onClick={() => setShowUpgrade((v) => !v)}
+              onClick={() => setShowUpgradeModal(true)}
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-400 cursor-pointer hover:border-slate-300 transition-colors"
             >
               <Lock className="h-3 w-3" />
               Ask AI how this affects me
             </button>
-            {showUpgrade && (
-              <p className="text-xs text-slate-500">
-                <Link href="/pricing" className="font-semibold text-[#D62828] hover:underline">Upgrade your plan</Link>
-                {' '}to get the most out of Navly.
-              </p>
+            {showUpgradeModal && (
+              <UpgradeModal plan="tracker" onClose={() => setShowUpgradeModal(false)} />
             )}
           </div>
         )}

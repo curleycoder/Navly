@@ -29,8 +29,8 @@ const tiers = [
   },
   {
     id: 'report',
-    name: 'Readiness Report',
-    price: '$29',
+    name: 'Persolized Report',
+    price: '$29.99',
     period: 'one-time',
     desc: 'Understand exactly where you stand today.',
     icon: Zap,
@@ -50,7 +50,7 @@ const tiers = [
   },
   {
     id: 'tracker',
-    name: 'PR Tracker',
+    name: 'Tracker',
     price: '$14.99',
     period: 'per month',
     desc: 'We watch your immigration journey so you don\'t miss anything.',
