@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useLocale } from '@/lib/i18n'
-import { loadProfile, loadProfileFromSupabase, statusLabels, goalLabels, getPermitWarning, type IntakeData } from '@/lib/profile'
+import { loadProfile, loadProfileFromSupabase, statusLabels, getPermitWarning, type IntakeData } from '@/lib/profile'
 import { loadPresence, isCheckedInToday, getDaysInCanada, type PresenceData } from '@/lib/presence'
 
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
@@ -31,33 +31,9 @@ function getStrength(crs: number, hasData: boolean) {
   if (!hasData) return { label: 'Incomplete', color: '#94a3b8', bg: 'bg-slate-100', text: 'text-slate-500' }
   if (crs >= LATEST_CUTOFF) return { label: 'Competitive', color: '#16a34a', bg: 'bg-green-100', text: 'text-green-700' }
   if (crs >= 440) return { label: 'Developing', color: '#d97706', bg: 'bg-amber-100', text: 'text-amber-700' }
-  return { label: 'Needs work', color: '#dc2626', bg: 'bg-red-100', text: 'text-red-700' }
+  return { label: 'See your next action', color: '#dc2626', bg: 'bg-red-100', text: 'text-red-700' }
 }
 
-
-// ─── Score gauge ──────────────────────────────────────────────────────────────
-
-function ScoreGauge({ value, max, color }: { value: number; max: number; color: string }) {
-  const pct = Math.min((value / max) * 100, 100)
-  const r = 50
-  const circ = 2 * Math.PI * r
-  const offset = circ - (pct / 100) * circ
-  return (
-    <div className="relative flex h-32 w-32 shrink-0 items-center justify-center" aria-hidden="true">
-      <svg className="h-full w-full -rotate-90" viewBox="0 0 116 116">
-        <circle cx="58" cy="58" r={r} stroke="#f1f5f9" strokeWidth="10" fill="none" />
-        <circle cx="58" cy="58" r={r} stroke={color} strokeWidth="10" fill="none"
-          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 0.8s ease' }}
-        />
-      </svg>
-      <div className="absolute flex flex-col items-center leading-none">
-        <span className="text-3xl font-bold text-[#0B1F3A]">{value > 0 ? value : '—'}</span>
-        <span className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-400">CRS</span>
-      </div>
-    </div>
-  )
-}
 
 
 // ─── Dashboard page ───────────────────────────────────────────────────────────
@@ -112,16 +88,48 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto w-full max-w-2xl space-y-4 px-4 py-6">
 
-      {/* Header */}
+      {/* Header + PR journey bar */}
       <div>
         <h1 className="text-2xl font-bold text-[#0B1F3A]">
           {profile?.fullName ? `Hi, ${profile.fullName.split(' ')[0]}` : 'Your overview'}
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          {profile
-            ? `${statusLabels[profile.status] ?? profile.status} · ${goalLabels[profile.goal] ?? profile.goal}`
-            : 'Complete your profile to see your immigration roadmap'}
-        </p>
+        {!profile && (
+          <p className="mt-1 text-sm text-slate-500">Complete your profile to see your immigration roadmap</p>
+        )}
+        {profile && (
+          <Link
+            href="/dashboard/pr-tracker"
+            className="mt-4 block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1F3A] focus-visible:ring-offset-2 transition hover:shadow-md"
+            aria-label="View PR tracker"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-slate-500">
+                {statusLabels[profile.status] ?? 'Current status'}
+              </span>
+              {crs > 0 && (
+                <span className={`text-xs font-bold ${strength.text}`}>CRS {crs}</span>
+              )}
+              <span className="text-xs font-bold text-[#D62828]">PR</span>
+            </div>
+            <div
+              className="h-3 w-full overflow-hidden rounded-full bg-slate-100"
+              role="progressbar"
+              aria-valuenow={crs > 0 ? Math.round((crs / 600) * 100) : 0}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <div
+                className="h-full rounded-full bg-[#D62828] transition-all duration-1000"
+                style={{ width: `${crs > 0 ? Math.max(4, Math.round((crs / 600) * 100)) : 4}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-slate-400">
+              {hasData
+                ? `${strength.label}${topPathway ? ` · ${topPathway.name}` : ''}`
+                : 'Complete your profile to unlock your score'}
+            </p>
+          </Link>
+        )}
       </div>
 
       {/* Permit warning — tracker tier only */}
@@ -217,37 +225,6 @@ export default function DashboardPage() {
             </p>
           </div>
           <ChevronRight className={`h-5 w-5 shrink-0 transition group-hover:translate-x-1 ${checkedInToday ? 'text-white/50 group-hover:text-white' : 'text-orange-400'}`} aria-hidden="true" />
-        </Link>
-      )}
-
-      {/* PR score card */}
-      {profile && (
-        <Link
-          href="/dashboard/pr-tracker"
-          aria-label={`CRS score: ${crs > 0 ? crs : 'not yet calculated'}. Tap to view PR tracker.`}
-          className="group flex min-h-[128px] items-center gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#0B1F3A] focus-visible:ring-offset-2"
-        >
-          <ScoreGauge value={crs} max={600} color={strength.color} />
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">PR Readiness</p>
-            <div className="mt-2">
-              <span className={`rounded-full px-3 py-1 text-sm font-bold ${strength.bg} ${strength.text}`}>
-                {strength.label}
-              </span>
-            </div>
-            {!hasData && score?.missingFields && score.missingFields.length > 0 && (
-              <p className="mt-2 text-sm text-slate-500">
-                Missing: {score.missingFields.slice(0, 2).join(', ')}
-                {score.missingFields.length > 2 ? ` +${score.missingFields.length - 2} more` : ''}
-              </p>
-            )}
-            {hasData && topPathway && (
-              <p className="mt-2 text-sm font-semibold text-[#0B1F3A]">{topPathway.name}</p>
-            )}
-            <p className="mt-2 flex items-center gap-1 text-sm font-semibold text-[#D62828] group-hover:underline">
-              View full breakdown <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </p>
-          </div>
         </Link>
       )}
 

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Menu, LogOut, UserCircle } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { Menu, LogOut, UserCircle, ChevronLeft } from 'lucide-react'
 import { Sheet, SheetContent, SheetClose } from '@/components/ui/sheet'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { navItems } from '@/components/dashboard/Sidebar'
@@ -13,8 +13,8 @@ import { supabase } from '@/lib/supabase/client'
 import { countUnread, type NewsUpdate } from '@/lib/news'
 
 const PAGE_TITLES: Record<string, string> = {
-  '/dashboard': 'Overview',
-  '/dashboard/pr-tracker': 'PR Readiness',
+  '/dashboard': 'Home',
+  '/dashboard/pr-tracker': 'Tracker',
   '/dashboard/days': 'Days in Canada',
   '/dashboard/tasks': 'Tasks',
   '/dashboard/news': 'Immigration News',
@@ -29,6 +29,7 @@ export function MobileNav() {
   const [isOutside, setIsOutside] = useState(false)
   const [newsUnread, setNewsUnread] = useState(0)
   const pathname = usePathname()
+  const router = useRouter()
 
   useEffect(() => {
     const profile = loadProfile()
@@ -44,20 +45,31 @@ export function MobileNav() {
 
   const visibleItems = navItems.filter((item) => !isOutside || item.outsideOk)
   const pageTitle = PAGE_TITLES[pathname] ?? 'Dashboard'
+  const isHome = pathname === '/dashboard'
 
   return (
     <header className="flex h-14 items-center border-b border-slate-200 bg-white px-3 md:hidden">
-      {/* Left: hamburger */}
+      {/* Left: hamburger (home) or back button (other pages) */}
       <div className="flex w-10 shrink-0 items-center justify-start">
-        <button
-          onClick={() => setOpen(true)}
-          className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 active:bg-slate-200"
-          aria-label="Open menu"
-          aria-expanded={open}
-          aria-controls="mobile-nav-sheet"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
+        {isHome ? (
+          <button
+            onClick={() => setOpen(true)}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 active:bg-slate-200"
+            aria-label="Open menu"
+            aria-expanded={open}
+            aria-controls="mobile-nav-sheet"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        ) : (
+          <button
+            onClick={() => router.back()}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 active:bg-slate-200"
+            aria-label="Go back"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       {/* Center: page title */}
@@ -66,7 +78,7 @@ export function MobileNav() {
       </div>
 
       {/* Right: Navly logo */}
-      <div className="flex w-10 shrink-0 items-center justify-end">
+      <div className="flex w-10 pt-3 shrink-0 items-center justify-end">
         <Link href="/dashboard" aria-label="Dashboard home" onClick={() => setOpen(false)}>
           <NavlyLogo size="sm" showWordmark={false} />
         </Link>

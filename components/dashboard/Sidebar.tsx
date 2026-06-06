@@ -22,8 +22,8 @@ import { supabase } from '@/lib/supabase/client'
 import { countUnread, type NewsUpdate } from '@/lib/news'
 
 const allNavItems = [
-  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, outsideOk: true },
-  { href: '/dashboard/pr-tracker', label: 'PR Readiness', icon: TrendingUp, outsideOk: true },
+  { href: '/dashboard', label: 'Home', icon: LayoutDashboard, outsideOk: true },
+  { href: '/dashboard/pr-tracker', label: 'Tracker', icon: TrendingUp, outsideOk: true },
   { href: '/dashboard/days', label: 'Days in Canada', icon: Flame, outsideOk: false },
   { href: '/dashboard/tasks', label: 'Tasks', icon: ListChecks, outsideOk: true },
   { href: '/dashboard/news', label: 'Immigration News', icon: Newspaper, outsideOk: true },

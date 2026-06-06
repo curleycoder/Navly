@@ -565,7 +565,7 @@ export default function PRTrackerPage() {
         <Link href="/dashboard" className="mb-3 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-[#0B1F3A] focus-visible:text-[#0B1F3A]">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to overview
         </Link>
-        <p className="text-sm font-semibold uppercase tracking-widest text-[#D62828]">PR Readiness</p>
+        <p className="text-sm font-semibold uppercase tracking-widest text-[#D62828]">PR Tracker</p>
         <h1 className="mt-1 text-2xl font-bold text-[#0B1F3A] sm:text-3xl">Score & pathway analysis</h1>
         <p className="mt-2 text-sm text-slate-500">Your estimated CRS score, pathway strength, and what to improve next.</p>
       </div>
