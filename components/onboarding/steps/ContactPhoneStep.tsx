@@ -11,7 +11,6 @@ import { Label } from '@/components/ui/label'
 type StepContactPhoneProps = {
   data: IntakeData
   onComplete: (phone: string) => void | Promise<void>
-  onSkip: () => void | Promise<void>
 }
 
 function formatPhone(value: string) {
@@ -22,10 +21,9 @@ function isValidPhone(value: string) {
   return value.replace(/\D/g, '').length >= 10
 }
 
-export function StepContactPhone({ data, onComplete, onSkip }: StepContactPhoneProps) {
+export function StepContactPhone({ data, onComplete }: StepContactPhoneProps) {
   const [phone, setPhone] = useState(data.phone || '')
   const [loading, setLoading] = useState(false)
-  const [skipping, setSkipping] = useState(false)
   const [error, setError] = useState('')
 
   const cleanPhone = formatPhone(phone)
@@ -52,12 +50,6 @@ export function StepContactPhone({ data, onComplete, onSkip }: StepContactPhoneP
 
     await onComplete(cleanPhone)
     setLoading(false)
-  }
-
-  async function handleSkip() {
-    setSkipping(true)
-    await onSkip()
-    setSkipping(false)
   }
 
   return (
@@ -120,15 +112,6 @@ export function StepContactPhone({ data, onComplete, onSkip }: StepContactPhoneP
           {!loading && <ArrowRight className="h-4 w-4" aria-hidden="true" />}
         </Button>
 
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={handleSkip}
-          disabled={loading || skipping}
-          className="text-slate-500 hover:bg-slate-50 hover:text-[#0B1F3A]"
-        >
-          {skipping ? 'Skipping…' : 'Skip for now'}
-        </Button>
       </div>
 
       <p className="mt-5 text-center text-xs leading-5 text-slate-400">

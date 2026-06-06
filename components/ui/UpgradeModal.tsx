@@ -30,7 +30,7 @@ const config: Record<Plan, {
   tracker: {
     icon: CalendarCheck,
     plan: 'PR Tracker',
-    price: '$14 / month',
+    price: '$14.99 / month',
     teaser: "We watch your immigration journey so you don't miss anything",
     features: [
       'Canada physical presence days tracker',
@@ -99,6 +99,13 @@ export function UpgradeModal({ plan, onClose }: UpgradeModalProps) {
             <p className="text-sm text-slate-500">{c.plan} · {c.price}</p>
           </div>
         </div>
+
+        {/* Early-bird note for tracker */}
+        {plan === 'tracker' && (
+          <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">
+            First 50 subscribers lock in this price — lock yours in now.
+          </p>
+        )}
 
         {/* Features */}
         <ul className="mb-6 flex flex-col gap-2">

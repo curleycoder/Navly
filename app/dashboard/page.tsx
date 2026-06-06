@@ -22,6 +22,7 @@ import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import { getPersonalizedUpdates, getCuratedUpdates, importanceDot, formatDate, type NewsUpdate } from '@/lib/news'
 import { loadTasks } from '@/lib/tasks'
 import { PlanGate } from '@/components/ui/PlanGate'
+import { usePlan, hasPlan } from '@/lib/subscription'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -40,6 +41,7 @@ function getStrength(crs: number, hasData: boolean) {
 
 export default function DashboardPage() {
   const { t } = useLocale()
+  const { plan } = usePlan()
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
   const [presence, setPresence] = useState<PresenceData>({
@@ -90,9 +92,14 @@ export default function DashboardPage() {
 
       {/* Header + PR journey bar */}
       <div>
-        <h1 className="text-2xl font-bold text-[#0B1F3A]">
-          {profile?.fullName ? `Hi, ${profile.fullName.split(' ')[0]}` : 'Your overview'}
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-[#0B1F3A]">
+            {profile?.fullName ? `Hi, ${profile.fullName.split(' ')[0]}` : 'Your overview'}
+          </h1>
+          <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${hasPlan(plan, 'tracker') ? 'bg-[#D62828]/10 text-[#D62828]' : hasPlan(plan, 'report') ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
+            {hasPlan(plan, 'tracker') ? 'PR Tracker' : hasPlan(plan, 'report') ? 'Readiness Report' : 'Free plan'}
+          </span>
+        </div>
         {!profile && (
           <p className="mt-1 text-sm text-slate-500">Complete your profile to see your immigration roadmap</p>
         )}

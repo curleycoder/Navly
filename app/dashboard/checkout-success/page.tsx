@@ -76,7 +76,7 @@ function SuccessContent() {
           </div>
           <div>
             <p className="font-bold text-[#0B1F3A]">{isTracker ? 'PR Tracker' : 'Personalized Report'}</p>
-            <p className="text-sm text-slate-500">{isTracker ? '$14 / month' : '$29 one-time'}</p>
+            <p className="text-sm text-slate-500">{isTracker ? '$14.99 / month' : '$29 one-time'}</p>
           </div>
         </div>
         <ul className="mt-4 space-y-2 text-sm text-slate-600">

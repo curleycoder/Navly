@@ -51,13 +51,14 @@ const tiers = [
   {
     id: 'tracker',
     name: 'PR Tracker',
-    price: '$14',
+    price: '$14.99',
     period: 'per month',
     desc: 'We watch your immigration journey so you don\'t miss anything.',
     icon: CalendarCheck,
     cta: 'Start Tracking →',
     href: null,
     highlight: false,
+    badge: 'First 50 subscribers — lock in this price',
     upsell: 'Want a full PDF for your consultant? Add Readiness Report →',
     features: [
       'Canada physical presence days tracker',
@@ -160,17 +161,18 @@ export default function PricingPage() {
                     : 'border-slate-200 shadow-sm'
                 )}
               >
-                {'badge' in tier && tier.badge && (
-                  <div className="mb-4 inline-flex w-fit items-center rounded-full bg-[#D62828]/10 px-3 py-1 text-xs font-bold text-[#D62828]">
-                    {tier.badge}
-                  </div>
-                )}
+                
 
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1F3A] text-white">
                   <Icon className="h-5 w-5" />
                 </div>
 
                 <h2 className="text-xl font-bold text-[#0B1F3A]">{tier.name}</h2>
+                {'badge' in tier && tier.badge && (
+                  <div className="mb-4 inline-flex w-fit items-center rounded-full bg-[#D62828]/10 px-3 py-1 text-xs font-bold text-[#D62828]">
+                    {tier.badge}
+                  </div>
+                )}
                 <div className="mt-2 flex items-end gap-1">
                   <span className="text-4xl font-bold text-[#0B1F3A]">{tier.price}</span>
                   <span className="mb-1 text-sm text-slate-500">{tier.period}</span>
@@ -217,7 +219,7 @@ export default function PricingPage() {
               {[
                 { label: 'Free Check', sub: '$0', accent: 'text-slate-300' },
                 { label: 'Readiness Report', sub: '$29 one-time', accent: 'text-amber-400' },
-                { label: 'PR Tracker', sub: '$14/mo', accent: 'text-[#D62828]' },
+                { label: 'PR Tracker', sub: '$14.99/mo', accent: 'text-[#D62828]' },
               ].map((h) => (
                 <div key={h.label} className="px-4 py-4 text-center">
                   <p className={`text-sm font-bold ${h.accent}`}>{h.label}</p>

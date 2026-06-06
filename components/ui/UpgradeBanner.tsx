@@ -25,7 +25,7 @@ const config: Record<Plan, {
   tracker: {
     icon: CalendarCheck,
     plan: 'PR Tracker',
-    price: '$14 / month',
+    price: '$14.99 / month',
     teaser: "We watch your immigration journey so you don't miss anything",
     features: ['Canada physical presence days tracker', 'Permit expiry reminders', 'Express Entry draw alerts', 'Monthly CRS recalculation', 'AI immigration assistant'],
     cta: 'Start Tracking',
@@ -90,6 +90,11 @@ export function UpgradeBanner({ plan, className }: { plan: Plan; className?: str
           {!loading && <ArrowRight className="h-3.5 w-3.5" />}
         </button>
       </div>
+      {plan === 'tracker' && (
+        <p className="mt-3 text-xs font-semibold text-amber-700">
+          First 50 subscribers lock in this price.
+        </p>
+      )}
     </div>
   )
 }

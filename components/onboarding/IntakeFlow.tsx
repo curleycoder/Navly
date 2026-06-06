@@ -180,10 +180,6 @@ export function IntakeFlow() {
     setDone(true)
   }
 
-  function handleSkipPhone() {
-    saveProfile(data)
-    setDone(true)
-  }
 
   if (done) {
     return <SummaryView data={data} />
@@ -314,7 +310,6 @@ export function IntakeFlow() {
             <StepContactPhone
               data={data}
               onComplete={handlePhoneComplete}
-              onSkip={handleSkipPhone}
             />
           )}
         </div>
