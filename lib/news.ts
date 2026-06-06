@@ -392,6 +392,17 @@ export async function getUpdates(opts?: { limit?: number; category?: NewsCategor
   return merged
 }
 
+/** Synchronous — filters curated mock items only. Use as instant placeholder before live data loads. */
+export function getCuratedUpdates(status: string, goal: string): NewsUpdate[] {
+  const relevant = mockUpdates.filter(
+    (u) => u.affectedUsers.includes(status) || u.affectedUsers.includes(goal)
+  )
+  const general = mockUpdates.filter(
+    (u) => u.category === 'general' && u.importance === 'high' && !relevant.includes(u)
+  )
+  return [...relevant, ...general]
+}
+
 /** Returns updates relevant to a user's status and goal, always merging live DB items with curated mock items. */
 export async function getPersonalizedUpdates(status: string, goal: string): Promise<NewsUpdate[]> {
   let liveItems: NewsUpdate[] = []
