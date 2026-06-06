@@ -139,10 +139,10 @@ export default function PrepPage() {
     <div className="mx-auto w-full max-w-3xl px-6 py-10">
       {/* Header */}
       <div className="mb-2">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#D62828]">
+        <p className="hidden md:block text-sm font-semibold uppercase tracking-wide text-[#D62828]">
           Consultation prep
         </p>
-        <h1 className="mt-1 text-3xl font-bold text-[#0B1F3A]">Your consultation summary</h1>
+        <h1 className="hidden md:block mt-1 text-3xl font-bold text-[#0B1F3A]">Your consultation summary</h1>
         <p className="mt-2 text-slate-500">
           A clean overview of your situation to bring to a licensed immigration consultant or lawyer.
         </p>

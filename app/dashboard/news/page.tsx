@@ -154,11 +154,11 @@ export default function NewsPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10">
       <div className="mb-8">
-        <Link href="/dashboard" className="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#0B1F3A]">
+        <Link href="/dashboard" className="mb-4 hidden md:inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#0B1F3A]">
           <ArrowLeft className="h-3.5 w-3.5" /> Back to dashboard
         </Link>
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#D62828]">Immigration Updates</p>
-        <h1 className="mt-1 text-3xl font-bold text-[#0B1F3A]">News & Policy Updates</h1>
+        <p className="hidden md:block text-sm font-semibold uppercase tracking-wide text-[#D62828]">Immigration Updates</p>
+        <h1 className="hidden md:block mt-1 text-3xl font-bold text-[#0B1F3A]">News & Policy Updates</h1>
         <p className="mt-2 text-slate-500">
           Official updates from IRCC and Canada Gazette, plus immigration news and commentary from third-party sources. Updates highlighted with{' '}
           <span className="inline-flex items-center gap-1 rounded-full bg-[#D62828]/10 px-2 py-0.5 text-xs font-bold text-[#D62828]">

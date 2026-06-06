@@ -6,7 +6,7 @@ import { TrendingUp, LayoutDashboard, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const BOTTOM_TABS = [
-  { href: '/dashboard/pr-tracker', label: 'Track', icon: TrendingUp },
+  { href: '/dashboard/pr-tracker', label: 'Tracker', icon: TrendingUp },
   { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
   { href: '/dashboard/chat', label: 'AI', icon: MessageSquare },
 ]

@@ -90,8 +90,8 @@ export default function TasksPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10 animate-fade-in">
       <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#D62828]">Action plan</p>
-        <h1 className="mt-1 text-3xl font-bold text-[#0B1F3A]">Your Settlement & PR Checklist</h1>
+        <p className="hidden md:block text-sm font-semibold uppercase tracking-wide text-[#D62828]">Action plan</p>
+        <h1 className="hidden md:block mt-1 text-3xl font-bold text-[#0B1F3A]">Your Settlement & PR Checklist</h1>
         <p className="mt-2 text-slate-500">
           Step-by-step tasks generated from your profile. Tap any item for specific instructions on how and where to complete it.
         </p>

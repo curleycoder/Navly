@@ -43,7 +43,7 @@ export default function TaskDetailPage() {
   if (!task && !guide) {
     return (
       <div className="mx-auto w-full max-w-3xl px-6 py-10">
-        <Link href="/dashboard/tasks" className="mb-6 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#0B1F3A]">
+        <Link href="/dashboard/tasks" className="mb-6 hidden md:inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#0B1F3A]">
           <ArrowLeft className="h-3.5 w-3.5" /> Back to tasks
         </Link>
         <p className="text-slate-500">Task not found.</p>
@@ -64,10 +64,10 @@ export default function TaskDetailPage() {
 
       {/* Header */}
       <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#D62828]">
+        <p className="hidden md:block text-sm font-semibold uppercase tracking-wide text-[#D62828]">
           {task?.category ?? 'Settlement & Living'}
         </p>
-        <h1 className="mt-1 text-3xl font-bold text-[#0B1F3A]">{task?.title ?? guide?.taskId}</h1>
+        <h1 className="hidden md:block mt-1 text-3xl font-bold text-[#0B1F3A]">{task?.title ?? guide?.taskId}</h1>
         {guide?.timeEstimate && (
           <p className="mt-2 flex items-center gap-1.5 text-sm text-slate-500">
             <Clock className="h-3.5 w-3.5 shrink-0 text-[#D62828]" />

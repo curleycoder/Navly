@@ -122,8 +122,8 @@ export default function DaysPage() {
     <div className="mx-auto w-full max-w-2xl px-6 py-10">
       {/* Header */}
       <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#D62828]">Days in Canada</p>
-        <h1 className="mt-1 text-3xl font-bold text-[#0B1F3A]">Track your presence</h1>
+        <p className="hidden md:block text-sm font-semibold uppercase tracking-wide text-[#D62828]">Days in Canada</p>
+        <h1 className="hidden md:block mt-1 text-3xl font-bold text-[#0B1F3A]">Track your presence</h1>
         <p className="mt-2 text-slate-500">
           Your Days in Canada count is calculated automatically from your arrival date minus any days spent abroad.
           Log every trip to keep the number accurate.

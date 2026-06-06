@@ -16,19 +16,19 @@ const config: Record<Plan, {
 }> = {
   report: {
     icon: Zap,
-    plan: 'Personalized Report',
+    plan: 'Readiness Report',
     price: '$29 one-time',
-    teaser: 'Unlock your full picture',
-    features: ['Detailed readiness report PDF', 'Top 3 PR pathways with score breakdown', 'Score improvement roadmap', 'Consultant-ready summary'],
-    cta: 'Get my report',
+    teaser: 'Understand exactly where you stand today',
+    features: ['Full CRS + FSW score breakdown', 'Top 3 PR pathways ranked', 'Score improvement roadmap', 'Province-by-province PNP match', 'Consultant-ready PDF summary'],
+    cta: 'Get My Report',
   },
   tracker: {
     icon: CalendarCheck,
     plan: 'PR Tracker',
     price: '$14 / month',
-    teaser: 'Stay on track every month',
-    features: ['Canada days tracker with streak', 'Permit expiry reminders', 'Express Entry draw alerts', 'Monthly CRS recalculation'],
-    cta: 'Start tracking',
+    teaser: "We watch your immigration journey so you don't miss anything",
+    features: ['Canada physical presence days tracker', 'Permit expiry reminders', 'Express Entry draw alerts', 'Monthly CRS recalculation', 'AI immigration assistant'],
+    cta: 'Start Tracking',
   },
 }
 

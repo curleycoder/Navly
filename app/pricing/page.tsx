@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Check, Zap, BarChart3, CalendarCheck, Loader2, Lock, X } from 'lucide-react'
+import { ArrowLeft, Check, Zap, BarChart3, CalendarCheck, Loader2, X } from 'lucide-react'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
@@ -13,9 +13,9 @@ const tiers = [
     name: 'Free Check',
     price: '$0',
     period: 'forever',
-    desc: 'Start with a basic immigration readiness check.',
+    desc: 'Find out if you\'re on the right track.',
     icon: BarChart3,
-    cta: 'Start free',
+    cta: 'Start Free →',
     href: '/onboarding',
     highlight: false,
     features: [
@@ -23,29 +23,29 @@ const tiers = [
       'Basic CRS score estimate',
       'FSW 67-point grid check',
       'Basic pathway overview',
-      'Settlement task checklist',
-      'Find a certified consultant',
+      'Gap summary — what\'s missing',
+      'Find a certified consultant (discount code included)',
     ],
   },
   {
     id: 'report',
-    name: 'Personalized Report',
+    name: 'Readiness Report',
     price: '$29',
     period: 'one-time',
-    desc: 'Get a personalized snapshot of your immigration readiness, score gaps, possible pathways, and next steps.',
+    desc: 'Understand exactly where you stand today.',
     icon: Zap,
-    cta: 'Get my report',
+    cta: 'Get My Report →',
     href: null,
     highlight: true,
     badge: 'Most popular',
+    upsell: 'Already in the process? Pair with PR Tracker →',
     features: [
-      'Everything in Free Check',
-      'Detailed readiness report PDF',
-      'CRS and FSW score breakdown',
-      'Top 3 possible PR pathways',
+      'Full CRS + FSW score breakdown',
+      'Top 3 PR pathways ranked for your profile',
       'Score improvement roadmap',
-      'Province-by-province PNP overview',
-      'Consultant-ready summary',
+      'Province-by-province PNP match',
+      'Consultant-ready PDF summary',
+      'Valid snapshot of your profile today',
     ],
   },
   {
@@ -53,20 +53,20 @@ const tiers = [
     name: 'PR Tracker',
     price: '$14',
     period: 'per month',
-    desc: 'Includes your readiness report plus tools to track deadlines, Canada days, score changes, and monthly progress.',
+    desc: 'We watch your immigration journey so you don\'t miss anything.',
     icon: CalendarCheck,
-    cta: 'Start tracking',
+    cta: 'Start Tracking →',
     href: null,
     highlight: false,
+    upsell: 'Want a full PDF for your consultant? Add Readiness Report →',
     features: [
-      'First readiness report included',
       'Canada physical presence days tracker',
       'Permit expiry reminders',
       'Express Entry draw alerts',
       'Monthly CRS recalculation',
       'Profile update reminders',
-      'Saved progress history',
-      'General immigration information assistant',
+      'Progress history',
+      'AI immigration assistant',
     ],
   },
 ]
@@ -140,10 +140,10 @@ export default function PricingPage() {
         <div className="mb-12 text-center">
           <p className="text-sm font-bold uppercase tracking-wide text-[#D62828]">Pricing</p>
           <h1 className="mt-3 text-4xl font-bold tracking-tight text-[#0B1F3A]">
-            Start free. Upgrade when you need more.
+            Find your path to Canadian PR
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-slate-600">
-            Navly is free to use. Paid tiers unlock deeper analysis, ongoing tracking, and priority support.
+            Not sure where you stand? Start free. Need clarity? Get your report. Already in the process? Let Navly track it for you.
           </p>
         </div>
 
@@ -199,6 +199,9 @@ export default function PricingPage() {
                 ) : (
                   <CheckoutButton tierId={tier.id} cta={tier.cta} highlight={tier.highlight} />
                 )}
+                {'upsell' in tier && tier.upsell && (
+                  <p className="mt-3 text-center text-xs text-slate-400">{tier.upsell}</p>
+                )}
               </div>
             )
           })}
@@ -206,15 +209,15 @@ export default function PricingPage() {
 
         {/* Comparison table */}
         <div className="mt-16">
-          <h2 className="mb-6 text-center text-xl font-bold text-[#0B1F3A]">What each tier sees</h2>
+          <h2 className="mb-6 text-center text-xl font-bold text-[#0B1F3A]">What's included</h2>
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             {/* Header */}
             <div className="grid grid-cols-4 border-b-2 border-slate-200 bg-[#0B1F3A]">
               <div className="px-5 py-4 text-xs font-bold uppercase tracking-wide text-slate-400">Feature</div>
               {[
-                { label: 'Free', sub: '$0', accent: 'text-slate-300' },
-                { label: 'Report', sub: '$29 one-time', accent: 'text-amber-400' },
-                { label: 'Tracker', sub: '$14/mo', accent: 'text-[#D62828]' },
+                { label: 'Free Check', sub: '$0', accent: 'text-slate-300' },
+                { label: 'Readiness Report', sub: '$29 one-time', accent: 'text-amber-400' },
+                { label: 'PR Tracker', sub: '$14/mo', accent: 'text-[#D62828]' },
               ].map((h) => (
                 <div key={h.label} className="px-4 py-4 text-center">
                   <p className={`text-sm font-bold ${h.accent}`}>{h.label}</p>
@@ -224,16 +227,22 @@ export default function PricingPage() {
             </div>
 
             {[
-              { feature: 'CRS score (current)', free: 'check', report: 'check', tracker: 'check' },
-              { feature: '"You need X more points"', free: 'check', report: 'check', tracker: 'check' },
-              { feature: 'Canada days counter', free: 'check', report: 'check', tracker: 'check' },
-              { feature: 'Express Entry draw alerts', free: 'check', report: 'check', tracker: 'check' },
-              { feature: 'Where those points come from', free: 'lock', report: 'check', tracker: 'check' },
-              { feature: 'Pathway options', free: '1 preview', report: 'All', tracker: 'All' },
-              { feature: 'Missing docs checklist', free: 'x', report: 'check', tracker: 'check' },
-              { feature: '"If I do X → score becomes Y"', free: 'x', report: 'check', tracker: 'check' },
-              { feature: 'Permit expiry warnings', free: 'x', report: 'x', tracker: 'check' },
-              { feature: 'PR probability score', free: 'x', report: 'x', tracker: 'check' },
+              { feature: 'Inside/outside Canada intake', free: 'check', report: 'check', tracker: 'check' },
+              { feature: 'Basic CRS estimate', free: 'check', report: 'check', tracker: 'check' },
+              { feature: 'FSW 67-point check', free: 'check', report: 'check', tracker: 'check' },
+              { feature: 'Basic pathway overview', free: 'check', report: 'check', tracker: 'check' },
+              { feature: 'Gap summary', free: 'check', report: 'check', tracker: 'check' },
+              { feature: 'Consultant directory + discount', free: 'check', report: 'check', tracker: 'check' },
+              { feature: 'Full CRS + FSW breakdown', free: 'x', report: 'check', tracker: 'x' },
+              { feature: 'Top 3 PR pathways ranked', free: 'x', report: 'check', tracker: 'x' },
+              { feature: 'Score improvement roadmap', free: 'x', report: 'check', tracker: 'x' },
+              { feature: 'PNP province match', free: 'x', report: 'check', tracker: 'x' },
+              { feature: 'Consultant-ready PDF', free: 'x', report: 'check', tracker: 'x' },
+              { feature: 'Canada days tracker', free: 'x', report: 'x', tracker: 'check' },
+              { feature: 'Permit expiry reminders', free: 'x', report: 'x', tracker: 'check' },
+              { feature: 'Express Entry draw alerts', free: 'x', report: 'x', tracker: 'check' },
+              { feature: 'Monthly CRS recalculation', free: 'x', report: 'x', tracker: 'check' },
+              { feature: 'Progress history', free: 'x', report: 'x', tracker: 'check' },
               { feature: 'AI immigration assistant', free: 'x', report: 'x', tracker: 'check' },
             ].map((row, i) => (
               <div key={row.feature} className={`grid grid-cols-4 border-b border-slate-100 last:border-0 ${i % 2 === 1 ? 'bg-slate-50' : 'bg-white'}`}>
@@ -241,11 +250,7 @@ export default function PricingPage() {
                 {[row.free, row.report, row.tracker].map((val, j) => (
                   <div key={j} className="flex items-center justify-center px-4 py-4">
                     {val === 'check' && <Check className="h-5 w-5 text-emerald-500" strokeWidth={2.5} />}
-                    {val === 'lock' && <Lock className="h-4 w-4 text-amber-500" />}
                     {val === 'x' && <X className="h-4 w-4 text-slate-300" strokeWidth={2.5} />}
-                    {val !== 'check' && val !== 'lock' && val !== 'x' && (
-                      <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">{val}</span>
-                    )}
                   </div>
                 ))}
               </div>
@@ -253,9 +258,8 @@ export default function PricingPage() {
           </div>
         </div>
 
-        <p className="mt-10 text-center text-xs text-slate-400">
-          Navly is an educational planning tool. It does not provide legal immigration advice.
-          For legal review, connect with a certified RCIC or immigration lawyer.
+        <p className="mt-10 text-center text-sm text-slate-500">
+          🔒 No legal advice. Navly helps you understand your options — always verify with a certified RCIC consultant.
         </p>
       </div>
     </main>

@@ -78,7 +78,7 @@ export function MobileNav() {
       </div>
 
       {/* Right: Navly logo */}
-      <div className="flex w-10 pt-3 shrink-0 items-center justify-end">
+      <div className="flex w-10 pt-3 px-2 shrink-0 items-center justify-end">
         <Link href="/dashboard" aria-label="Dashboard home" onClick={() => setOpen(false)}>
           <NavlyLogo size="sm" showWordmark={false} />
         </Link>

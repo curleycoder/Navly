@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Send, Bot, User, Trash2, Info } from 'lucide-react'
+import { Send, Bot, User, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
@@ -9,7 +9,7 @@ import { loadProfile, statusLabels, goalLabels, type IntakeData } from '@/lib/pr
 import { calculateScore } from '@/lib/scoring'
 import { MarkdownMessage } from '@/components/ui/MarkdownMessage'
 import { usePlan, hasPlan } from '@/lib/subscription'
-import Link from 'next/link'
+import { UpgradeModal } from '@/components/ui/UpgradeModal'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -179,19 +179,6 @@ function getProfileSummaryLines(profile: IntakeData): string[] {
   return lines
 }
 
-// ─── Topics the assistant can help with ───────────────────────────────────────
-
-const TOPICS = [
-  { label: 'Express Entry & CRS', desc: 'How draws work, score breakdown, pool strategy' },
-  { label: 'Provincial Nominees', desc: 'PNP streams, expressions of interest, nomination' },
-  { label: 'Language & CLB', desc: 'IELTS, CELPIP, TEF conversions, score impact' },
-  { label: 'Work permits', desc: 'LMIA, LMIA-exempt, extensions, employer changes' },
-  { label: 'Study permits & PGWP', desc: 'DLI, off-campus work, PGWP eligibility' },
-  { label: 'Family sponsorship', desc: 'Spousal, parent, eligibility, timelines' },
-  { label: 'Status & renewals', desc: 'Maintained status, restoration, bridging permits' },
-  { label: 'Citizenship', desc: 'Physical presence, knowledge test, dual citizenship' },
-]
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ChatPage() {
@@ -199,10 +186,10 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [profile, setProfile] = useState<IntakeData | null>(null)
-  const [showTopics, setShowTopics] = useState(false)
-  const [weeklyCount, setWeeklyCount] = useState(0)
+const [weeklyCount, setWeeklyCount] = useState(0)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const { plan } = usePlan()
   const isPaid = hasPlan(plan, 'report')
   const limitReached = !isPaid && weeklyCount >= FREE_WEEKLY_LIMIT
@@ -298,86 +285,73 @@ export default function ChatPage() {
   const suggestions = getSuggestions(profile)
 
   return (
+    <>
     <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
+      {/* Header — desktop only */}
+      <div className="hidden md:flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-[#D62828]">AI Assistant</p>
           <h1 className="mt-0.5 text-xl font-bold text-[#0B1F3A]">Ask an immigration question</h1>
         </div>
-        <div className="flex items-center gap-2">
+        {messages.length > 0 && (
           <button
-            onClick={() => setShowTopics((v) => !v)}
-            aria-pressed={showTopics}
-            aria-label="What can I ask?"
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-500 transition hover:border-[#0B1F3A]/30 hover:bg-slate-50 hover:text-[#0B1F3A]"
+            onClick={clearChat}
+            aria-label="Clear conversation"
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
           >
-            <Info className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">What can I ask?</span>
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
+            <span>Clear</span>
           </button>
+        )}
+      </div>
+
+      {/* Educational notice + What AI knows — persistent strip */}
+      <div className="border-b border-slate-100 bg-slate-50 px-4 py-3 md:px-6">
+        <div className="mb-2.5 rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-800">
+          <span className="font-bold">Educational use only.</span>{' '}
+          General immigration information — not legal advice. Consult a licensed RCIC or lawyer for your specific case.
+        </div>
+        <div className="flex items-start gap-2">
+          <div className="flex-1 min-w-0">
+            {profileLines.length > 0 ? (
+              <>
+                <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">What I know about you</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {profileLines.map((line) => (
+                    <span key={line} className="rounded-full bg-[#0B1F3A]/5 px-2.5 py-1 text-xs font-semibold text-[#0B1F3A]">
+                      {line}
+                    </span>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-slate-400">Complete your profile for personalized answers.</p>
+            )}
+          </div>
+          {/* Clear button — mobile only */}
           {messages.length > 0 && (
             <button
               onClick={clearChat}
               aria-label="Clear conversation"
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+              className="md:hidden flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500 shrink-0"
             >
               <Trash2 className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Clear</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Topic guide panel */}
-      {showTopics && (
-        <div className="border-b border-slate-200 bg-slate-50 px-6 py-4" role="region" aria-label="Topics the assistant can help with">
-          <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Topics I can help with</p>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {TOPICS.map((t) => (
-              <div key={t.label} className="rounded-xl bg-white border border-slate-200 px-3 py-2.5">
-                <p className="text-xs font-bold text-[#0B1F3A]">{t.label}</p>
-                <p className="mt-0.5 text-xs text-slate-500">{t.desc}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-3 text-xs text-slate-400">
-            I provide general immigration information only — not legal advice. Always consult a licensed RCIC or immigration lawyer for your specific situation.
-          </p>
-        </div>
-      )}
-
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-6" role="log" aria-live="polite" aria-label="Conversation">
+      <div className="flex-1 overflow-y-auto px-4 py-4 md:px-6 md:py-6" role="log" aria-live="polite" aria-label="Conversation">
         <div className="mx-auto max-w-2xl">
 
           {/* Empty state */}
           {messages.length === 0 && (
-            <div className="mb-6 animate-fade-in">
-              {/* Legal notice */}
-              <div className="mb-5 rounded-2xl border border-[#0B1F3A]/15 bg-[#0B1F3A]/5 px-4 py-3 text-sm text-slate-600">
-                <span className="font-semibold text-[#0B1F3A]">Educational use only. </span>
-                General immigration information — not legal advice. Consult a licensed RCIC or lawyer for your specific case.
-              </div>
-
-              {/* What I know about you */}
-              {profileLines.length > 0 && (
-                <div className="mb-5 rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                  <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">I know about your profile</p>
-                  <div className="flex flex-wrap gap-2">
-                    {profileLines.map((line) => (
-                      <span key={line} className="rounded-full bg-[#0B1F3A]/5 px-3 py-1 text-xs font-semibold text-[#0B1F3A]">
-                        {line}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="mt-2 text-xs text-slate-400">Ask me anything about your situation — I'll give context-aware answers.</p>
-                </div>
-              )}
-
-              {/* Suggested questions */}
+            <div className="mb-4 animate-fade-in">
+              {/* Suggested questions — 3, based on permit and situation */}
               <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Try asking</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {suggestions.map((s) => (
+              <div className="flex flex-col gap-2">
+                {suggestions.slice(0, 3).map((s) => (
                   <button
                     key={s}
                     onClick={() => send(s)}
@@ -441,7 +415,7 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <div className="border-t border-slate-200 bg-white px-6 py-4">
+      <div className="border-t border-slate-200 bg-white px-4 py-3 md:px-6 md:py-4">
         <div className="mx-auto max-w-2xl">
           {limitReached ? (
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-center">
@@ -449,19 +423,19 @@ export default function ChatPage() {
               <p className="mt-1 text-sm text-slate-500">
                 Upgrade your plan to ask unlimited questions and get the most out of Navly.
               </p>
-              <Link
-                href="/pricing"
+              <button
+                onClick={() => setShowUpgradeModal(true)}
                 className="mt-3 inline-flex items-center gap-2 rounded-xl bg-[#D62828] px-5 py-2 text-sm font-bold text-white hover:bg-[#B91C1C] transition-colors"
               >
                 Upgrade plan
-              </Link>
+              </button>
             </div>
           ) : (
             <>
               <div className="flex gap-3">
                 <Textarea
                   ref={inputRef}
-                  placeholder={isPaid ? 'Ask an immigration question…' : `Ask a question (${FREE_WEEKLY_LIMIT - weeklyCount} free this week)…`}
+                  placeholder={isPaid ? 'Ask an immigration question…' : `Ask a question (${FREE_WEEKLY_LIMIT - weeklyCount} free this week)`}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
@@ -489,7 +463,7 @@ export default function ChatPage() {
                   ? 'Enter to send · Shift+Enter for new line · Conversation saved automatically'
                   : `Free plan: ${FREE_WEEKLY_LIMIT} question per week. `}
                 {!isPaid && (
-                  <Link href="/pricing" className="font-semibold text-[#D62828] hover:underline">Upgrade for unlimited access.</Link>
+                  <button onClick={() => setShowUpgradeModal(true)} className="font-semibold text-[#D62828] hover:underline">Upgrade for unlimited access.</button>
                 )}
               </p>
             </>
@@ -497,5 +471,9 @@ export default function ChatPage() {
         </div>
       </div>
     </div>
+    {showUpgradeModal && (
+      <UpgradeModal plan="report" onClose={() => setShowUpgradeModal(false)} />
+    )}
+    </>
   )
 }

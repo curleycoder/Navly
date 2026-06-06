@@ -433,11 +433,11 @@ export default function ProfilePage() {
 
       {/* Header */}
       <div className="mb-8">
-        <Link href="/dashboard" className="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#0B1F3A]">
+        <Link href="/dashboard" className="mb-4 hidden md:inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#0B1F3A]">
           <ArrowLeft className="h-3.5 w-3.5" /> Back to dashboard
         </Link>
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#D62828]">Settings</p>
-        <h1 className="mt-1 text-3xl font-bold text-[#0B1F3A]">Your profile</h1>
+        <p className="hidden md:block text-sm font-semibold uppercase tracking-wide text-[#D62828]">Settings</p>
+        <h1 className="hidden md:block mt-1 text-3xl font-bold text-[#0B1F3A]">Your profile</h1>
         <p className="mt-2 text-slate-500">Keep your details up to date so your pathway estimates stay accurate.</p>
       </div>
 

@@ -33,8 +33,8 @@ export default function ConsultantsPage() {
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-10">
       <div className="mb-2">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#D62828]">Partner Network</p>
-        <h1 className="mt-1 text-3xl font-bold text-[#0B1F3A]">Find a Certified Consultant</h1>
+        <p className="hidden md:block text-sm font-semibold uppercase tracking-wide text-[#D62828]">Partner Network</p>
+        <h1 className="hidden md:block mt-1 text-3xl font-bold text-[#0B1F3A]">Find a Certified Consultant</h1>
         <p className="mt-2 max-w-2xl text-slate-500">
           Navly partners with certified RCICs and immigration lawyers. Browse the directory and claim your exclusive 20% discount code.
         </p>
