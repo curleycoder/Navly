@@ -421,8 +421,43 @@ export function getRequiredFunds(familySize: number): number {
   return SETTLEMENT_FUNDS[familySize] ?? SETTLEMENT_FUNDS[7]
 }
 
+const PERMIT_RENEWAL: Record<string, { label: string; fee: string; renewalUrl: string }> = {
+  student: {
+    label: 'Study permit',
+    fee: '$150 CAD',
+    renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/extend-study-permit.html',
+  },
+  'work-permit': {
+    label: 'Work permit',
+    fee: '$155 CAD',
+    renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit/temporary/extend.html',
+  },
+  visitor: {
+    label: 'Visitor status',
+    fee: '$100 CAD',
+    renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/extend-stay.html',
+  },
+  'family-member': {
+    label: 'Work/study permit',
+    fee: '$155 CAD',
+    renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit/temporary/extend.html',
+  },
+  pr: {
+    label: 'PR card',
+    fee: '$50 CAD',
+    renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/new-immigrants/pr-card/apply-renew-replace.html',
+  },
+}
+
 // Days until visa/permit expiry (null if no expiry set or >90 days away)
-export function getPermitWarning(profile: IntakeData): { daysLeft: number; urgent: boolean } | null {
+export function getPermitWarning(profile: IntakeData): {
+  daysLeft: number
+  urgent: boolean
+  expiryDate: string
+  permitLabel: string
+  renewalFee: string
+  renewalUrl: string
+} | null {
   let expiry: Date | null = null
   if (profile.visaExpiryDate) {
     expiry = new Date(profile.visaExpiryDate)
@@ -433,7 +468,13 @@ export function getPermitWarning(profile: IntakeData): { daysLeft: number; urgen
   const today = new Date()
   const daysLeft = Math.floor((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
   if (daysLeft > 90) return null
-  return { daysLeft, urgent: daysLeft <= 30 }
+  const info = PERMIT_RENEWAL[profile.status] ?? {
+    label: 'Permit',
+    fee: 'See IRCC website',
+    renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada.html',
+  }
+  const expiryDate = expiry.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })
+  return { daysLeft, urgent: daysLeft <= 30, expiryDate, ...info }
 }
 
 export const plannedEntryLabels: Record<string, string> = {

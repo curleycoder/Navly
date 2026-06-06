@@ -18,17 +18,20 @@ export async function POST(req: Request) {
     return Response.json({ error: 'Stripe price not configured.' }, { status: 500 })
   }
 
-  // Get Supabase user from session cookie (optional — we still allow payment without auth)
+  // Require an active session — payment must be linked to an account
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
-  const userId = session?.user?.id ?? null
+  if (!session) {
+    return Response.json({ error: 'You must be signed in to purchase a plan.' }, { status: 401 })
+  }
+  const userId = session.user.id
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: plan === 'tracker' ? 'subscription' : 'payment',
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/checkout-success?plan=${plan}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
-    ...(userId ? { client_reference_id: userId } : {}),
+    client_reference_id: userId,
     metadata: { plan },
     allow_promotion_codes: true,
   })

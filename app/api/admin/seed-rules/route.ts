@@ -216,7 +216,7 @@ const RULE_SNAPSHOTS = [
 export async function POST(req: Request) {
   const secret = process.env.CRON_SECRET
   const auth = req.headers.get('authorization')
-  if (secret && auth !== `Bearer ${secret}`) {
+  if (!secret || auth !== `Bearer ${secret}`) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

@@ -8,6 +8,18 @@ function adminDb() {
   )
 }
 
+const ALLOWED_FIELDS = new Set([
+  'name', 'business_name', 'certification_type', 'license_number',
+  'city', 'province', 'languages', 'services', 'website',
+  'booking_link', 'contact_email', 'phone', 'sponsored', 'verified', 'active',
+])
+
+function pickAllowed(body: Record<string, unknown>) {
+  return Object.fromEntries(
+    Object.entries(body).filter(([key]) => ALLOWED_FIELDS.has(key))
+  )
+}
+
 async function assertAdmin(): Promise<string | null> {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
@@ -38,7 +50,7 @@ export async function POST(req: Request) {
   const body = await req.json()
   const { data, error } = await adminDb()
     .from('consultants')
-    .insert(body)
+    .insert(pickAllowed(body))
     .select()
     .single()
   if (error) return Response.json({ error: error.message }, { status: 500 })
@@ -54,7 +66,7 @@ export async function PUT(req: Request) {
   if (!id) return Response.json({ error: 'Missing id' }, { status: 400 })
   const { data, error } = await adminDb()
     .from('consultants')
-    .update(fields)
+    .update(pickAllowed(fields))
     .eq('id', id)
     .select()
     .single()

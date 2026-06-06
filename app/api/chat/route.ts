@@ -1,5 +1,6 @@
 import Groq from 'groq-sdk'
 import { createClient } from '@supabase/supabase-js'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 import type { IntakeData } from '@/lib/profile'
 import { calculateScore, convertToCLB } from '@/lib/scoring'
 
@@ -175,7 +176,31 @@ async function fetchRecentNewsContext(): Promise<string> {
 
 const MAX_HISTORY = 14 // 7 turns
 
+// Per-user rate limit: 20 messages per minute (free, in-memory)
+const chatRateMap = new Map<string, { count: number; resetAt: number }>()
+function isChatRateLimited(userId: string): boolean {
+  const now = Date.now()
+  const entry = chatRateMap.get(userId)
+  if (!entry || entry.resetAt < now) {
+    chatRateMap.set(userId, { count: 1, resetAt: now + 60_000 })
+    return false
+  }
+  if (entry.count >= 20) return true
+  entry.count++
+  return false
+}
+
 export async function POST(request: Request) {
+  const supabase = await createServerClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (isChatRateLimited(session.user.id)) {
+    return Response.json({ error: 'Too many requests. Please wait a moment.' }, { status: 429 })
+  }
+
   const { messages, profile } = await request.json() as {
     messages: { role: string; content: string }[]
     profile?: IntakeData

@@ -65,7 +65,7 @@ export function NavlyLogo({ showWordmark = true, size = "md", variant = "dark" }
             font-[700]
             leading-none
             tracking-[-0.075em]
-            ${variant === "light" ? "text-white" : "text-[#0B1F3A]"}
+            ${variant === "light" ? "text-white" : "text-(--page-heading)"}
           `}
         >
           Navly

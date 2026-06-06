@@ -10,8 +10,9 @@ export type PresenceData = {
   totalDays: number
   streak: number
   longestStreak: number
-  lastCheckIn: string | null  // 'YYYY-MM-DD'
-  arrivalDate: string | null  // 'YYYY-MM-DD' — when user first arrived
+  lastCheckIn: string | null       // 'YYYY-MM-DD' — last day confirmed as "in Canada"
+  lastAcknowledgedDate: string | null // 'YYYY-MM-DD' — last day answered (yes or no)
+  arrivalDate: string | null       // 'YYYY-MM-DD' — when user first arrived
   travelLog: TravelEntry[]
 }
 
@@ -22,6 +23,7 @@ export const EMPTY_PRESENCE: PresenceData = {
   streak: 0,
   longestStreak: 0,
   lastCheckIn: null,
+  lastAcknowledgedDate: null,
   arrivalDate: null,
   travelLog: [],
 }
@@ -60,6 +62,13 @@ export function loadPresence(): PresenceData {
   }
 }
 
+// Advance a YYYY-MM-DD date string by one day
+function addOneDay(dateStr: string): string {
+  const d = new Date(dateStr + 'T12:00:00')
+  d.setDate(d.getDate() + 1)
+  return toDateStr(d)
+}
+
 export function savePresence(data: PresenceData) {
   if (typeof window === 'undefined') return
   localStorage.setItem(KEY, JSON.stringify(data))
@@ -77,29 +86,56 @@ export function checkIn(): PresenceData {
     streak: newStreak,
     longestStreak: Math.max(data.longestStreak, newStreak),
     lastCheckIn: today,
+    lastAcknowledgedDate: today,
   }
   savePresence(updated)
   return updated
 }
 
-// Retroactive check-in for yesterday (missed check-in recovery)
-// Restores the streak if called the next morning; only counts today's totalDays once
-export function checkInYesterday(): PresenceData {
-  const data = loadPresence()
+// Returns the list of unconfirmed days between last acknowledged date and yesterday,
+// capped at 30 to avoid overwhelming the user after a long absence.
+export function getMissedDays(data: PresenceData): string[] {
+  const baseline = data.lastAcknowledgedDate ?? data.lastCheckIn
+  if (!baseline) return []
   const yesterday = yesterdayStr()
+  if (baseline >= yesterday) return []
 
-  // Already checked in yesterday or today — nothing to do
-  if (data.lastCheckIn === yesterday || data.lastCheckIn === todayStr()) return data
+  const missed: string[] = []
+  let current = addOneDay(baseline)
+  while (current <= yesterday && missed.length < 30) {
+    missed.push(current)
+    current = addOneDay(current)
+  }
+  return missed
+}
 
-  // Restore streak: if they last checked in the day before yesterday, it's still consecutive
-  const dayBeforeYesterday = toDateStr(new Date(new Date().setDate(new Date().getDate() - 2)))
-  const newStreak = data.lastCheckIn === dayBeforeYesterday ? data.streak + 1 : 1
+// Confirm a specific past date as "in Canada".
+// Extends the streak only if this date is consecutive with lastCheckIn.
+export function confirmMissedDay(date: string): PresenceData {
+  const data = loadPresence()
+  const isConsecutive = data.lastCheckIn !== null && addOneDay(data.lastCheckIn) === date
+  const newStreak = isConsecutive ? data.streak + 1 : data.streak
   const updated: PresenceData = {
     ...data,
     totalDays: data.totalDays + 1,
     streak: newStreak,
     longestStreak: Math.max(data.longestStreak, newStreak),
-    lastCheckIn: yesterday,
+    lastCheckIn: isConsecutive ? date : data.lastCheckIn,
+    lastAcknowledgedDate: date,
+  }
+  savePresence(updated)
+  return updated
+}
+
+// Decline a specific past date as "not in Canada".
+// Breaks the streak if the decline falls on the next expected consecutive day.
+export function declineMissedDay(date: string): PresenceData {
+  const data = loadPresence()
+  const isConsecutive = data.lastCheckIn !== null && addOneDay(data.lastCheckIn) === date
+  const updated: PresenceData = {
+    ...data,
+    streak: isConsecutive ? 0 : data.streak,
+    lastAcknowledgedDate: date,
   }
   savePresence(updated)
   return updated
@@ -164,10 +200,6 @@ export function isCheckedInToday(data: PresenceData): boolean {
   return data.lastCheckIn === todayStr()
 }
 
-export function missedYesterday(data: PresenceData): boolean {
-  const yesterday = yesterdayStr()
-  return data.lastCheckIn !== yesterday && data.lastCheckIn !== todayStr()
-}
 
 export function getPresenceGoal(goal: string): { days: number; label: string } | null {
   if (goal === 'citizenship') return { days: 1095, label: 'Citizenship — 1,095 days in Canada within 5 years as a PR' }

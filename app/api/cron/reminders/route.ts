@@ -37,22 +37,41 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
   })
 }
 
-function permitExpiryHtml(daysLeft: number, permitType: string): string {
+function permitExpiryHtml(daysLeft: number, permitType: string, expiryDate: string, renewalFee: string, renewalUrl: string): string {
   const urgency = daysLeft <= 30 ? 'critical' : 'warning'
   const color = urgency === 'critical' ? '#D62828' : '#D97706'
   return `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
       <h2 style="color:#0B1F3A;margin-bottom:8px">Permit expiry reminder</h2>
-      <p style="color:#374151">Your <strong>${permitType}</strong> expires in <strong style="color:${color}">${daysLeft} day${daysLeft !== 1 ? 's' : ''}</strong>.</p>
+      <p style="color:#374151">Your <strong>${permitType}</strong> expires in <strong style="color:${color}">${daysLeft} day${daysLeft !== 1 ? 's' : ''}</strong> — on <strong>${expiryDate}</strong>.</p>
       ${urgency === 'critical'
         ? '<p style="color:#D62828;font-weight:600">This is urgent — file your extension or change of status immediately to maintain implied status.</p>'
         : '<p style="color:#374151">Apply to extend or renew at least 30 days before expiry to stay on valid status.</p>'
       }
-      <a href="https://navly.ca/dashboard/pr-tracker" style="display:inline-block;margin-top:16px;background:#D62828;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600">
-        View my tracker
-      </a>
+      <table style="margin-top:16px;border-collapse:collapse;width:100%">
+        <tr>
+          <td style="padding:8px 12px;background:#F9FAFB;border:1px solid #E5E7EB;font-size:13px;color:#374151;font-weight:600">Expiry date</td>
+          <td style="padding:8px 12px;background:#F9FAFB;border:1px solid #E5E7EB;font-size:13px;color:#374151">${expiryDate}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px;border:1px solid #E5E7EB;font-size:13px;color:#374151;font-weight:600">Renewal fee</td>
+          <td style="padding:8px 12px;border:1px solid #E5E7EB;font-size:13px;color:#374151">${renewalFee}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px;background:#F9FAFB;border:1px solid #E5E7EB;font-size:13px;color:#374151;font-weight:600">How to renew</td>
+          <td style="padding:8px 12px;background:#F9FAFB;border:1px solid #E5E7EB;font-size:13px"><a href="${renewalUrl}" style="color:#D62828">IRCC renewal instructions →</a></td>
+        </tr>
+      </table>
+      <div style="margin-top:16px;display:flex;gap:12px">
+        <a href="https://navly.ca/dashboard" style="display:inline-block;background:#D62828;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">
+          View my tracker
+        </a>
+        <a href="${renewalUrl}" style="display:inline-block;background:#0B1F3A;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">
+          Renew on IRCC
+        </a>
+      </div>
       <p style="margin-top:24px;font-size:12px;color:#9CA3AF">
-        Navly is a planning tool only — not legal advice. Consult a licensed RCIC or immigration lawyer for your specific situation.
+        Navly is a planning tool only — not legal advice. Fees shown are from IRCC's public fee schedule and may change. Always verify at canada.ca before submitting payment. Consult a licensed RCIC or immigration lawyer for advice about your specific situation.
       </p>
     </div>
   `
@@ -78,7 +97,7 @@ export async function GET(req: Request) {
   // Auth check
   const secret = process.env.CRON_SECRET
   const auth = req.headers.get('authorization')
-  if (secret && auth !== `Bearer ${secret}`) {
+  if (!secret || auth !== `Bearer ${secret}`) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -122,12 +141,20 @@ export async function GET(req: Request) {
 
       // Warn at 90, 60, 30, 14, and 7 days
       if ([90, 60, 30, 14, 7].includes(daysLeft)) {
-        const permitType = profile.workPermitType || profile.status || 'permit'
+        const permitInfoMap: Record<string, { label: string; fee: string; renewalUrl: string }> = {
+          student: { label: 'Study permit', fee: '$150 CAD', renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/extend-study-permit.html' },
+          'work-permit': { label: 'Work permit', fee: '$155 CAD', renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit/temporary/extend.html' },
+          visitor: { label: 'Visitor status', fee: '$100 CAD', renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/extend-stay.html' },
+          'family-member': { label: 'Work/study permit', fee: '$155 CAD', renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit/temporary/extend.html' },
+          pr: { label: 'PR card', fee: '$50 CAD', renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/new-immigrants/pr-card/apply-renew-replace.html' },
+        }
+        const pInfo = permitInfoMap[profile.status] ?? { label: profile.workPermitType || profile.status || 'permit', fee: 'See IRCC website', renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada.html' }
+        const expiryDate = expiry.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })
         try {
           await sendEmail(
             email,
-            `Action needed: your ${permitType} expires in ${daysLeft} days`,
-            permitExpiryHtml(daysLeft, permitType)
+            `Action needed: your ${pInfo.label} expires in ${daysLeft} days`,
+            permitExpiryHtml(daysLeft, pInfo.label, expiryDate, pInfo.fee, pInfo.renewalUrl)
           )
           permitWarnings++
         } catch (e) {

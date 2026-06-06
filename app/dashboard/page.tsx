@@ -131,11 +131,17 @@ export default function DashboardPage() {
           <PlanGate plan="tracker" fallback={null}>
             <div className={`mb-5 flex items-start gap-3 rounded-2xl border-l-4 p-4 ${w.urgent ? 'border-l-red-500 bg-red-50' : 'border-l-amber-400 bg-amber-50'}`}>
               <AlertTriangle className={`mt-0.5 h-4 w-4 shrink-0 ${w.urgent ? 'text-red-500' : 'text-amber-500'}`} />
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className={`text-sm font-bold ${w.urgent ? 'text-red-900' : 'text-amber-900'}`}>
-                  {w.daysLeft <= 0 ? 'Permit may have expired' : `Permit expires in ${w.daysLeft} day${w.daysLeft !== 1 ? 's' : ''}`}
+                  {w.daysLeft <= 0
+                    ? `${w.permitLabel} may have expired`
+                    : `${w.permitLabel} expires in ${w.daysLeft} day${w.daysLeft !== 1 ? 's' : ''}`}
                 </p>
-                <div className="mt-1 flex gap-3">
+                <p className={`mt-0.5 text-xs ${w.urgent ? 'text-red-700' : 'text-amber-700'}`}>
+                  Expiry date: {w.expiryDate} · Renewal fee: {w.renewalFee}
+                </p>
+                <div className="mt-1.5 flex flex-wrap gap-3">
+                  <a href={w.renewalUrl} target="_blank" rel="noopener noreferrer" className={`text-xs font-semibold hover:underline ${w.urgent ? 'text-red-700' : 'text-amber-700'}`}>How to renew (IRCC) →</a>
                   <Link href="/dashboard/tasks" className={`text-xs font-semibold hover:underline ${w.urgent ? 'text-red-700' : 'text-amber-700'}`}>Renewal tasks →</Link>
                   <Link href="/dashboard/consultants" className={`text-xs font-semibold hover:underline ${w.urgent ? 'text-red-700' : 'text-amber-700'}`}>Find consultant →</Link>
                 </div>

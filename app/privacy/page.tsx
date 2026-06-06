@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'How Navly collects, uses, and protects your personal information.',
 }
 
-const LAST_UPDATED = 'May 4, 2026'
+const LAST_UPDATED = 'June 6, 2026'
 
 export default function PrivacyPage() {
   return (
@@ -120,6 +120,16 @@ export default function PrivacyPage() {
               <li>
                 <span className="font-semibold">Service providers:</span> Infrastructure, hosting, email,
                 and payment processors who process data on our behalf under confidentiality agreements.
+              </li>
+              <li>
+                <span className="font-semibold">AI assistant (Groq):</span> When you use Navly&rsquo;s AI
+                assistant, your profile data (immigration status, language scores, education, work history,
+                and similar fields you have entered) is sent to{' '}
+                <a href="https://groq.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#D62828] hover:underline">Groq</a>
+                {' '}to generate a response. No personally identifiable information such as your name or
+                email is included. Groq processes this data under their own{' '}
+                <a href="https://groq.com/privacy-policy/" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#D62828] hover:underline">privacy policy</a>.
+                If you do not want your profile data sent to Groq, do not use the AI assistant feature.
               </li>
               <li>
                 <span className="font-semibold">Consultants:</span> If you click &ldquo;Book a consultation&rdquo;

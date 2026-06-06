@@ -10,9 +10,10 @@ import { loadProfile } from '@/lib/profile'
 import {
   loadPresence,
   checkIn,
-  checkInYesterday,
+  confirmMissedDay,
+  declineMissedDay,
+  getMissedDays,
   isCheckedInToday,
-  missedYesterday,
   setArrivalDate,
   addTravel,
   removeTravel,
@@ -28,8 +29,9 @@ import { cn } from '@/lib/utils'
 export default function DaysPage() {
   const [presence, setPresence] = useState<PresenceData>({
     totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null,
-    arrivalDate: null, travelLog: [],
+    lastAcknowledgedDate: null, arrivalDate: null, travelLog: [],
   })
+  const [missedDays, setMissedDays] = useState<string[]>([])
   const [goal, setGoal] = useState<{ days: number; label: string } | null>(null)
   const [checkedIn, setCheckedIn] = useState(false)
   const [newTrip, setNewTrip] = useState({ departureDate: '', returnDate: '', country: '', reason: '' })
@@ -41,8 +43,10 @@ export default function DaysPage() {
     if (!data.arrivalDate && profile?.arrivalDate) {
       const updated = setArrivalDate(profile.arrivalDate)
       setPresence(updated)
+      setMissedDays(getMissedDays(updated))
     } else {
       setPresence(data)
+      setMissedDays(getMissedDays(data))
     }
     setCheckedIn(isCheckedInToday(data))
   }, [])
@@ -53,16 +57,16 @@ export default function DaysPage() {
     setCheckedIn(true)
   }
 
-  function handleConfirmYesterday() {
-    const updated = checkInYesterday()
+  function handleConfirmDay(date: string) {
+    const updated = confirmMissedDay(date)
     setPresence(updated)
+    setMissedDays((prev) => prev.filter((d) => d !== date))
   }
 
-  function handleDismissYesterday() {
-    setPresence((p) => ({ ...p }))
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('navly_last_absence_ack', new Date().toISOString().slice(0, 10))
-    }
+  function handleDeclineDay(date: string) {
+    const updated = declineMissedDay(date)
+    setPresence(updated)
+    setMissedDays((prev) => prev.filter((d) => d !== date))
   }
 
   function handleAddTrip() {
@@ -89,9 +93,7 @@ export default function DaysPage() {
   const progress = goal ? Math.min((daysInCanada / goal.days) * 100, 100) : 0
   const remaining = goal ? Math.max(goal.days - daysInCanada, 0) : 0
 
-  const showMissedPrompt = missedYesterday(presence) &&
-    typeof window !== 'undefined' &&
-    localStorage.getItem('navly_last_absence_ack') !== new Date().toISOString().slice(0, 10)
+  const currentMissedDay = missedDays[0] ?? null
 
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-10">
@@ -216,19 +218,28 @@ export default function DaysPage() {
         </Card>
       )}
 
-      {/* Missed check-in recovery */}
-      {showMissedPrompt && (
+      {/* Missed day recovery — shown one day at a time, oldest first */}
+      {currentMissedDay && (
         <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
             <div className="flex-1">
-              <p className="font-semibold text-amber-900">You missed yesterday's check-in</p>
-              <p className="mt-1 text-sm text-amber-800">Were you physically in Canada yesterday?</p>
+              {missedDays.length > 1 && (
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-600">
+                  {missedDays.length} days to confirm
+                </p>
+              )}
+              <p className="font-semibold text-amber-900">
+                Were you in Canada on{' '}
+                {new Date(currentMissedDay + 'T12:00:00').toLocaleDateString('en-CA', {
+                  weekday: 'long', month: 'long', day: 'numeric',
+                })}?
+              </p>
               <div className="mt-3 flex gap-3">
-                <Button size="sm" onClick={handleConfirmYesterday} className="bg-amber-600 text-white hover:bg-amber-700">
+                <Button size="sm" onClick={() => handleConfirmDay(currentMissedDay)} className="bg-amber-600 text-white hover:bg-amber-700">
                   Yes, I was in Canada
                 </Button>
-                <Button size="sm" variant="outline" onClick={handleDismissYesterday} className="border-amber-300 text-amber-700 hover:bg-amber-100">
+                <Button size="sm" variant="outline" onClick={() => handleDeclineDay(currentMissedDay)} className="border-amber-300 text-amber-700 hover:bg-amber-100">
                   No, I was away
                 </Button>
               </div>

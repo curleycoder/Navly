@@ -187,6 +187,29 @@
   --navly-red-dark: #b91c1c;
   --navly-white: #ffffff;
   --navly-soft: #f8fafc;
+
+  /* Page theme tokens — used across homepage, navbar, cards */
+  --page-bg: #ffffff;
+  --page-alt: #f8fafc;
+  --page-heading: #0b1f3a;
+  --page-body: #64748b;
+  --page-card: #ffffff;
+  --page-border: #e2e8f0;
+  --page-divider: #e2e8f0;
+  --navbar-bg: rgba(255, 255, 255, 0.95);
+  --navbar-solid: #ffffff;
+}
+
+.dark {
+  --page-bg: #0c1628;
+  --page-alt: #111e36;
+  --page-heading: #f1f5f9;
+  --page-body: #94a3b8;
+  --page-card: #131f38;
+  --page-border: rgba(255, 255, 255, 0.09);
+  --page-divider: rgba(255, 255, 255, 0.06);
+  --navbar-bg: rgba(12, 22, 40, 0.95);
+  --navbar-solid: #0c1628;
 }
 
 body {
