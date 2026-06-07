@@ -87,7 +87,7 @@ export default function DashboardPage() {
   // Seed arrival date from profile if presence tracker hasn't been set up yet
   const effectivePresence = presence.arrivalDate
     ? presence
-    : { ...presence, arrivalDate: profile?.canadaArrivalDate ?? null }
+    : { ...presence, arrivalDate: profile?.arrivalDate || null }
   const checkedInToday = isCheckedInToday(effectivePresence)
   const daysInCanada = getDaysInCanada(effectivePresence)
   const progressPct = crs > 0 ? Math.max(3, Math.round((crs / 600) * 100)) : 3
