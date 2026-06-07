@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft, CheckCircle2, AlertTriangle, ChevronDown, ChevronRight,
-  Eye, EyeOff, Loader2, Sun, Moon, Archive, Phone, Pencil,
+  Eye, EyeOff, Loader2, Archive, Phone, Pencil,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +17,8 @@ import {
 import { TOP_COUNTRIES, ALL_COUNTRIES, CA_PROVINCES } from '@/lib/geo'
 import { supabase } from '@/lib/supabase/client'
 import { getRequiredFunds } from '@/lib/settlement-funds'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { DocumentStorage } from '@/components/dashboard/DocumentStorage'
 
 // ─── Options ─────────────────────────────────────────────────────────────────
 
@@ -417,22 +419,18 @@ export default function ProfilePage() {
   const [savedProfile, setSavedProfile] = useState(false)
   const [originalData, setOriginalData] = useState<IntakeData | null>(null)
   const [loaded, setLoaded] = useState(false)
-  const [darkMode, setDarkMode] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
   const [pendingStatus, setPendingStatus] = useState<string | null>(null)
   const [pendingGoal, setPendingGoal] = useState<string | null>(null)
 
   useEffect(() => {
-    const theme = localStorage.getItem('navly_theme')
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark')
-      setDarkMode(true)
-    }
     async function load() {
       const local = loadProfile()
       if (local) setData(local)
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const remote = await loadProfileFromSupabase(user.id)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        setUserId(session.user.id)
+        const remote = await loadProfileFromSupabase(session.user.id)
         if (remote) setData(remote)
       }
       setLoaded(true)
@@ -448,8 +446,8 @@ export default function ProfilePage() {
     setSavingAccount(true)
     const toSave = { ...data }
     saveProfile(toSave)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) await saveProfileToSupabase(user.id, toSave)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) await saveProfileToSupabase(session.user.id, toSave)
     setSavingAccount(false)
     setSavedAccount(true)
     setEditingAccount(false)
@@ -471,8 +469,8 @@ export default function ProfilePage() {
       toSave.frenchSpeaking = ''
     }
     saveProfile(toSave)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) await saveProfileToSupabase(user.id, toSave)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) await saveProfileToSupabase(session.user.id, toSave)
     setSavingProfile(false)
     setSavedProfile(true)
     setEditingProfile(false)
@@ -486,12 +484,6 @@ export default function ProfilePage() {
     setPendingGoal(null)
   }
 
-  function toggleDark() {
-    const next = !darkMode
-    setDarkMode(next)
-    document.documentElement.classList.toggle('dark', next)
-    localStorage.setItem('navly_theme', next ? 'dark' : 'light')
-  }
 
   if (!loaded) return null
 
@@ -613,30 +605,22 @@ export default function ProfilePage() {
 
         {/* ── Document archive ─────────────────────────────────────────── */}
         <SettingsGroup title="Documents">
-          <div className="flex items-center gap-4 px-4 py-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-subtle">
-              <Archive className="h-5 w-5 text-muted-text/70" />
+          {userId ? (
+            <DocumentStorage userId={userId} />
+          ) : (
+            <div className="px-4 py-8 text-center">
+              <Archive className="mx-auto mb-2 h-7 w-7 text-muted-text/30" />
+              <p className="t-section-title">Account required</p>
+              <p className="t-caption mt-1">Create a free account to store and access your documents.</p>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-heading">Document Storage</p>
-              <p className="text-xs text-muted-text/70">Coming soon — permits, ECA letters, test results</p>
-            </div>
-            <ChevronRight className="h-4 w-4 shrink-0 text-muted-text/50" />
-          </div>
+          )}
         </SettingsGroup>
 
         {/* ── App settings ─────────────────────────────────────────────── */}
         <SettingsGroup title="App">
-          <div className="flex items-center justify-between px-4 py-4">
-            <div className="flex items-center gap-3">
-              {darkMode ? <Moon className="h-4 w-4 text-muted-text/70" /> : <Sun className="h-4 w-4 text-muted-text/70" />}
-              <p className="text-sm font-semibold text-heading">{darkMode ? 'Dark mode' : 'Light mode'}</p>
-            </div>
-            <button onClick={toggleDark}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${darkMode ? 'bg-navly-navy' : 'bg-subtle'}`}
-              role="switch" aria-checked={darkMode}>
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-surface-card shadow transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-1'}`} />
-            </button>
+          <div className="flex items-center justify-between px-4 py-3">
+            <p className="t-section-title">Appearance</p>
+            <ThemeToggle />
           </div>
           <Link href="/terms" className="flex items-center justify-between px-4 py-4">
             <p className="text-sm font-semibold text-heading">Terms & Conditions</p>

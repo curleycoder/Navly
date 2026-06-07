@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { CheckCircle2, ArrowRight, Zap, CalendarCheck, Loader2 } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
+import { addReportDocument } from '@/lib/documents'
 
 type ActivationState = 'verifying' | 'active' | 'timeout'
 
@@ -35,6 +36,10 @@ function SuccessContent() {
 
       if (data) {
         setActivation('active')
+        if (!isTracker) {
+          // Auto-add the Navly Report to the user's document storage
+          addReportDocument(user.id)
+        }
       } else {
         attempts++
         if (attempts >= maxAttempts) {
