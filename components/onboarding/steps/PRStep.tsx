@@ -24,41 +24,41 @@ export function StepPRStatus({ data, onChange }: {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Your PR details</h1>
-      <p className="mt-2 text-slate-500">
+      <h1 className="text-3xl font-bold text-heading">Your PR details</h1>
+      <p className="mt-2 text-muted-text">
         These dates power your citizenship countdown, PR card reminder, and residency obligation tracker.
       </p>
       <div className="mt-8 flex flex-col gap-8">
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="prDate" className="text-sm font-semibold text-[#0B1F3A]">
+            <Label htmlFor="prDate" className="text-sm font-semibold text-heading">
               Date you became a PR
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Used to calculate your citizenship eligibility date and PR residency obligation.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Used to calculate your citizenship eligibility date and PR residency obligation.</span>
             </Label>
             <Input id="prDate" type="date" value={data.prDate}
               onChange={(e) => onChange({ prDate: e.target.value })}
-              className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]" />
+              className="rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading focus-visible:ring-navly-red" />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="prCardExpiry" className="text-sm font-semibold text-[#0B1F3A]">
+            <Label htmlFor="prCardExpiry" className="text-sm font-semibold text-heading">
               PR card expiry
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Navly will remind you before it expires.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Navly will remind you before it expires.</span>
             </Label>
             <Input id="prCardExpiry" type="month" value={data.prCardExpiry}
               onChange={(e) => onChange({ prCardExpiry: e.target.value })}
-              className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]" />
+              className="max-w-xs rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading focus-visible:ring-navly-red" />
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
+          <Label className="text-sm font-semibold text-heading">
             What was your status in Canada before becoming a PR?
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Temporary resident days before PR may count as half-days toward citizenship (up to 365 days credit).</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Temporary resident days before PR may count as half-days toward citizenship (up to 365 days credit).</span>
           </Label>
           <div className="relative">
             <select value={data.prPreStatus} onChange={(e) => onChange({ prPreStatus: e.target.value })}
-              className={cn(selectClass, !data.prPreStatus && 'text-slate-400')}>
+              className={cn(selectClass, !data.prPreStatus && 'text-muted-text/70')}>
               <option value="" disabled>Select your status before PR…</option>
               <option value="student">International student</option>
               <option value="worker">Worker (work permit / PGWP)</option>
@@ -74,15 +74,15 @@ export function StepPRStatus({ data, onChange }: {
         {/* ── PR Residency Obligation ── */}
         <div className="flex flex-col gap-4">
           <div>
-            <p className="text-sm font-semibold text-[#0B1F3A]">PR residency obligation</p>
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p className="text-sm font-semibold text-heading">PR residency obligation</p>
+            <p className="mt-0.5 text-xs text-muted-text">
               PRs must be physically in Canada at least <span className="font-semibold">730 days in any 5-year period</span> to keep their PR status.
               Time abroad may count if you were accompanying a Canadian citizen spouse or working for a Canadian employer.
             </p>
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Have you travelled outside Canada since becoming a PR?
             </Label>
             {[
@@ -99,16 +99,16 @@ export function StepPRStatus({ data, onChange }: {
           </div>
 
           {data.hasTraveledSincePR === 'yes' && (
-            <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex flex-col gap-4 rounded-2xl border border-subtle bg-surface-alt p-4">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="daysOutside" className="text-sm font-semibold text-[#0B1F3A]">
+                <Label htmlFor="daysOutside" className="text-sm font-semibold text-heading">
                   Total days outside Canada in the last 5 years
-                  <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Count all trips combined. If you became PR less than 5 years ago, count from your PR date.</span>
+                  <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Count all trips combined. If you became PR less than 5 years ago, count from your PR date.</span>
                 </Label>
                 <Input id="daysOutside" type="number" min={0} max={1825} placeholder="e.g. 120"
                   value={data.daysOutsideCanada5yr}
                   onChange={(e) => onChange({ daysOutsideCanada5yr: e.target.value })}
-                  className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+                  className="max-w-xs rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red" />
                 {showResidencyStatus && (
                   <div className={cn(
                     'flex items-start gap-2 rounded-xl p-3',
@@ -125,9 +125,9 @@ export function StepPRStatus({ data, onChange }: {
               </div>
 
               <div className="flex flex-col gap-3">
-                <Label className="text-sm font-semibold text-[#0B1F3A]">
+                <Label className="text-sm font-semibold text-heading">
                   Were you accompanying a Canadian citizen spouse or common-law partner abroad?
-                  <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Days abroad with a Canadian citizen spouse count toward your residency obligation.</span>
+                  <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Days abroad with a Canadian citizen spouse count toward your residency obligation.</span>
                 </Label>
                 {[
                   { value: 'no', label: 'No', desc: 'This exemption does not apply' },
@@ -140,9 +140,9 @@ export function StepPRStatus({ data, onChange }: {
               </div>
 
               <div className="flex flex-col gap-3">
-                <Label className="text-sm font-semibold text-[#0B1F3A]">
+                <Label className="text-sm font-semibold text-heading">
                   Were you working outside Canada for a Canadian business or the Canadian government?
-                  <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Days abroad employed by a Canadian company or public service may count toward your obligation.</span>
+                  <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Days abroad employed by a Canadian company or public service may count toward your obligation.</span>
                 </Label>
                 {[
                   { value: 'no', label: 'No', desc: 'This exemption does not apply' },
@@ -158,9 +158,9 @@ export function StepPRStatus({ data, onChange }: {
         </div>
 
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
+          <Label className="text-sm font-semibold text-heading">
             Have you filed Canadian taxes for the required years?
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Tax filing is a requirement for citizenship. CRA records are reviewed during citizenship processing.</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Tax filing is a requirement for citizenship. CRA records are reviewed during citizenship processing.</span>
           </Label>
           {[
             { value: 'yes', label: 'Yes', desc: 'I have filed taxes for all required years' },
@@ -175,9 +175,9 @@ export function StepPRStatus({ data, onChange }: {
 
         {showLangProof && (
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Do you have proof of English or French language ability?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Required for citizenship applicants aged 18–54. An accepted test result or other evidence of proficiency qualifies.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Required for citizenship applicants aged 18–54. An accepted test result or other evidence of proficiency qualifies.</span>
             </Label>
             {[
               { value: 'yes', label: 'Yes', desc: 'I have an accepted language test or other proof' },
@@ -191,9 +191,9 @@ export function StepPRStatus({ data, onChange }: {
         )}
 
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
+          <Label className="text-sm font-semibold text-heading">
             Any criminal charges, removal order, probation, or past citizenship refusal?
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">These may affect citizenship eligibility. Navly will flag this for professional review.</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">These may affect citizenship eligibility. Navly will flag this for professional review.</span>
           </Label>
           {[
             { value: 'no', label: 'No', desc: 'None of the above apply to me' },

@@ -12,7 +12,7 @@ function ProvinceSelect({ id, value, onChange, placeholder = 'Select a province 
   return (
     <div className="relative">
       <select id={id} value={value} onChange={(e) => onChange(e.target.value)}
-        className={cn(selectClass, !value && 'text-slate-400')}>
+        className={cn(selectClass, !value && 'text-muted-text/70')}>
         <option value="" disabled>{placeholder}</option>
         <option value="none">Not in Canada</option>
         {CA_PROVINCES.map(({ value: v, label }) => <option key={v} value={v}>{label}</option>)}
@@ -44,8 +44,8 @@ export function StepPNP({ data, onChange }: {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Provincial ties</h1>
-      <p className="mt-2 text-slate-500">
+      <h1 className="text-3xl font-bold text-heading">Provincial ties</h1>
+      <p className="mt-2 text-muted-text">
         PNP eligibility depends heavily on your connection to a province — not just which one you want to live in.
         Job offer, work experience, education, and family ties all affect which streams you qualify for.
       </p>
@@ -54,9 +54,9 @@ export function StepPNP({ data, onChange }: {
         {/* Job offer province */}
         {data.hasJobOffer === 'yes' && (
           <div className="flex flex-col gap-2">
-            <Label htmlFor="pnpJobProv" className="text-sm font-semibold text-[#0B1F3A]">
+            <Label htmlFor="pnpJobProv" className="text-sm font-semibold text-heading">
               Province of your job offer
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Most PNP employer streams require the job to be in that province.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Most PNP employer streams require the job to be in that province.</span>
             </Label>
             <ProvinceSelect id="pnpJobProv" value={data.pnpJobOfferProvince} onChange={(v) => onChange({ pnpJobOfferProvince: v })} placeholder="Select province of job offer…" />
           </div>
@@ -64,9 +64,9 @@ export function StepPNP({ data, onChange }: {
 
         {/* Work experience in target province */}
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
+          <Label className="text-sm font-semibold text-heading">
             Do you have paid work experience in {targetLabel}?
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">
               {isWorker
                 ? 'Work experience in the province strengthens most employer and occupation streams.'
                 : 'Many PNP streams give priority or exclusive access to people already working in the province.'}
@@ -85,9 +85,9 @@ export function StepPNP({ data, onChange }: {
         {/* Employer support */}
         {isSkilled && (
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Is a Canadian employer willing to support your PNP application?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Employer-supported streams (e.g. BC PNP Skills Immigration, SINP Employer Job Offer) require a valid offer and employer who will submit a supporting letter.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Employer-supported streams (e.g. BC PNP Skills Immigration, SINP Employer Job Offer) require a valid offer and employer who will submit a supporting letter.</span>
             </Label>
             {[
               { value: 'yes', label: 'Yes', desc: 'An employer is ready to support my application' },
@@ -104,9 +104,9 @@ export function StepPNP({ data, onChange }: {
         {/* Job permanence */}
         {data.hasJobOffer === 'yes' && (
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Is the job offer for a permanent, non-seasonal position?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Nearly all PNP employer streams require the position to be full-time, permanent, and non-seasonal.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Nearly all PNP employer streams require the position to be full-time, permanent, and non-seasonal.</span>
             </Label>
             {[
               { value: 'yes', label: 'Yes — permanent and non-seasonal', desc: '' },
@@ -123,9 +123,9 @@ export function StepPNP({ data, onChange }: {
         {hasCanadianEd && (
           <>
             <div className="flex flex-col gap-3">
-              <Label className="text-sm font-semibold text-[#0B1F3A]">
+              <Label className="text-sm font-semibold text-heading">
                 Did you study in {targetLabel}?
-                <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Graduates of schools in a province often qualify for international graduate or post-secondary streams.</span>
+                <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Graduates of schools in a province often qualify for international graduate or post-secondary streams.</span>
               </Label>
               {[
                 { value: 'yes', label: 'Yes', desc: 'I studied in this province' },
@@ -138,7 +138,7 @@ export function StepPNP({ data, onChange }: {
             </div>
             {data.studiedInTargetProvince === 'no' && (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="pnpEdProv" className="text-sm font-semibold text-[#0B1F3A]">
+                <Label htmlFor="pnpEdProv" className="text-sm font-semibold text-heading">
                   Which province did you study in?
                 </Label>
                 <ProvinceSelect id="pnpEdProv" value={data.pnpEducationProvince} onChange={(v) => onChange({ pnpEducationProvince: v })} placeholder="Select province of study…" />
@@ -149,17 +149,17 @@ export function StepPNP({ data, onChange }: {
 
         {/* Relatives in province */}
         <div className="flex flex-col gap-2">
-          <Label htmlFor="pnpRelProv" className="text-sm font-semibold text-[#0B1F3A]">
+          <Label htmlFor="pnpRelProv" className="text-sm font-semibold text-heading">
             Do you have close relatives in any Canadian province?
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Family connections may qualify you for family stream pathways (e.g. Manitoba PNP Family, SINP Family) or add adaptability points.</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Family connections may qualify you for family stream pathways (e.g. Manitoba PNP Family, SINP Family) or add adaptability points.</span>
           </Label>
           <ProvinceSelect id="pnpRelProv" value={data.pnpRelativesProvince} onChange={(v) => onChange({ pnpRelativesProvince: v })} placeholder="Select province of relatives…" />
         </div>
 
         {/* French ability */}
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-sm font-semibold text-[#0B1F3A]">French language ability</p>
-          <p className="mt-1 text-sm text-slate-600">
+        <div className="rounded-2xl border border-subtle bg-surface-alt p-4">
+          <p className="text-sm font-semibold text-heading">French language ability</p>
+          <p className="mt-1 text-sm text-muted-text">
             {hasFrench
               ? 'You have entered French test scores. This may open French-language PNP streams in New Brunswick, Ontario, Manitoba, and other provinces.'
               : 'You have not entered French test scores. French ability can open additional PNP streams in several provinces, including Ontario (OINP Francophone) and New Brunswick. You can add a French test result in your language section.'}
@@ -168,9 +168,9 @@ export function StepPNP({ data, onChange }: {
 
         {/* Rural/community interest */}
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
+          <Label className="text-sm font-semibold text-heading">
             Are you open to settling in a rural or smaller community?
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Programs like the Rural and Northern Immigration Pilot (RNIP) and Atlantic Immigration Program (AIP) target smaller communities and may have lower competition than major city streams.</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Programs like the Rural and Northern Immigration Pilot (RNIP) and Atlantic Immigration Program (AIP) target smaller communities and may have lower competition than major city streams.</span>
           </Label>
           {[
             { value: 'yes', label: 'Yes — open to rural or small communities', desc: 'I am willing to settle outside major cities' },

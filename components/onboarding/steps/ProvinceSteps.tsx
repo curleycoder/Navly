@@ -18,15 +18,15 @@ const manitobaRelativeOptions = [
 export function StepManitobaFamily({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Family connections in Manitoba</h1>
-      <p className="mt-2 text-slate-500">Manitoba PNP has a Family Stream where having a close relative who is a Canadian citizen or permanent resident living in Manitoba can open a direct PR pathway.</p>
+      <h1 className="text-3xl font-bold text-heading">Family connections in Manitoba</h1>
+      <p className="mt-2 text-muted-text">Manitoba PNP has a Family Stream where having a close relative who is a Canadian citizen or permanent resident living in Manitoba can open a direct PR pathway.</p>
       <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
         <p className="text-sm text-blue-800">
           <span className="font-semibold">To qualify, your relative must: </span>
           be a Canadian citizen or permanent resident, have lived in Manitoba for at least 1 year, and be willing to support your application.
         </p>
       </div>
-      <p className="mt-5 text-sm font-semibold text-[#0B1F3A]">Do you have any of the following in Manitoba?</p>
+      <p className="mt-5 text-sm font-semibold text-heading">Do you have any of the following in Manitoba?</p>
       <div className="mt-3 flex flex-col gap-3">
         {manitobaRelativeOptions.map((opt) => (
           <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={value === opt.value} onClick={() => onChange(opt.value)} />
@@ -60,10 +60,10 @@ export function StepProvince({ data, onChange }: {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">
+      <h1 className="text-3xl font-bold text-heading">
         {isInside ? 'Are you planning to stay or move for PR?' : 'Where and when do you plan to arrive?'}
       </h1>
-      <p className="mt-2 text-slate-500">
+      <p className="mt-2 text-muted-text">
         {isInside
           ? 'Your province determines PNP eligibility. Some streams require you to live and work in that province.'
           : 'Your target province and timeline help us show the most relevant pathways.'}
@@ -72,10 +72,10 @@ export function StepProvince({ data, onChange }: {
 
         {needsProvincePicker && (
           <div className="flex flex-col gap-2">
-            <Label htmlFor="curProv" className="text-sm font-semibold text-[#0B1F3A]">Which province are you currently in?</Label>
+            <Label htmlFor="curProv" className="text-sm font-semibold text-heading">Which province are you currently in?</Label>
             <div className="relative">
               <select id="curProv" value={data.province ?? ''} onChange={(e) => onChange({ province: e.target.value, intendedProvince: e.target.value })}
-                className={cn(selectClass, !data.province && 'text-slate-400')}>
+                className={cn(selectClass, !data.province && 'text-muted-text/70')}>
                 <option value="" disabled>Select province or territory…</option>
                 {CA_PROVINCES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
               </select>
@@ -86,7 +86,7 @@ export function StepProvince({ data, onChange }: {
 
         {!isInside && (
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">When are you planning to arrive in Canada?</Label>
+            <Label className="text-sm font-semibold text-heading">When are you planning to arrive in Canada?</Label>
             {arrivalTimelineOptions.map((opt) => (
               <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.targetArrivalTimeline === opt.value} onClick={() => onChange({ targetArrivalTimeline: opt.value })} />
             ))}
@@ -95,7 +95,7 @@ export function StepProvince({ data, onChange }: {
 
         {isInside && !needsProvincePicker ? (
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">Where are you planning to settle for PR?</Label>
+            <Label className="text-sm font-semibold text-heading">Where are you planning to settle for PR?</Label>
             {[
               { value: data.province, label: `Stay in ${currentProvinceLabel}`, desc: "Apply through this province's PNP or CEC" },
               { value: '__move__', label: 'Move to a different province', desc: 'Some PNP streams require living in that province' },
@@ -118,11 +118,11 @@ export function StepProvince({ data, onChange }: {
             ))}
             {wantsToMove && (
               <div className="flex flex-col gap-2 mt-1">
-                <Label htmlFor="intProv" className="text-sm font-semibold text-[#0B1F3A]">Which province?</Label>
+                <Label htmlFor="intProv" className="text-sm font-semibold text-heading">Which province?</Label>
                 <div className="relative">
                   <select id="intProv" value={data.intendedProvince}
                     onChange={(e) => onChange({ intendedProvince: e.target.value })}
-                    className={cn(selectClass, !data.intendedProvince && 'text-slate-400')}>
+                    className={cn(selectClass, !data.intendedProvince && 'text-muted-text/70')}>
                     <option value="" disabled>Select a province or territory…</option>
                     {CA_PROVINCES.filter(p => p.value !== data.province).map(({ value, label }) => (
                       <option key={value} value={value}>{label}</option>
@@ -135,10 +135,10 @@ export function StepProvince({ data, onChange }: {
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            <Label htmlFor="intProv" className="text-sm font-semibold text-[#0B1F3A]">Intended province / territory</Label>
+            <Label htmlFor="intProv" className="text-sm font-semibold text-heading">Intended province / territory</Label>
             <div className="relative">
               <select id="intProv" value={data.intendedProvince} onChange={(e) => onChange({ intendedProvince: e.target.value })}
-                className={cn(selectClass, !data.intendedProvince && 'text-slate-400')}>
+                className={cn(selectClass, !data.intendedProvince && 'text-muted-text/70')}>
                 <option value="" disabled>Select a province or territory…</option>
                 <option value="Any">No preference — open to any province</option>
                 {CA_PROVINCES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
@@ -149,9 +149,9 @@ export function StepProvince({ data, onChange }: {
         )}
 
         {(data.intendedProvince === 'QC' || (isInside && data.province === 'QC' && !wantsToMove)) && (
-          <div className="rounded-2xl border border-[#0B1F3A]/15 bg-[#0B1F3A]/5 p-4">
-            <p className="text-sm font-semibold text-[#0B1F3A]">Note on Quebec</p>
-            <p className="mt-1 text-sm leading-6 text-slate-600">Quebec has its own selection system (Arrima / PSTQ). Express Entry and most PNP pathways do not apply. You must obtain a Quebec Selection Certificate (CSQ) first.</p>
+          <div className="rounded-2xl border border-navly-navy/15 bg-navly-navy/5 p-4">
+            <p className="text-sm font-semibold text-heading">Note on Quebec</p>
+            <p className="mt-1 text-sm leading-6 text-muted-text">Quebec has its own selection system (Arrima / PSTQ). Express Entry and most PNP pathways do not apply. You must obtain a Quebec Selection Certificate (CSQ) first.</p>
           </div>
         )}
       </div>

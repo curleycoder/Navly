@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function OnboardingPage() {
   return (
-    <main className="bg-[#F8FAFC]">
+    <main className="bg-surface">
       <IntakeFlow />
     </main>
   )

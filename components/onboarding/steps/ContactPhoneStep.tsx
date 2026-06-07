@@ -54,23 +54,23 @@ export function StepContactPhone({ data, onComplete }: StepContactPhoneProps) {
 
   return (
     <div>
-      <div className="mb-2 flex items-center gap-2 text-[#D62828]">
+      <div className="mb-2 flex items-center gap-2 text-navly-red">
         <Bell className="h-5 w-5" aria-hidden="true" />
         <span className="text-sm font-semibold uppercase tracking-wide">Final step</span>
       </div>
 
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Get your immigration updates</h1>
+      <h1 className="text-3xl font-bold text-heading">Get your immigration updates</h1>
 
-      <p className="mt-2 text-slate-500">
+      <p className="mt-2 text-muted-text">
         Add your phone number so Navly can send important reminders, checklist updates, and next-step alerts.
       </p>
 
-      <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div className="mt-6 rounded-2xl border border-subtle bg-surface-alt p-4">
         <div className="flex items-start gap-3">
-          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#D62828]" aria-hidden="true" />
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-navly-red" aria-hidden="true" />
           <div>
-            <p className="font-semibold text-[#0B1F3A]">Why we ask for this</p>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
+            <p className="font-semibold text-heading">Why we ask for this</p>
+            <p className="mt-1 text-sm leading-6 text-muted-text">
               Immigration timelines can change. Your phone number helps us send reminders for deadlines, expiring permits, and important PR tasks.
             </p>
           </div>
@@ -78,11 +78,11 @@ export function StepContactPhone({ data, onComplete }: StepContactPhoneProps) {
       </div>
 
       <div className="mt-8 flex flex-col gap-2">
-        <Label htmlFor="phone" className="text-sm font-semibold text-[#0B1F3A]">
+        <Label htmlFor="phone" className="text-sm font-semibold text-heading">
           Phone number
         </Label>
         <div className="relative">
-          <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+          <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-text/70" aria-hidden="true" />
           <Input
             id="phone"
             type="tel"
@@ -91,10 +91,10 @@ export function StepContactPhone({ data, onComplete }: StepContactPhoneProps) {
             placeholder="+1 604 123 4567"
             value={phone}
             onChange={(e) => { setPhone(formatPhone(e.target.value)); setError('') }}
-            className="rounded-xl border-slate-200 bg-white py-3 pl-11 pr-4 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
+            className="rounded-xl border-subtle bg-surface-card py-3 pl-11 pr-4 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red"
           />
         </div>
-        <p className="text-xs leading-5 text-slate-400">
+        <p className="text-xs leading-5 text-muted-text/70">
           Include country code, e.g. +1 for Canada/US.
         </p>
 
@@ -105,7 +105,7 @@ export function StepContactPhone({ data, onComplete }: StepContactPhoneProps) {
         <Button
           onClick={handleSave}
           disabled={!validPhone || loading}
-          className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
+          className="gap-2 bg-navly-red text-white hover:bg-navly-red/80 disabled:opacity-40"
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           {loading ? 'Saving…' : 'Save phone number'}
@@ -114,7 +114,7 @@ export function StepContactPhone({ data, onComplete }: StepContactPhoneProps) {
 
       </div>
 
-      <p className="mt-5 text-center text-xs leading-5 text-slate-400">
+      <p className="mt-5 text-center text-xs leading-5 text-muted-text/70">
         Navly is not a law firm or immigration consultant. Your answers help us organise your planning dashboard.
       </p>
     </div>

@@ -11,14 +11,14 @@ export function StepRisk({ data, onChange }: {
 }) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Any issues we should know about?</h1>
-      <p className="mt-2 text-slate-500">
+      <h1 className="text-3xl font-bold text-heading">Any issues we should know about?</h1>
+      <p className="mt-2 text-muted-text">
         These do not affect your CRS score, but they flag situations that may need professional legal review. Answer honestly — IRCC can access records independently.
       </p>
       <div className="mt-6 flex flex-col gap-6">
 
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
+          <Label className="text-sm font-semibold text-heading">
             Have you ever been refused a visa, permit, or entry to Canada or any other country?
           </Label>
           {[
@@ -38,7 +38,7 @@ export function StepRisk({ data, onChange }: {
         </div>
 
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
+          <Label className="text-sm font-semibold text-heading">
             Have you ever overstayed a permit or been out of status in Canada?
           </Label>
           {[
@@ -58,9 +58,9 @@ export function StepRisk({ data, onChange }: {
         </div>
 
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
+          <Label className="text-sm font-semibold text-heading">
             Do you have any criminal convictions, charges, or offences in any country?
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Includes DUI, assault, fraud, drug offences, and other criminal matters.</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Includes DUI, assault, fraud, drug offences, and other criminal matters.</span>
           </Label>
           {[
             { value: 'no', label: 'No', desc: 'No criminal record' },
@@ -79,7 +79,7 @@ export function StepRisk({ data, onChange }: {
         </div>
 
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
+          <Label className="text-sm font-semibold text-heading">
             Have you ever been subject to a removal or deportation order from Canada or any country?
           </Label>
           {[
@@ -99,9 +99,9 @@ export function StepRisk({ data, onChange }: {
         </div>
 
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
+          <Label className="text-sm font-semibold text-heading">
             Do you have any serious health conditions that may affect admissibility?
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Conditions that may place excessive demand on Canadian health or social services.</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Conditions that may place excessive demand on Canadian health or social services.</span>
           </Label>
           {[
             { value: 'no', label: 'No', desc: 'No known medical admissibility concerns' },

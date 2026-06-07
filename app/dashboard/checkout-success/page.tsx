@@ -60,26 +60,26 @@ function SuccessContent() {
         </div>
       </div>
 
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Payment successful!</h1>
-      <p className="mt-3 text-slate-500">
+      <h1 className="t-page-title">Payment successful!</h1>
+      <p className="mt-3 text-muted-text">
         Your{' '}
-        <span className="font-semibold text-[#0B1F3A]">
+        <span className="font-semibold text-heading">
           {isTracker ? 'PR Tracker' : 'Personalized Report'}
         </span>{' '}
         is now active.
       </p>
 
-      <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 text-left">
+      <div className="mt-8 rounded-2xl border border-subtle bg-surface-card p-6 text-left">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#D62828] text-white">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navly-red text-white">
             {isTracker ? <CalendarCheck className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
           </div>
           <div>
-            <p className="font-bold text-[#0B1F3A]">{isTracker ? 'PR Tracker' : 'Personalized Report'}</p>
-            <p className="text-sm text-slate-500">{isTracker ? '$14.99 / month' : '$29 one-time'}</p>
+            <p className="font-bold text-heading">{isTracker ? 'PR Tracker' : 'Personalized Report'}</p>
+            <p className="text-sm text-muted-text">{isTracker ? '$14.99 / month' : '$29 one-time'}</p>
           </div>
         </div>
-        <ul className="mt-4 space-y-2 text-sm text-slate-600">
+        <ul className="mt-4 space-y-2 text-sm text-muted-text">
           {features.map((f) => (
             <li key={f} className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
@@ -92,26 +92,26 @@ function SuccessContent() {
       {/* Activation status */}
       <div className="mt-6">
         {activation === 'verifying' ? (
-          <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-text">
             <Loader2 className="h-4 w-4 animate-spin" />
             Activating your plan…
           </div>
         ) : activation === 'active' ? (
           <Link
             href={isTracker ? '/dashboard/days' : '/dashboard/pr-tracker'}
-            className={buttonVariants({ className: 'gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C]' })}
+            className={buttonVariants({ className: 'gap-2 bg-navly-red text-white hover:bg-navly-red/80' })}
           >
             {isTracker ? 'Go to days tracker' : 'View my PR score'}
             <ArrowRight className="h-4 w-4" />
           </Link>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted-text">
               Your plan is activating — it may take a moment to reflect in the dashboard.
             </p>
             <Link
               href="/dashboard"
-              className={buttonVariants({ className: 'gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C]' })}
+              className={buttonVariants({ className: 'gap-2 bg-navly-red text-white hover:bg-navly-red/80' })}
             >
               Go to my dashboard <ArrowRight className="h-4 w-4" />
             </Link>

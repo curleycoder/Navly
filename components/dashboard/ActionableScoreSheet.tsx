@@ -62,9 +62,9 @@ export function ActionableScoreSheet({ category, onClose, profile, setProfile, o
               </div>
             </div>
             
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-               <h4 className="font-bold text-[#0B1F3A] mb-2">Next Steps</h4>
-               <ul className="text-sm text-slate-600 flex flex-col gap-2">
+            <div className="rounded-xl border border-subtle bg-surface-card p-4 shadow-sm">
+               <h4 className="font-bold text-heading mb-2">Next Steps</h4>
+               <ul className="text-sm text-muted-text flex flex-col gap-2">
                  <li>• Register for the IELTS General Training exam.</li>
                  <li>• Consistent practice on Listening and Reading yields the fastest point gains.</li>
                </ul>
@@ -113,9 +113,9 @@ export function ActionableScoreSheet({ category, onClose, profile, setProfile, o
               </div>
             </div>
             
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-               <h4 className="font-bold text-[#0B1F3A] mb-2">Educational Credential Assessment (ECA)</h4>
-               <p className="text-sm text-slate-600 mb-4">
+            <div className="rounded-xl border border-subtle bg-surface-card p-4 shadow-sm">
+               <h4 className="font-bold text-heading mb-2">Educational Credential Assessment (ECA)</h4>
+               <p className="text-sm text-muted-text mb-4">
                  If your degree was obtained outside of Canada, you must have it verified by an approved organization like WES. 
                </p>
                <Button variant="outline" className="w-full flex gap-2">
@@ -134,7 +134,7 @@ export function ActionableScoreSheet({ category, onClose, profile, setProfile, o
               <div className="flex flex-col gap-4 mt-4">
                 <div>
                   <Label>Canadian Work Experience (Months)</Label>
-                  <p className="text-xs text-slate-500 mb-2">Reaching 12, 24, or 36 months jumps your score.</p>
+                  <p className="text-xs text-muted-text mb-2">Reaching 12, 24, or 36 months jumps your score.</p>
                   <Input type="number" value={profile.canadianWorkMonths} onChange={e => handleUpdate('canadianWorkMonths', e.target.value)} />
                 </div>
                 <div>
@@ -164,10 +164,10 @@ export function ActionableScoreSheet({ category, onClose, profile, setProfile, o
 
   return (
     <Sheet open={!!category} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto bg-slate-50 border-l border-slate-200">
-        <SheetHeader className="mb-6 border-b border-slate-200 pb-4">
+      <SheetContent className="w-full sm:max-w-md overflow-y-auto bg-surface-alt border-l border-subtle">
+        <SheetHeader className="mb-6 border-b border-subtle pb-4">
           <SheetTitle className="text-2xl font-bold flex items-center gap-2">
-            <Calculator className="h-6 w-6 text-[#D62828]" /> What-If Sandbox
+            <Calculator className="h-6 w-6 text-navly-red" /> What-If Sandbox
           </SheetTitle>
           <SheetDescription>
             Experiment with your metrics. Watch the gauge in the background update instantly.
@@ -178,11 +178,11 @@ export function ActionableScoreSheet({ category, onClose, profile, setProfile, o
           {renderContent()}
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-slate-200 pt-6">
-          <Button onClick={onSaveToProfile} className="w-full bg-[#0B1F3A] hover:bg-[#1a3a6c] text-white py-6">
+        <div className="flex flex-col gap-3 border-t border-subtle pt-6">
+          <Button onClick={onSaveToProfile} className="w-full bg-navly-navy hover:bg-navly-navy/80 text-white py-6">
             I achieved this! Save to Profile
           </Button>
-          <Button onClick={onReset} variant="outline" className="w-full border-slate-300 text-slate-600">
+          <Button onClick={onReset} variant="outline" className="w-full border-subtle text-muted-text">
             Reset to current stats
           </Button>
         </div>

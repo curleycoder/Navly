@@ -187,17 +187,17 @@ export function IntakeFlow() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="sticky top-0 z-10 bg-white">
-        <header className="border-b border-slate-200 px-6 py-4">
+      <div className="sticky top-0 z-10 bg-surface-card">
+        <header className="border-b border-subtle px-6 py-4">
           <div className="mx-auto flex max-w-2xl items-center justify-between">
             <NavlyLogo size="sm" />
 
             <div className="text-right">
-              <span className="text-sm text-slate-500">
+              <span className="text-sm text-muted-text">
                 {safeStepIndex + 1} / {steps.length}
               </span>
 
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted-text/70">
                 {stepTitles[currentStep]}
               </p>
             </div>
@@ -208,7 +208,7 @@ export function IntakeFlow() {
           <div className="mx-auto max-w-2xl">
             <Progress
               value={progress}
-              className="h-1.5 bg-slate-100"
+              className="h-1.5 bg-subtle"
               aria-label="Onboarding progress"
               aria-valuenow={Math.round(progress)}
               aria-valuemin={0}
@@ -317,7 +317,7 @@ export function IntakeFlow() {
 
       {!usesCustomNav && (
         <div
-          className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-200 bg-white px-6 py-3"
+          className="fixed bottom-0 left-0 right-0 z-20 border-t border-subtle bg-surface-card px-6 py-3"
           style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
         >
           <div className="mx-auto flex max-w-2xl items-center justify-between">
@@ -327,7 +327,7 @@ export function IntakeFlow() {
                   <Button
                     variant="outline"
                     onClick={back}
-                    className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50"
+                    className="gap-2 border-subtle text-muted-text hover:bg-surface-alt"
                   >
                     <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                     Back
@@ -338,7 +338,7 @@ export function IntakeFlow() {
                     className={buttonVariants({
                       variant: 'outline',
                       className:
-                        'gap-2 border-slate-300 text-slate-700 hover:bg-slate-50',
+                        'gap-2 border-subtle text-muted-text hover:bg-surface-alt',
                     })}
                   >
                     <ArrowLeft className="h-4 w-4" aria-hidden="true" />
@@ -350,7 +350,7 @@ export function IntakeFlow() {
                   onClick={next}
                   disabled={!ok}
                   aria-describedby={!ok && hint ? 'step-hint' : undefined}
-                  className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
+                  className="gap-2 bg-navly-red text-white hover:bg-navly-red/80 disabled:opacity-40"
                 >
                   {continueLabel}
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -361,7 +361,7 @@ export function IntakeFlow() {
                 <p
                   id="step-hint"
                   role="status"
-                  className="text-right text-xs text-slate-400"
+                  className="text-right text-xs text-muted-text/70"
                 >
                   {hint}
                 </p>
@@ -373,14 +373,14 @@ export function IntakeFlow() {
 
       {usesCustomNav && safeStepIndex > 0 && (
         <div
-          className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-200 bg-white px-6 py-3"
+          className="fixed bottom-0 left-0 right-0 z-20 border-t border-subtle bg-surface-card px-6 py-3"
           style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
         >
           <div className="mx-auto flex max-w-2xl items-center justify-start">
             <Button
               variant="outline"
               onClick={back}
-              className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50"
+              className="gap-2 border-subtle text-muted-text hover:bg-surface-alt"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Back

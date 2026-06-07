@@ -24,7 +24,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
     <div
       role="group"
       aria-label="Language / Langue"
-      className={cn('flex items-center gap-0.5 rounded-full border border-slate-200 bg-slate-50 p-0.5', className)}
+      className={cn('flex items-center gap-0.5 rounded-full border border-subtle bg-surface-alt p-0.5', className)}
     >
       {ALL_LOCALES.map((code) => (
         <button
@@ -36,8 +36,8 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           className={cn(
             'rounded-full px-3 py-1 text-xs font-semibold transition-all',
             locale === code
-              ? 'bg-[#0B1F3A] text-white shadow-sm'
-              : 'text-slate-500 hover:text-[#0B1F3A]'
+              ? 'bg-navly-navy text-white shadow-sm'
+              : 'text-muted-text hover:text-heading'
           )}
         >
           {code.toUpperCase()}

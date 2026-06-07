@@ -11,20 +11,20 @@ const LAST_UPDATED = 'May 4, 2026'
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0B1F3A]">
-      <header className="border-b border-slate-200 bg-white px-6 py-4">
+    <div className="min-h-screen bg-surface text-heading">
+      <header className="border-b border-subtle bg-surface-card px-6 py-4">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <Link href="/" className="pt-1">
             <NavlyLogo size="sm" />
           </Link>
-          <Link href="/dashboard" className="text-sm pt-3 text-slate-600 hover:text-[#0B1F3A]">Back to app</Link>
+          <Link href="/dashboard" className="text-sm pt-3 text-muted-text hover:text-heading">Back to app</Link>
         </div>
       </header>
 
       <main className="mx-auto max-w-3xl px-6 py-6">
-        <p className="text-sm font-bold uppercase tracking-wide text-[#D62828]">Legal</p>
+        <p className="text-sm font-bold uppercase tracking-wide text-navly-red">Legal</p>
         <h1 className="mt-2 text-4xl font-bold tracking-tight">Terms of Service</h1>
-        <p className="mt-3 text-sm text-slate-500">Last updated: {LAST_UPDATED}</p>
+        <p className="mt-3 text-sm text-muted-text">Last updated: {LAST_UPDATED}</p>
 
         <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-7 text-amber-900">
           <p className="font-bold">Important — please read before using Navly</p>
@@ -36,14 +36,14 @@ export default function TermsPage() {
           </p>
         </div>
 
-        <div className="mt-10 flex flex-col gap-10 text-sm leading-7 text-slate-700">
+        <div className="mt-10 flex flex-col gap-10 text-sm leading-7 text-muted-text">
 
           <section>
-            <h2 className="text-lg font-bold text-[#0B1F3A]">1. Acceptance of terms</h2>
+            <h2 className="text-lg font-bold text-heading">1. Acceptance of terms</h2>
             <p className="mt-3">
               By accessing or using Navly (&ldquo;the Service&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;),
               you agree to be bound by these Terms of Service and our{' '}
-              <Link href="/privacy" className="font-semibold text-[#D62828] hover:underline">Privacy Policy</Link>.
+              <Link href="/privacy" className="font-semibold text-navly-red hover:underline">Privacy Policy</Link>.
               If you do not agree, do not use Navly.
             </p>
             <p className="mt-3">
@@ -53,9 +53,9 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0B1F3A]">2. What Navly is — and is not</h2>
+            <h2 className="text-lg font-bold text-heading">2. What Navly is — and is not</h2>
 
-            <h3 className="mt-4 font-semibold text-[#0B1F3A]">Navly is</h3>
+            <h3 className="mt-4 font-semibold text-heading">Navly is</h3>
             <ul className="mt-2 list-disc space-y-1 pl-5">
               <li>An educational tool to help you understand possible Canadian immigration pathways</li>
               <li>A calculator for estimated CRS scores, FSW grid scores, and CLB equivalencies</li>
@@ -63,7 +63,7 @@ export default function TermsPage() {
               <li>A directory to help you find certified immigration consultants</li>
             </ul>
 
-            <h3 className="mt-4 font-semibold text-[#0B1F3A]">Navly is not</h3>
+            <h3 className="mt-4 font-semibold text-heading">Navly is not</h3>
             <ul className="mt-2 list-disc space-y-1 pl-5">
               <li>A Regulated Canadian Immigration Consultant (RCIC) or law firm</li>
               <li>A government agency or affiliated with IRCC</li>
@@ -81,7 +81,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0B1F3A]">3. Not legal advice</h2>
+            <h2 className="text-lg font-bold text-heading">3. Not legal advice</h2>
             <p className="mt-3">
               Nothing on Navly — including scores, pathway assessments, task lists, AI assistant
               responses, or consultant listings — constitutes legal advice. No attorney-client or
@@ -100,7 +100,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0B1F3A]">4. Your account and responsibilities</h2>
+            <h2 className="text-lg font-bold text-heading">4. Your account and responsibilities</h2>
             <p className="mt-3">When you create an account or use Navly, you agree to:</p>
             <ul className="mt-3 list-disc space-y-1 pl-5">
               <li>Provide accurate information to the best of your ability</li>
@@ -116,7 +116,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0B1F3A]">5. Consultant listings</h2>
+            <h2 className="text-lg font-bold text-heading">5. Consultant listings</h2>
             <p className="mt-3">
               Consultants listed on Navly are independent professionals. They are not employees,
               agents, or partners of Navly. Navly does not endorse any individual consultant or
@@ -135,10 +135,10 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0B1F3A]">6. Payment and refunds</h2>
+            <h2 className="text-lg font-bold text-heading">6. Payment and refunds</h2>
             <p className="mt-3">
               Paid features (Personalized Report and PR Tracker) are charged as described on the{' '}
-              <Link href="/pricing" className="font-semibold text-[#D62828] hover:underline">pricing page</Link>.
+              <Link href="/pricing" className="font-semibold text-navly-red hover:underline">pricing page</Link>.
               All prices are in Canadian dollars (CAD) and include applicable taxes.
             </p>
             <p className="mt-3">
@@ -148,7 +148,7 @@ export default function TermsPage() {
             </p>
             <p className="mt-3">
               If you are not satisfied with a one-time Report purchase, contact us at{' '}
-              <a href="mailto:support@navly.ca" className="font-semibold text-[#D62828] hover:underline">
+              <a href="mailto:support@navly.ca" className="font-semibold text-navly-red hover:underline">
                 support@navly.ca
               </a>{' '}
               within 7 days and we will review your request.
@@ -156,7 +156,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0B1F3A]">7. Limitation of liability</h2>
+            <h2 className="text-lg font-bold text-heading">7. Limitation of liability</h2>
             <p className="mt-3">
               To the maximum extent permitted by applicable law, Navly and its owners, employees,
               and contractors are not liable for:
@@ -175,7 +175,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0B1F3A]">8. Intellectual property</h2>
+            <h2 className="text-lg font-bold text-heading">8. Intellectual property</h2>
             <p className="mt-3">
               All content, design, code, and scoring logic on Navly is owned by Navly and protected
               by copyright. You may not reproduce, distribute, or create derivative works without
@@ -188,7 +188,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0B1F3A]">9. Governing law</h2>
+            <h2 className="text-lg font-bold text-heading">9. Governing law</h2>
             <p className="mt-3">
               These Terms are governed by the laws of Canada and the Province of Ontario, without
               regard to conflict of law provisions. Any disputes arising from these Terms or use of
@@ -197,12 +197,12 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#0B1F3A]">10. Contact us</h2>
+            <h2 className="text-lg font-bold text-heading">10. Contact us</h2>
             <p className="mt-3">Questions about these Terms?</p>
             <p className="mt-2">
               <strong>Navly</strong><br />
               Email:{' '}
-              <a href="mailto:legal@navly.ca" className="text-[#D62828] hover:underline">
+              <a href="mailto:legal@navly.ca" className="text-navly-red hover:underline">
                 legal@navly.ca
               </a>
             </p>
@@ -211,12 +211,12 @@ export default function TermsPage() {
         </div>
       </main>
 
-      <footer className="border-t border-slate-200 bg-white px-6 py-8 text-center text-xs text-slate-400">
+      <footer className="border-t border-subtle bg-surface-card px-6 py-8 text-center text-xs text-muted-text/70">
         <p>© {new Date().getFullYear()} Navly. All rights reserved.</p>
         <div className="mt-2 flex justify-center gap-4">
-          <Link href="/privacy" className="hover:text-[#0B1F3A]">Privacy Policy</Link>
-          <Link href="/terms" className="hover:text-[#0B1F3A]">Terms of Service</Link>
-          <Link href="/pricing" className="hover:text-[#0B1F3A]">Pricing</Link>
+          <Link href="/privacy" className="hover:text-heading">Privacy Policy</Link>
+          <Link href="/terms" className="hover:text-heading">Terms of Service</Link>
+          <Link href="/pricing" className="hover:text-heading">Pricing</Link>
         </div>
       </footer>
     </div>

@@ -30,13 +30,13 @@ export function StepSpouseLanguage({ data, onChange }: {
 }) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Your spouse / partner's details</h1>
-      <p className="mt-2 text-slate-500">When your spouse accompanies you, their language, education, and Canadian experience add up to 40 bonus CRS points.</p>
+      <h1 className="text-3xl font-bold text-heading">Your spouse / partner's details</h1>
+      <p className="mt-2 text-muted-text">When your spouse accompanies you, their language, education, and Canadian experience add up to 40 bonus CRS points.</p>
       <div className="mt-8 flex flex-col gap-8">
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
+          <Label className="text-sm font-semibold text-heading">
             Spouse's language test
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Skip if no test taken — they will contribute 0 language points.</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Skip if no test taken — they will contribute 0 language points.</span>
           </Label>
           {langTestOptions.map((opt) => (
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc}
@@ -59,20 +59,20 @@ export function StepSpouseLanguage({ data, onChange }: {
         )}
 
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">Spouse's highest education</Label>
+          <Label className="text-sm font-semibold text-heading">Spouse's highest education</Label>
           {educationOptions.map((opt) => (
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.spouseEducationLevel === opt.value} onClick={() => onChange({ spouseEducationLevel: opt.value })} />
           ))}
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="spouseCanWork" className="text-sm font-semibold text-[#0B1F3A]">
+          <Label htmlFor="spouseCanWork" className="text-sm font-semibold text-heading">
             Spouse's skilled Canadian work experience (months)
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">TEER 0–3 only. Enter 0 if none.</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">TEER 0–3 only. Enter 0 if none.</span>
           </Label>
           <Input id="spouseCanWork" type="number" min={0} max={120} placeholder="e.g. 0"
             value={data.spouseCanadianWorkMonths} onChange={(e) => onChange({ spouseCanadianWorkMonths: e.target.value })}
-            className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+            className="max-w-xs rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red" />
         </div>
       </div>
     </div>
@@ -83,12 +83,12 @@ function TestDateField({ id, value, onChange }: { id: string; value: string; onC
   const status = getTestDateStatus(value)
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor={id} className="text-sm font-semibold text-[#0B1F3A]">
+      <Label htmlFor={id} className="text-sm font-semibold text-heading">
         Exact test date
-        <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Test results must be less than 2 years old for Express Entry. Day precision tracks this exactly.</span>
+        <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Test results must be less than 2 years old for Express Entry. Day precision tracks this exactly.</span>
       </Label>
       <Input id={id} type="date" value={value} onChange={(e) => onChange(e.target.value)}
-        className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]" />
+        className="max-w-xs rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading focus-visible:ring-navly-red" />
       {status && (
         <p className={`text-sm font-medium ${status.warning ? 'text-amber-600' : 'text-emerald-600'}`}>
           {status.label}
@@ -122,17 +122,17 @@ export function StepLanguage({ data, onChange }: {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Language test results</h1>
-      <p className="mt-2 text-slate-500">
+      <h1 className="text-3xl font-bold text-heading">Language test results</h1>
+      <p className="mt-2 text-muted-text">
         Language is the highest-value CRS factor. Accepted tests: IELTS General Training, CELPIP-General, PTE Core (English) and TEF Canada, TCF Canada (French). Results must be less than 2 years old.
       </p>
       <div className="mt-6 flex flex-col gap-8">
 
         {/* First official language */}
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
+          <Label className="text-sm font-semibold text-heading">
             First official language
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">The language you claim as your primary for CRS scoring. Most applicants claim English.</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">The language you claim as your primary for CRS scoring. Most applicants claim English.</span>
           </Label>
           {[
             { value: 'english', label: 'English', desc: 'Claim English as my first official language' },
@@ -153,7 +153,7 @@ export function StepLanguage({ data, onChange }: {
         {hasFirstLang && (
           <>
             <div className="flex flex-col gap-3">
-              <Label className="text-sm font-semibold text-[#0B1F3A]">
+              <Label className="text-sm font-semibold text-heading">
                 {isEnglishFirst ? 'English test' : 'French test'}
               </Label>
               {firstTestOptions.map((opt) => (
@@ -195,11 +195,11 @@ export function StepLanguage({ data, onChange }: {
 
         {/* Second official language */}
         {hasFirstLang && (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-            <p className="text-sm font-semibold text-[#0B1F3A]">
+          <div className="rounded-2xl border border-subtle bg-surface-alt p-5">
+            <p className="text-sm font-semibold text-heading">
               Second official language — optional
             </p>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-muted-text">
               Adding a {isEnglishFirst ? 'French' : 'English'} test can add up to <span className="font-semibold">24 bonus CRS points</span> for bilingualism.
               {isEnglishFirst && ' French scores also open French category Express Entry draws.'}
             </p>

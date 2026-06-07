@@ -20,34 +20,34 @@ export function StepPersonal({ data, onChange }: {
   const hasPartner = data.maritalStatus === 'married' || data.maritalStatus === 'common-law'
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Personal details</h1>
-      <p className="mt-2 text-slate-500">Age, marital status, and family ties directly affect your CRS score and pathway options.</p>
+      <h1 className="text-3xl font-bold text-heading">Personal details</h1>
+      <p className="mt-2 text-muted-text">Age, marital status, and family ties directly affect your CRS score and pathway options.</p>
       <div className="mt-4 flex flex-col gap-3">
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="age" className="text-sm font-semibold text-[#0B1F3A]">Your age</Label>
+          <Label htmlFor="age" className="text-sm font-semibold text-heading">Your age</Label>
           <Input id="age" type="number" min={18} max={80} placeholder="e.g. 29" value={data.age}
             onChange={(e) => onChange({ age: e.target.value })}
-            className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+            className="max-w-xs rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red" />
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="origin" className="text-sm font-semibold text-[#0B1F3A]">Country of citizenship</Label>
+          <Label htmlFor="origin" className="text-sm font-semibold text-heading">Country of citizenship</Label>
           <CountrySelect id="origin" value={data.originCountry} onChange={(v) => onChange({ originCountry: v })} placeholder="Select your country of citizenship…" />
         </div>
 
         {data.locationStatus === 'outside' && (
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="currentCountry" className="text-sm font-semibold text-[#0B1F3A]">
+            <Label htmlFor="currentCountry" className="text-sm font-semibold text-heading">
               Country you are currently in
-              <span className="ml-1.5 text-xs font-normal text-slate-400">Optional</span>
+              <span className="ml-1.5 text-xs font-normal text-muted-text/70">Optional</span>
             </Label>
             <CountrySelect id="currentCountry" value={data.currentCountry} onChange={(v) => onChange({ currentCountry: v })} placeholder="Select your current country…" />
           </div>
         )}
 
         <div className="flex flex-col gap-2">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">Marital status</Label>
+          <Label className="text-sm font-semibold text-heading">Marital status</Label>
           {maritalOptions.map((opt) => (
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc}
               selected={data.maritalStatus === opt.value}
@@ -57,9 +57,9 @@ export function StepPersonal({ data, onChange }: {
 
         {hasPartner && (
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Will your spouse / partner come to Canada with you?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Adds up to 40 bonus CRS points based on their language, education, and Canadian work experience.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Adds up to 40 bonus CRS points based on their language, education, and Canadian work experience.</span>
             </Label>
             {[
               { value: 'yes', label: 'Yes', desc: 'They will accompany me' },
@@ -71,9 +71,9 @@ export function StepPersonal({ data, onChange }: {
         )}
 
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
+          <Label className="text-sm font-semibold text-heading">
             Do you have a brother or sister who is a Canadian citizen or permanent resident?
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Adds 15 CRS adaptability points.</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Adds 15 CRS adaptability points.</span>
           </Label>
           {[
             { value: 'yes', label: 'Yes', desc: 'I have a sibling who is a Canadian citizen or PR' },
@@ -94,19 +94,19 @@ export function StepCanadaDates({ data, onChange }: {
   const today = new Date().toISOString().slice(0, 10)
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Your time in Canada</h1>
-      <p className="mt-2 text-slate-500">
+      <h1 className="text-3xl font-bold text-heading">Your time in Canada</h1>
+      <p className="mt-2 text-muted-text">
         Your arrival date is used to calculate your exact days in Canada for PR and citizenship planning. Your permit expiry is used to send you renewal reminders.
       </p>
       <div className="mt-4 flex flex-col gap-3 overflow-hidden">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="province" className="text-sm font-semibold text-[#0B1F3A]">
+          <Label htmlFor="province" className="text-sm font-semibold text-heading">
             Province / Territory you are in
-            <span className="ml-1.5 text-xs font-normal text-[#D62828]">Required for PNP scoring</span>
+            <span className="ml-1.5 text-xs font-normal text-navly-red">Required for PNP scoring</span>
           </Label>
           <div className="relative">
             <select id="province" value={data.province} onChange={(e) => onChange({ province: e.target.value })}
-              className={cn(selectClass, !data.province && 'text-slate-400')}>
+              className={cn(selectClass, !data.province && 'text-muted-text/70')}>
               <option value="" disabled>Select province or territory…</option>
               {CA_PROVINCES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
             </select>
@@ -115,24 +115,24 @@ export function StepCanadaDates({ data, onChange }: {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="arrivalDate" className="text-sm font-semibold text-[#0B1F3A]">
+          <Label htmlFor="arrivalDate" className="text-sm font-semibold text-heading">
             Date you arrived in Canada
           </Label>
           <Input id="arrivalDate" type="date" max={today} value={data.arrivalDate}
             onChange={(e) => onChange({ arrivalDate: e.target.value })}
-            className="block w-full min-w-0 rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]" />
-          <p className="text-xs text-slate-400">Your days in Canada are calculated from this date. Every trip abroad is subtracted automatically.</p>
+            className="block w-full min-w-0 rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading focus-visible:ring-navly-red" />
+          <p className="text-xs text-muted-text/70">Your days in Canada are calculated from this date. Every trip abroad is subtracted automatically.</p>
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="visaExpiry" className="text-sm font-semibold text-[#0B1F3A]">
+          <Label htmlFor="visaExpiry" className="text-sm font-semibold text-heading">
             Visa / permit expiry date
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">We use this to send you renewal reminders at 90 and 30 days before expiry.</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">We use this to send you renewal reminders at 90 and 30 days before expiry.</span>
           </Label>
           <Input id="visaExpiry" type="date" min={today} value={data.visaExpiryDate}
             onChange={(e) => onChange({ visaExpiryDate: e.target.value })}
-            className="block w-full min-w-0 rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]" />
-          <p className="text-xs text-slate-400">Applies to study permits, work permits, visitor visas, and TRPs. You will get a task reminder at 90 days and 30 days before expiry.</p>
+            className="block w-full min-w-0 rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading focus-visible:ring-navly-red" />
+          <p className="text-xs text-muted-text/70">Applies to study permits, work permits, visitor visas, and TRPs. You will get a task reminder at 90 days and 30 days before expiry.</p>
         </div>
       </div>
     </div>

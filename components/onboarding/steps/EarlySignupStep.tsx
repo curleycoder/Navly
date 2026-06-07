@@ -133,18 +133,18 @@ export function StepEarlySignup({ data, onComplete }: StepEarlySignupProps) {
 
   return (
     <div>
-      <div className="mb-2 flex items-center gap-2 text-[#D62828]">
+      <div className="mb-2 flex items-center gap-2 text-navly-red">
         <Sparkles className="h-5 w-5" aria-hidden="true" />
         <span className="text-sm font-semibold uppercase tracking-wide">
           Early result
         </span>
       </div>
 
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">
+      <h1 className="text-3xl font-bold text-heading">
         Here is what we see so far
       </h1>
 
-      <p className="mt-2 text-slate-500">
+      <p className="mt-2 text-muted-text">
         Based on your answers, these pathways may be relevant. Create a free
         account to save your result and continue your full PR check.
       </p>
@@ -157,11 +157,11 @@ export function StepEarlySignup({ data, onComplete }: StepEarlySignupProps) {
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="font-semibold text-[#0B1F3A]">
+                <p className="font-semibold text-heading">
                   {pathway.label}
                 </p>
 
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-sm text-muted-text">
                   {pathway.desc}
                 </p>
               </div>
@@ -176,13 +176,13 @@ export function StepEarlySignup({ data, onComplete }: StepEarlySignupProps) {
         ))}
       </div>
 
-      <div className="mt-4 flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <div className="mt-4 flex items-start gap-2 rounded-xl border border-subtle bg-surface-alt p-3">
         <AlertTriangle
-          className="mt-0.5 h-4 w-4 shrink-0 text-slate-400"
+          className="mt-0.5 h-4 w-4 shrink-0 text-muted-text/70"
           aria-hidden="true"
         />
 
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-muted-text">
           This is only an early estimate. Your full result depends on your
           language score, education, work experience, province, and background
           details.
@@ -191,11 +191,11 @@ export function StepEarlySignup({ data, onComplete }: StepEarlySignupProps) {
 
       <div className="relative my-8">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-200" />
+          <div className="w-full border-t border-subtle" />
         </div>
 
         <div className="relative flex justify-center">
-          <span className="bg-white px-4 text-sm font-semibold text-[#0B1F3A]">
+          <span className="bg-surface-card px-4 text-sm font-semibold text-heading">
             Save your progress
           </span>
         </div>

@@ -33,7 +33,7 @@ export function ScoreTimelineChart() {
   if (history.length < 2) {
     return (
       <div className="mt-6 w-full text-center px-4">
-        <p className="text-xs text-slate-400 font-medium">
+        <p className="text-xs text-muted-text/70 font-medium">
           Update your score simulating "What-Ifs" to build your progress timeline.
         </p>
       </div>
@@ -46,8 +46,8 @@ export function ScoreTimelineChart() {
   return (
     <div className="mt-8 w-full animate-fade-in flex flex-col px-2">
        <div className="flex items-center justify-between mb-3 w-full">
-         <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-100 rounded-full text-[10px] font-bold text-slate-500 uppercase tracking-wide">
-           <LineChart className="h-3.5 w-3.5 text-[#D62828]" /> History
+         <div className="flex items-center gap-1.5 px-3 py-1 bg-surface-alt border border-subtle/50 rounded-full text-[10px] font-bold text-muted-text uppercase tracking-wide">
+           <LineChart className="h-3.5 w-3.5 text-navly-red" /> History
          </div>
          {latestGain !== 0 && (
            <span className={`text-[11px] font-bold ${latestGain > 0 ? 'text-green-600 bg-green-50' : 'text-red-500 bg-red-50'} px-2 py-0.5 rounded flex items-center gap-1`}>
@@ -62,21 +62,21 @@ export function ScoreTimelineChart() {
              {/* Subtle gradient under line */}
              <defs>
                <linearGradient id="lineFill" x1="0" y1="0" x2="0" y2="1">
-                 <stop offset="0%" stopColor="#D62828" stopOpacity="0.2" />
-                 <stop offset="100%" stopColor="#D62828" stopOpacity="0" />
+                 <stop offset="0%" stopColor="var(--navly-red)" stopOpacity="0.2" />
+                 <stop offset="100%" stopColor="var(--navly-red)" stopOpacity="0" />
                </linearGradient>
              </defs>
              {points && <path d={`${pathD} L ${points[points.length-1].x},85 L ${points[0].x},85 Z`} fill="url(#lineFill)" stroke="none" />}
              
              {/* The line itself */}
-             <path d={pathD} fill="none" stroke="#D62828" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+             <path d={pathD} fill="none" stroke="var(--navly-red)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
              
              {points?.map((p, i) => (
                <g key={i}>
-                 <circle cx={p.x} cy={p.y} r="4" fill="white" stroke="#0B1F3A" strokeWidth="2" className="transition-all cursor-pointer" />
+                 <circle cx={p.x} cy={p.y} r="4" fill="var(--page-card)" stroke="var(--navly-navy)" strokeWidth="2" className="transition-all cursor-pointer" />
                  {/* Only label first and last, or all if short */}
                  {(i === points.length - 1 || i === 0 || history.length < 4) && (
-                   <text x={p.x} y={p.y - 12} fontSize="12" fontWeight="bold" fill="#0B1F3A" textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"}>
+                   <text x={p.x} y={p.y - 12} fontSize="12" fontWeight="bold" fill="var(--navly-navy)" textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"}>
                      {p.score}
                    </text>
                  )}

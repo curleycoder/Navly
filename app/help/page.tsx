@@ -62,32 +62,32 @@ const FEATURES = [
 
 export default function HelpPage() {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0B1F3A]">
-      <header className="border-b border-slate-200 bg-white px-6 py-4">
+    <div className="min-h-screen bg-surface text-heading">
+      <header className="border-b border-subtle bg-surface-card px-6 py-4">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <Link href="/" className="pt-1">
             <NavlyLogo size="sm" />
           </Link>
-          <Link href="/dashboard" className="text-sm pt-3 text-slate-600 hover:text-[#0B1F3A]">Back to app</Link>
+          <Link href="/dashboard" className="text-sm pt-3 text-muted-text hover:text-heading">Back to app</Link>
         </div>
       </header>
 
       <main className="mx-auto max-w-3xl px-6 py-6">
-        <p className="text-sm font-bold uppercase tracking-wide text-[#D62828]">Support</p>
+        <p className="text-sm font-bold uppercase tracking-wide text-navly-red">Support</p>
         <h1 className="mt-2 text-4xl font-bold tracking-tight">Help Center</h1>
-        <p className="mt-3 text-slate-500 text-sm leading-6">
+        <p className="mt-3 text-muted-text text-sm leading-6">
           Quick answers about how Navly works. For legal immigration advice, contact a certified consultant.
         </p>
 
         {/* Feature overview */}
         <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
           {FEATURES.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0B1F3A]/5">
-                <Icon className="h-4 w-4 text-[#0B1F3A]" />
+            <div key={title} className="rounded-2xl border border-subtle bg-surface-card p-4">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-navly-navy/5">
+                <Icon className="h-4 w-4 text-heading" />
               </div>
               <p className="mt-3 text-sm font-bold">{title}</p>
-              <p className="mt-1 text-xs leading-5 text-slate-500">{desc}</p>
+              <p className="mt-1 text-xs leading-5 text-muted-text">{desc}</p>
             </div>
           ))}
         </div>
@@ -98,17 +98,17 @@ export default function HelpPage() {
           {FAQS.map(({ q, a }) => (
             <details
               key={q}
-              className="group rounded-2xl border border-slate-200 bg-white px-5 py-4 open:pb-5"
+              className="group rounded-2xl border border-subtle bg-surface-card px-5 py-4 open:pb-5"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-[#0B1F3A] marker:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-heading marker:hidden">
                 {q}
-                <span className="shrink-0 text-slate-400 transition group-open:rotate-180">
+                <span className="shrink-0 text-muted-text/70 transition group-open:rotate-180">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </span>
               </summary>
-              <p className="mt-3 text-sm leading-7 text-slate-600">{a}</p>
+              <p className="mt-3 text-sm leading-7 text-muted-text">{a}</p>
             </details>
           ))}
         </div>
@@ -123,12 +123,12 @@ export default function HelpPage() {
         </div>
 
         {/* Contact */}
-        <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 text-center">
+        <div className="mt-10 rounded-2xl border border-subtle bg-surface-card p-6 text-center">
           <p className="font-bold">Still have a question?</p>
-          <p className="mt-1 text-sm text-slate-500">Our team typically responds within 2 business days.</p>
+          <p className="mt-1 text-sm text-muted-text">Our team typically responds within 2 business days.</p>
           <a
             href="mailto:support@navly.ca"
-            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#0B1F3A] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0B1F3A]/90"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-navly-navy px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-navly-navy/90"
           >
             <MessageCircle className="h-4 w-4" />
             Email support@navly.ca

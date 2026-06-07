@@ -60,8 +60,8 @@ function buildSummaryText(profile: IntakeData | null, score: ScoreResult | null,
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs text-slate-500">{label}</dt>
-      <dd className="mt-0.5 text-sm font-semibold text-[#0B1F3A]">{value}</dd>
+      <dt className="text-xs text-muted-text">{label}</dt>
+      <dd className="mt-0.5 text-sm font-semibold text-heading">{value}</dd>
     </div>
   )
 }
@@ -69,7 +69,7 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 function SummarySection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-400">{title}</h3>
+      <h3 className="mb-3 t-eyebrow text-muted-text/70">{title}</h3>
       {children}
     </div>
   )
@@ -135,8 +135,8 @@ export default function ConsultantsPage() {
       <div className="mb-8">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <h2 className="mb-1 text-base font-bold text-[#0B1F3A]">Consultation checklist</h2>
-            <p className="text-sm text-slate-500">A clean summary of your situation to share with a consultant or lawyer.</p>
+            <h2 className="mb-1 t-section-title">Consultation checklist</h2>
+            <p className="text-sm text-muted-text">A clean summary of your situation to share with a consultant or lawyer.</p>
           </div>
           {!isPaid && (
             <span className="flex shrink-0 items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
@@ -155,45 +155,45 @@ export default function ConsultantsPage() {
                 { label: 'Download', icon: Download, action: downloadTxt },
                 { label: 'Print', icon: Printer, action: () => window.print() },
               ].map(({ label, icon: Icon, action }) => (
-                <Button key={label} onClick={action} variant="outline" size="sm" className="gap-1.5 border-slate-200 text-slate-600 hover:border-[#0B1F3A] hover:text-[#0B1F3A]">
+                <Button key={label} onClick={action} variant="outline" size="sm" className="gap-1.5 border-subtle text-muted-text hover:border-navly-navy hover:text-heading">
                   <Icon className="h-3.5 w-3.5" />{label}
                 </Button>
               ))}
             </div>
 
-            <Card className="rounded-2xl border-slate-200 bg-white">
+            <Card className="rounded-2xl border-subtle bg-surface-card">
               <CardContent className="p-5 sm:p-6">
                 {profile ? (
                   <>
                     <div className="mb-5 grid gap-3 sm:grid-cols-3">
-                      <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0B1F3A]/8">
-                          <Briefcase className="h-3.5 w-3.5 text-[#0B1F3A]" />
+                      <div className="flex items-center gap-3 rounded-xl border border-subtle bg-surface-alt p-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-navly-navy/8">
+                          <Briefcase className="h-3.5 w-3.5 text-heading" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs text-slate-500">Status</p>
-                          <p className="truncate text-sm font-bold text-[#0B1F3A]">{statusLabels[profile.status] ?? profile.status}</p>
+                          <p className="text-xs text-muted-text">Status</p>
+                          <p className="truncate t-section-title">{statusLabels[profile.status] ?? profile.status}</p>
                         </div>
                       </div>
                       {score?.hasEnoughData && score.crs && (
-                        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#D62828]/10">
-                            <TrendingUp className="h-3.5 w-3.5 text-[#D62828]" />
+                        <div className="flex items-center gap-3 rounded-xl border border-subtle bg-surface-alt p-3">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-navly-red/10">
+                            <TrendingUp className="h-3.5 w-3.5 text-navly-red" />
                           </div>
                           <div>
-                            <p className="text-xs text-slate-500">CRS Score</p>
-                            <p className="text-sm font-bold text-[#0B1F3A]">{score.crs.total}</p>
+                            <p className="text-xs text-muted-text">CRS Score</p>
+                            <p className="t-section-title">{score.crs.total}</p>
                           </div>
                         </div>
                       )}
                       {score?.pathways?.[0] && (
-                        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                        <div className="flex items-center gap-3 rounded-xl border border-subtle bg-surface-alt p-3">
                           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
                             <Target className="h-3.5 w-3.5 text-emerald-600" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-xs text-slate-500">Top pathway</p>
-                            <p className="truncate text-sm font-bold text-[#0B1F3A]">{score.pathways[0].name}</p>
+                            <p className="text-xs text-muted-text">Top pathway</p>
+                            <p className="truncate t-section-title">{score.pathways[0].name}</p>
                           </div>
                         </div>
                       )}
@@ -201,8 +201,8 @@ export default function ConsultantsPage() {
                     <Separator className="mb-5" />
                   </>
                 ) : (
-                  <p className="mb-5 text-sm text-slate-400">
-                    <a href="/onboarding" className="font-semibold text-[#D62828] hover:underline">Complete your profile</a> to populate this summary.
+                  <p className="mb-5 text-sm text-muted-text/70">
+                    <a href="/onboarding" className="font-semibold text-navly-red hover:underline">Complete your profile</a> to populate this summary.
                   </p>
                 )}
                 <SummarySection title="Immigration profile">
@@ -214,7 +214,7 @@ export default function ConsultantsPage() {
                       <SummaryRow label="Main goal" value={goalLabels[profile.goal] ?? profile.goal} />
                     </dl>
                   ) : (
-                    <p className="text-sm text-slate-400">No profile found. <a href="/onboarding" className="font-semibold text-[#D62828] hover:underline">Complete the intake</a> to populate this.</p>
+                    <p className="text-sm text-muted-text/70">No profile found. <a href="/onboarding" className="font-semibold text-navly-red hover:underline">Complete the intake</a> to populate this.</p>
                   )}
                 </SummarySection>
 
@@ -228,20 +228,20 @@ export default function ConsultantsPage() {
                       </div>
                       {score.pathways.length > 0 && (
                         <div className="mt-3">
-                          <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">Pathway eligibility</p>
+                          <p className="mb-1.5 t-eyebrow text-muted-text/70">Pathway eligibility</p>
                           <ul className="flex flex-col gap-1">
                             {score.pathways.map((p) => (
-                              <li key={p.id} className="text-sm text-slate-700"><span className="font-semibold text-[#0B1F3A]">{p.name}:</span> {p.reason}</li>
+                              <li key={p.id} className="text-sm text-muted-text"><span className="font-semibold text-heading">{p.name}:</span> {p.reason}</li>
                             ))}
                           </ul>
                         </div>
                       )}
                       {score.improvements.length > 0 && (
                         <div className="mt-3">
-                          <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">Top improvements</p>
+                          <p className="mb-1.5 t-eyebrow text-muted-text/70">Top improvements</p>
                           <ul className="flex flex-col gap-1">
                             {score.improvements.slice(0, 3).map((imp, i) => (
-                              <li key={i} className="text-sm text-slate-700">• <span className="font-semibold">{imp.label}</span> <span className="text-green-700">({imp.impact})</span></li>
+                              <li key={i} className="text-sm text-muted-text">• <span className="font-semibold">{imp.label}</span> <span className="text-green-700">({imp.impact})</span></li>
                             ))}
                           </ul>
                         </div>
@@ -253,8 +253,8 @@ export default function ConsultantsPage() {
                 <Separator className="my-5" />
                 <SummarySection title="Days in Canada">
                   <div className="flex gap-6">
-                    <div><dt className="text-xs text-slate-500">Streak</dt><dd className="mt-0.5 text-sm font-semibold text-[#0B1F3A]">{presence.streak} day{presence.streak !== 1 ? 's' : ''}</dd></div>
-                    <div><dt className="text-xs text-slate-500">Total logged</dt><dd className="mt-0.5 text-sm font-semibold text-[#0B1F3A]">{presence.totalDays}</dd></div>
+                    <div><dt className="text-xs text-muted-text">Streak</dt><dd className="mt-0.5 text-sm font-semibold text-heading">{presence.streak} day{presence.streak !== 1 ? 's' : ''}</dd></div>
+                    <div><dt className="text-xs text-muted-text">Total logged</dt><dd className="mt-0.5 text-sm font-semibold text-heading">{presence.totalDays}</dd></div>
                   </div>
                 </SummarySection>
 
@@ -263,7 +263,7 @@ export default function ConsultantsPage() {
                     <Separator className="my-5" />
                     <SummarySection title="Open tasks">
                       <ul className="flex flex-col gap-1">
-                        {pendingTasks.map((t) => <li key={t.id} className="text-sm text-slate-700">☐ {t.title}</li>)}
+                        {pendingTasks.map((t) => <li key={t.id} className="text-sm text-muted-text">☐ {t.title}</li>)}
                       </ul>
                     </SummarySection>
                   </>
@@ -275,33 +275,33 @@ export default function ConsultantsPage() {
                     placeholder="Write down the questions you want to ask during your consultation…"
                     value={notes}
                     onChange={(e) => handleNotesChange(e.target.value)}
-                    className="min-h-28 rounded-xl border-slate-200 bg-white text-sm text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
+                    className="min-h-28 rounded-xl border-subtle bg-surface-card text-sm text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red"
                   />
-                  <p className="mt-2 text-xs text-slate-400">Your notes are saved automatically.</p>
+                  <p className="mt-2 text-xs text-muted-text/70">Your notes are saved automatically.</p>
                 </SummarySection>
               </CardContent>
             </Card>
 
-            <div className="mt-3 flex gap-3 rounded-xl border border-[#0B1F3A]/10 bg-[#0B1F3A]/5 p-3 print:hidden">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#0B1F3A]" />
-              <p className="text-xs leading-5 text-slate-600">
+            <div className="mt-3 flex gap-3 rounded-xl border border-navly-navy/10 bg-navly-navy/5 p-3 print:hidden">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-heading" />
+              <p className="text-xs leading-5 text-muted-text">
                 This summary is for organizational purposes only. It does not constitute legal advice and does not replace a licensed immigration consultant or lawyer.
               </p>
             </div>
           </>
         ) : (
           /* Locked state for free users */
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-8 text-center">
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-subtle bg-surface-alt px-6 py-8 text-center">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
               <Lock className="h-4 w-4 text-amber-600" />
             </div>
             <div>
-              <p className="font-bold text-[#0B1F3A]">Unlock your consultation checklist</p>
-              <p className="mt-1 text-sm text-slate-500">Get your Readiness Report to copy, email, download, or print your full profile summary.</p>
+              <p className="font-bold text-heading">Unlock your consultation checklist</p>
+              <p className="mt-1 text-sm text-muted-text">Get your Readiness Report to copy, email, download, or print your full profile summary.</p>
             </div>
             <button
               onClick={() => setShowUpgradeModal(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1F3A] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#162d52] transition-colors"
+              className="inline-flex items-center gap-2 rounded-xl bg-navly-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-navly-navy/80 transition-colors"
             >
               Get Personalized Report — $29.99
             </button>
@@ -311,32 +311,32 @@ export default function ConsultantsPage() {
 
       {/* ── 3. Consultant directory ── */}
       <div className="flex flex-col gap-4">
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-muted-text/70">
           Consultants are independent professionals. Navly does not provide immigration consulting services.
         </p>
 
         {/* Immigration consultants */}
         <div>
           <div className="mb-2 flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0B1F3A]/8">
-              <ShieldCheck className="h-5 w-5 text-[#0B1F3A]" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-navly-navy/8">
+              <ShieldCheck className="h-5 w-5 text-heading" />
             </div>
             <div>
-              <h2 className="mt-2 text-base font-bold text-[#0B1F3A]">Immigration Consultants</h2>
-              <p className="text-xs text-slate-500">Certified RCICs for PR applications, permits, and pathway advice</p>
+              <h2 className="mt-2 t-section-title">Immigration Consultants</h2>
+              <p className="text-xs text-muted-text">Certified RCICs for PR applications, permits, and pathway advice</p>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="rounded-2xl border border-subtle bg-surface-card p-6">
             <div className="mb-2 flex flex-wrap gap-2">
               {['Express Entry', 'Canadian Experience Class', 'PNP streams', 'Work permits', 'Study permits', 'PR applications'].map((tag) => (
-                <span key={tag} className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{tag}</span>
+                <span key={tag} className="rounded-md bg-subtle px-2.5 py-1 text-xs font-semibold text-muted-text">{tag}</span>
               ))}
             </div>
-            <p className="mb-4 text-sm text-slate-600">
+            <p className="mb-4 text-sm text-muted-text">
               Regulated Canadian Immigration Consultants (RCICs) are authorized to advise and represent you in immigration matters. They can review your eligibility, help prepare applications, and guide you through PR pathways.
             </p>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600">
+            <div className="rounded-xl border border-subtle bg-surface-alt px-4 py-3 text-sm font-semibold text-muted-text">
               Immigration consultant listings coming soon — we&apos;re vetting certified RCICs across Canada.
             </div>
           </div>
@@ -349,17 +349,17 @@ export default function ConsultantsPage() {
               <Scale className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="mt-2 text-base font-bold text-[#0B1F3A]">Legal Advisors</h2>
-              <p className="text-xs text-slate-500">Immigration lawyers for refusals, appeals, sponsorships, and complex cases</p>
+              <h2 className="mt-2 t-section-title">Legal Advisors</h2>
+              <p className="text-xs text-muted-text">Immigration lawyers for refusals, appeals, sponsorships, and complex cases</p>
             </div>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="rounded-2xl border border-subtle bg-surface-card p-6">
             <div className="mb-4 flex flex-wrap gap-2">
               {['Refusal appeals', 'Inadmissibility', 'Sponsorship disputes', 'Judicial review', 'Refugee claims', 'PGWP issues'].map((tag) => (
                 <span key={tag} className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">{tag}</span>
               ))}
             </div>
-            <p className="mb-4 text-sm text-slate-600">
+            <p className="mb-4 text-sm text-muted-text">
               Immigration lawyers are licensed to give legal advice and represent you before the Immigration and Refugee Board. They handle high-stakes and complex situations that go beyond what an RCIC can do.
             </p>
             <div className="rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-semibold text-blue-700">
@@ -375,17 +375,17 @@ export default function ConsultantsPage() {
               <DollarSign className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
-              <h2 className="mt-2 text-base font-bold text-[#0B1F3A]">Financial Advisors</h2>
-              <p className="text-xs text-slate-500">Newcomer-focused advisors for settlement funds, tax, and banking</p>
+              <h2 className="mt-2 t-section-title">Financial Advisors</h2>
+              <p className="text-xs text-muted-text">Newcomer-focused advisors for settlement funds, tax, and banking</p>
             </div>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="rounded-2xl border border-subtle bg-surface-card p-6">
             <div className="mb-4 flex flex-wrap gap-2">
               {['Settlement funds planning', 'Newcomer banking', 'Tax filing (T1)', 'RRSP & TFSA setup', 'Credit building', 'Investment accounts'].map((tag) => (
                 <span key={tag} className="rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{tag}</span>
               ))}
             </div>
-            <p className="mb-4 text-sm text-slate-600">
+            <p className="mb-4 text-sm text-muted-text">
               Financial advisors who specialize in newcomers can help you navigate Canadian banking, meet IRCC settlement fund requirements, file your first tax return, and start building credit in Canada.
             </p>
             <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-3 text-sm font-semibold text-emerald-700">

@@ -50,14 +50,14 @@ export function Navbar() {
         <div className="col-start-3 flex items-center justify-end gap-2">
           <Link
             href="/login"
-            className="hidden h-11 items-center justify-center rounded-2xl border border-(--page-border) px-5 text-sm font-bold text-(--page-heading) transition hover:border-[#D62828] hover:text-[#D62828] md:inline-flex"
+            className="hidden h-11 items-center justify-center rounded-2xl border border-(--page-border) px-5 text-sm font-bold text-(--page-heading) transition hover:border-navly-red hover:text-navly-red md:inline-flex"
           >
             Log in
           </Link>
 
           <Link
             href="/onboarding"
-            className="hidden h-11 items-center justify-center gap-2 rounded-2xl bg-[#D62828] px-5 text-sm font-bold text-white transition hover:bg-[#B91C1C] md:inline-flex"
+            className="hidden h-11 items-center justify-center gap-2 rounded-2xl bg-navly-red px-5 text-sm font-bold text-white transition hover:bg-navly-red/80 md:inline-flex"
           >
             Check My PR Pathway <ArrowRight className="h-4 w-4" />
           </Link>
@@ -91,7 +91,7 @@ export function Navbar() {
               <a
                 key={link.href}
                 href={link.href}
-                className="py-3 transition hover:text-[#D62828]"
+                className="py-3 transition hover:text-navly-red"
                 onClick={() => setOpen(false)}
               >
                 {link.label}
@@ -102,7 +102,7 @@ export function Navbar() {
           <div className="mt-5 flex flex-col gap-3">
             <Link
               href="/login"
-              className="inline-flex h-12 items-center justify-center rounded-2xl border border-(--page-border) px-4 text-sm font-bold text-(--page-heading) transition hover:border-[#D62828] hover:text-[#D62828]"
+              className="inline-flex h-12 items-center justify-center rounded-2xl border border-(--page-border) px-4 text-sm font-bold text-(--page-heading) transition hover:border-navly-red hover:text-navly-red"
               onClick={() => setOpen(false)}
             >
               Log in
@@ -110,7 +110,7 @@ export function Navbar() {
 
             <Link
               href="/onboarding"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[#D62828] px-4 text-sm font-bold text-white transition hover:bg-[#B91C1C]"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-navly-red px-4 text-sm font-bold text-white transition hover:bg-navly-red/80"
               onClick={() => setOpen(false)}
             >
               Check My PR Pathway <ArrowRight className="h-4 w-4" />

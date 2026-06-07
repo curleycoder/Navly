@@ -141,7 +141,7 @@ async function handleVerifyPhoneOtp() {
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
         {/* Dark overlay */}
-        <div className="absolute inset-0 bg-[#0B1F3A]/75" />
+        <div className="absolute inset-0 bg-navly-navy/75" />
         <Link href="/" className="relative z-10">
           <NavlyLogo size="sm" variant="light" />
         </Link>
@@ -150,10 +150,10 @@ async function handleVerifyPhoneOtp() {
           <h2 className="text-4xl font-bold leading-tight text-white">
             Your Canadian PR journey, organized.
           </h2>
-          <p className="mt-5 text-slate-200">
+          <p className="mt-5 text-white/70">
             Log in to access your profile, track your Canada days, and see your strongest pathways.
           </p>
-          <ul className="mt-10 flex flex-col gap-3 text-sm text-slate-200">
+          <ul className="mt-10 flex flex-col gap-3 text-sm text-white/70">
             {[
               'Estimated CRS score & gap analysis',
               'Daily Canada presence tracker',
@@ -161,24 +161,24 @@ async function handleVerifyPhoneOtp() {
               'AI assistant for immigration questions',
             ].map((item) => (
               <li key={item} className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#D62828]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-navly-red" />
                 {item}
               </li>
             ))}
           </ul>
         </div>
 
-        <p className="relative mt-80 text-xs text-slate-200">
+        <p className="relative mt-80 text-xs text-white/70">
           Educational tool only — not legal advice. Always consult a licensed RCIC or immigration lawyer.
         </p>
       </div>
 
       {/* ── Right panel — form ── */}
-      <div className="flex flex-1 flex-col bg-[#F8FAFC]">
+      <div className="flex flex-1 flex-col bg-surface">
         {/* Mobile header */}
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 lg:hidden">
+        <header className="flex items-center justify-between border-b border-subtle bg-surface-card px-6 py-4 lg:hidden">
           <Link href="/"><NavlyLogo size="sm" /></Link>
-          <Link href="/" className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-[#0B1F3A]">
+          <Link href="/" className="flex items-center gap-1.5 text-sm font-medium text-muted-text hover:text-heading">
             <ArrowLeft className="h-4 w-4" /> Home
           </Link>
         </header>
@@ -186,20 +186,20 @@ async function handleVerifyPhoneOtp() {
         <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
           {/* Desktop back link */}
           <div className="mb-8 hidden w-full max-w-md lg:block">
-            <Link href="/" className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-[#0B1F3A]">
+            <Link href="/" className="flex items-center gap-1.5 text-sm font-medium text-muted-text hover:text-heading">
               <ArrowLeft className="h-4 w-4" /> Back to home
             </Link>
           </div>
 
           <div className="w-full max-w-md">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-[#0B1F3A]">Welcome back</h1>
-              <p className="mt-2 text-slate-500">Log in to your Navly account to continue.</p>
+              <h1 className="text-3xl font-bold text-heading">Welcome back</h1>
+              <p className="mt-2 text-muted-text">Log in to your Navly account to continue.</p>
             </div>
 
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="email" className="text-sm font-semibold text-[#0B1F3A]">Email address</Label>
+                <Label htmlFor="email" className="text-sm font-semibold text-heading">Email address</Label>
                 <Input
                   id="email"
                   type="email"
@@ -207,17 +207,17 @@ async function handleVerifyPhoneOtp() {
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setError('') }}
                   onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                  className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
+                  className="rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red"
                 />
               </div>
 
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-sm font-semibold text-[#0B1F3A]">Password</Label>
+                  <Label htmlFor="password" className="text-sm font-semibold text-heading">Password</Label>
                   <button
                     type="button"
                     onClick={handleForgotPassword}
-                    className="text-xs text-slate-400 hover:text-[#D62828]"
+                    className="text-xs text-muted-text/70 hover:text-navly-red"
                   >
                     Forgot password?
                   </button>
@@ -230,12 +230,12 @@ async function handleVerifyPhoneOtp() {
                     value={password}
                     onChange={(e) => { setPassword(e.target.value); setError('') }}
                     onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                    className="rounded-xl border-slate-200 bg-white px-4 py-3 pr-11 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
+                    className="rounded-xl border-subtle bg-surface-card px-4 py-3 pr-11 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600"
+                    className="absolute inset-y-0 right-3 flex items-center text-muted-text/70 hover:text-muted-text"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -266,22 +266,22 @@ async function handleVerifyPhoneOtp() {
               <Button
                 onClick={handleLogin}
                 disabled={!email || !password || loading}
-                className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
+                className="gap-2 bg-navly-red text-white hover:bg-navly-red/80 disabled:opacity-40"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                 {loading ? 'Logging in…' : 'Log in'}
                 {!loading && <ArrowRight className="h-4 w-4" />}
               </Button>
 
-              <p className="text-center text-sm text-slate-500">
+              <p className="text-center text-sm text-muted-text">
                 Don&apos;t have an account?{' '}
-                <Link href="/onboarding" className="font-semibold text-[#D62828] hover:underline">
+                <Link href="/onboarding" className="font-semibold text-navly-red hover:underline">
                   Start free →
                 </Link>
               </p>
             </div>
 
-            <p className="mt-10 text-center text-xs text-slate-400">
+            <p className="mt-10 text-center text-xs text-muted-text/70">
               Navly provides general educational information only — not legal advice.
             </p>
           </div>

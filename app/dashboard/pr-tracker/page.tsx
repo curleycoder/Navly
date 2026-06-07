@@ -78,8 +78,8 @@ function StatusRoadmap({ status, score }: { status: string; score: ScoreResult }
   }
 
   return (
-    <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="mb-4 text-xs font-bold uppercase tracking-widest text-[#D62828]">{roadmap.label}</p>
+    <div className="mb-6 rounded-2xl border border-subtle bg-surface-card p-5 shadow-sm">
+      <p className="mb-4 t-eyebrow text-navly-red">{roadmap.label}</p>
       <ol className="flex flex-col gap-3">
         {roadmap.steps.map((step, i) => {
           const done = i < activeStep
@@ -87,11 +87,11 @@ function StatusRoadmap({ status, score }: { status: string; score: ScoreResult }
           return (
             <li key={i} className="flex items-center gap-3">
               <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                done ? 'bg-green-600 text-white' : active ? 'bg-[#0B1F3A] text-white' : 'bg-slate-100 text-slate-400'
+                done ? 'bg-green-600 text-white' : active ? 'bg-navly-navy text-white' : 'bg-subtle text-muted-text/70'
               }`}>
                 {done ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : i + 1}
               </div>
-              <span className={`text-sm ${done ? 'text-slate-400 line-through' : active ? 'font-semibold text-[#0B1F3A]' : 'text-slate-500'}`}>
+              <span className={`text-sm ${done ? 'text-muted-text/70 line-through' : active ? 'font-semibold text-heading' : 'text-muted-text'}`}>
                 {step}
               </span>
             </li>
@@ -274,16 +274,16 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
         <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <ShieldAlert className="h-5 w-5 text-amber-600" aria-hidden="true" />
-            <h3 className="text-sm font-bold uppercase tracking-widest text-amber-800">Highest-impact next steps</h3>
+            <h3 className="t-eyebrow text-amber-800">Highest-impact next steps</h3>
           </div>
           <div className="flex flex-col gap-3">
             {currentScore.improvements.slice(0, 2).map((imp, i) => (
-              <div key={i} className="flex flex-col rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
+              <div key={i} className="flex flex-col rounded-2xl border border-amber-100 bg-surface-card p-5 shadow-sm">
                 <div className="mb-2 flex items-start justify-between gap-3">
-                  <span className="font-bold leading-snug text-[#0b1f3a]">{imp.label}</span>
+                  <span className="font-bold leading-snug text-heading">{imp.label}</span>
                   <span className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-bold text-green-700">{imp.impact}</span>
                 </div>
-                <p className="text-sm leading-relaxed text-slate-600">{imp.action}</p>
+                <p className="text-sm leading-relaxed text-muted-text">{imp.action}</p>
               </div>
             ))}
           </div>
@@ -387,26 +387,26 @@ function OutsidePlanningCard({ profile }: { profile: IntakeData }) {
   const entry = profile.plannedEntry || 'unsure'
   const info = outsideSteps[entry] ?? outsideSteps.unsure
   return (
-    <Card className="mb-8 rounded-2xl border-slate-200 bg-white">
+    <Card className="mb-8 rounded-2xl border-subtle bg-surface-card">
       <CardContent className="p-5">
         <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#0B1F3A] text-white">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-navly-navy text-white">
             <Plane className="h-4 w-4" />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Planning your move</p>
-            <p className="font-bold text-[#0B1F3A]">{info.title}</p>
+            <p className="t-eyebrow text-muted-text">Planning your move</p>
+            <p className="font-bold text-heading">{info.title}</p>
           </div>
         </div>
         <div className="flex flex-col gap-2.5">
           {info.steps.map((step, i) => (
             <div key={i} className="flex items-start gap-3">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-slate-300" />
-              <p className="text-sm leading-relaxed text-slate-600">{step}</p>
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-muted-text/50" />
+              <p className="text-sm leading-relaxed text-muted-text">{step}</p>
             </div>
           ))}
         </div>
-        <Link href="/dashboard/tasks" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#D62828] hover:underline">
+        <Link href="/dashboard/tasks" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-navly-red hover:underline">
           View your full task list <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </CardContent>
@@ -422,29 +422,29 @@ function PNPStreamsCard({ streams }: { streams: PNPStream[] }) {
   const program = streams[0].programName
 
   return (
-    <Card className="mb-8 rounded-2xl border-slate-200 bg-white">
+    <Card className="mb-8 rounded-2xl border-subtle bg-surface-card">
       <CardContent className="p-5">
         <div className="mb-4 flex items-center gap-2">
-          <Award className="h-4 w-4 text-[#0B1F3A]" />
-          <p className="text-sm font-bold text-[#0B1F3A]">
+          <Award className="h-4 w-4 text-heading" />
+          <p className="t-section-title">
             {program} — {province}
           </p>
         </div>
         <div className="flex flex-col gap-3">
           {streams.map((s) => (
-            <div key={s.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+            <div key={s.id} className="rounded-xl border border-subtle/50 bg-surface-alt p-4">
               <div className="mb-2 flex items-start justify-between gap-3">
-                <span className="font-semibold text-sm text-[#0B1F3A] leading-snug">{s.streamName}</span>
+                <span className="font-semibold text-sm text-heading leading-snug">{s.streamName}</span>
                 <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-bold ${pnpStatusColors[s.status]}`}>
                   {pnpStatusLabels[s.status]}
                 </span>
               </div>
-              <p className="text-sm text-slate-600">{s.reason}</p>
+              <p className="text-sm text-muted-text">{s.reason}</p>
               {s.missingItems.length > 0 && (
                 <ul className="mt-2 flex flex-col gap-1.5">
                   {s.missingItems.map((item, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-slate-500">
-                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" aria-hidden="true" />
+                    <li key={i} className="flex items-start gap-2 text-sm text-muted-text">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-text/50" aria-hidden="true" />
                       {item}
                     </li>
                   ))}
@@ -453,7 +453,7 @@ function PNPStreamsCard({ streams }: { streams: PNPStream[] }) {
             </div>
           ))}
         </div>
-        <p className="mt-4 text-xs text-slate-400">
+        <p className="mt-4 text-xs text-muted-text/70">
           PNP stream requirements change frequently. Always verify eligibility at the official provincial website before applying.
         </p>
       </CardContent>
@@ -483,24 +483,24 @@ function EEDrawsCard({ crs }: { crs: number }) {
   const gap = crs > 0 ? latest.cutoff - crs : null
 
   return (
-    <Card className="mb-8 rounded-2xl border-slate-200 bg-white">
+    <Card className="mb-8 rounded-2xl border-subtle bg-surface-card">
       <CardContent className="p-5">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-[#0B1F3A]" />
-            <p className="text-sm font-bold text-[#0B1F3A]">Recent Express Entry Draws</p>
+            <BarChart3 className="h-4 w-4 text-heading" />
+            <p className="t-section-title">Recent Express Entry Draws</p>
           </div>
-          <span className="text-xs text-slate-400">Source: IRCC</span>
+          <span className="text-xs text-muted-text/70">Source: IRCC</span>
         </div>
 
         <div className="mb-4 flex flex-col gap-2 overflow-x-auto">
           {draws.map((d) => (
-            <div key={d.date} className="flex min-w-0 items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm">
+            <div key={d.date} className="flex min-w-0 items-center justify-between rounded-xl bg-surface-alt px-4 py-3 text-sm">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="font-semibold text-[#0B1F3A] whitespace-nowrap">{d.date}</span>
-                <span className="truncate text-slate-500">{d.type}</span>
+                <span className="font-semibold text-heading whitespace-nowrap">{d.date}</span>
+                <span className="truncate text-muted-text">{d.type}</span>
               </div>
-              <span className="ml-3 shrink-0 font-bold text-[#0B1F3A]">{d.cutoff} CRS</span>
+              <span className="ml-3 shrink-0 font-bold text-heading">{d.cutoff} CRS</span>
             </div>
           ))}
         </div>
@@ -513,7 +513,7 @@ function EEDrawsCard({ crs }: { crs: number }) {
           </div>
         )}
 
-        <p className="mt-3 text-xs text-slate-400">
+        <p className="mt-3 text-xs text-muted-text/70">
           Draw data is for reference only. Actual cutoffs vary by round type and pool size. Verify at canada.ca.
         </p>
       </CardContent>
@@ -565,12 +565,12 @@ export default function PRTrackerPage() {
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
       {/* Header */}
       <div className="mb-6">
-        <Link href="/dashboard" className="mb-3 hidden md:inline-flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-[#0B1F3A] focus-visible:text-[#0B1F3A]">
+        <Link href="/dashboard" className="mb-3 hidden md:inline-flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-muted-text hover:text-heading focus-visible:text-heading">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to overview
         </Link>
-        <p className="hidden md:block text-sm font-semibold uppercase tracking-widest text-[#D62828]">PR Tracker</p>
-        <h1 className="hidden md:block mt-1 text-2xl font-bold text-[#0B1F3A] sm:text-3xl">Score & pathway analysis</h1>
-        <p className="mt-2 text-sm text-slate-500">Your estimated CRS score, pathway strength, and what to improve next.</p>
+        <p className="hidden md:block t-eyebrow text-navly-red">PR Tracker</p>
+        <h1 className="hidden md:block mt-1 t-page-title">Score & pathway analysis</h1>
+        <p className="mt-2 t-body">Your estimated CRS score, pathway strength, and what to improve next.</p>
       </div>
 
       {!profile && (
@@ -604,47 +604,47 @@ export default function PRTrackerPage() {
       {profile && score && (
         <div className="mb-6 flex flex-col gap-4">
           {!score.hasEnoughData && score.missingFields.length > 0 && (
-            <div className="flex items-start gap-3 rounded-2xl border border-[#D62828]/20 bg-[#D62828]/5 p-4">
-              <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-[#D62828]" aria-hidden="true" />
+            <div className="flex items-start gap-3 rounded-2xl border border-navly-red/20 bg-navly-red/5 p-4">
+              <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-navly-red" aria-hidden="true" />
               <div>
-                <p className="font-semibold text-[#0B1F3A]">Profile incomplete — score estimate unavailable</p>
-                <p className="mt-1 text-sm text-slate-600">
-                  Missing: <span className="font-medium text-[#D62828]">{score.missingFields.join(', ')}</span>
+                <p className="font-semibold text-heading">Profile incomplete — score estimate unavailable</p>
+                <p className="mt-1 text-sm text-muted-text">
+                  Missing: <span className="font-medium text-navly-red">{score.missingFields.join(', ')}</span>
                 </p>
-                <Link href="/onboarding" className="mt-3 inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-[#D62828] hover:underline">
+                <Link href="/onboarding" className="mt-3 inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-navly-red hover:underline">
                   Update profile <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
               </div>
             </div>
           )}
-          <div className="flex flex-col items-center rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col items-center rounded-2xl border border-subtle bg-surface-card p-6 shadow-sm">
             <ProgressGauge
               value={score.crs?.total ?? 0}
               max={600}
               label="Complete"
               sublabel="Competitive Express Entry scores typically range 480–550+"
             />
-            <div className="mt-4 w-full border-t border-slate-100 pt-4">
+            <div className="mt-4 w-full border-t border-subtle/50 pt-4">
               <div className="flex items-center justify-around gap-2">
                 <div className="flex flex-col items-center text-center">
-                  <span className="text-3xl font-bold text-[#0B1F3A]">{score.crs?.total ?? 0}</span>
-                  <span className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-500">Your CRS</span>
+                  <span className="t-stat">{score.crs?.total ?? 0}</span>
+                  <span className="mt-1 t-eyebrow text-muted-text">Your CRS</span>
                 </div>
                 {cutoff !== null && (
                   <>
-                    <div className="h-10 w-px bg-slate-200" />
+                    <div className="h-10 w-px bg-subtle" />
                     <div className="flex flex-col items-center text-center">
-                      <span className="text-3xl font-bold text-[#0B1F3A]">{cutoff}</span>
-                      <span className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-500">Last draw</span>
+                      <span className="t-stat">{cutoff}</span>
+                      <span className="mt-1 t-eyebrow text-muted-text">Last draw</span>
                     </div>
                   </>
                 )}
                 {profile.status !== 'student' && profile.status !== 'pr' && score.fsw && score.fsw.score > 0 && (
                   <>
-                    <div className="h-10 w-px bg-slate-200" />
+                    <div className="h-10 w-px bg-subtle" />
                     <div className="flex flex-col items-center text-center">
-                      <span className="text-3xl font-bold text-[#0B1F3A]">{score.fsw.score}</span>
-                      <span className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-500">FSW Grid</span>
+                      <span className="t-stat">{score.fsw.score}</span>
+                      <span className="mt-1 t-eyebrow text-muted-text">FSW Grid</span>
                     </div>
                   </>
                 )}
@@ -674,27 +674,27 @@ export default function PRTrackerPage() {
             {score && score.pathways.length > 0 && (() => {
               const top = score.pathways.find(p => p.status === 'eligible' || p.status === 'possible') ?? score.pathways[0]
               return (
-                <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">Top pathway preview</p>
+                <div className="mb-4 rounded-2xl border border-subtle bg-surface-card p-5 shadow-sm">
+                  <p className="mb-2 t-eyebrow text-muted-text/70">Top pathway preview</p>
                   <div className="flex items-center justify-between">
-                    <p className="font-bold text-[#0B1F3A]">{top.name}</p>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${top.status === 'eligible' ? 'bg-green-100 text-green-700' : top.status === 'possible' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
+                    <p className="font-bold text-heading">{top.name}</p>
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${top.status === 'eligible' ? 'bg-green-100 text-green-700' : top.status === 'possible' ? 'bg-amber-100 text-amber-700' : 'bg-subtle text-muted-text'}`}>
                       {top.status === 'eligible' ? 'Eligible' : top.status === 'possible' ? 'Possible' : 'Not ready'}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-slate-500 line-clamp-2">{top.reason}</p>
+                  <p className="mt-1 text-sm text-muted-text line-clamp-2">{top.reason}</p>
                 </div>
               )
             })()}
             <button
               onClick={() => setShowUpgradeModal(true)}
-              className="flex w-full items-center justify-between rounded-2xl border border-dashed border-[#D62828]/40 bg-[#D62828]/5 p-5 text-left transition hover:bg-[#D62828]/10"
+              className="flex w-full items-center justify-between rounded-2xl border border-dashed border-navly-red/40 bg-navly-red/5 p-5 text-left transition hover:bg-navly-red/10"
             >
               <div>
-                <p className="font-bold text-[#0B1F3A]">Unlock the full breakdown</p>
-                <p className="mt-0.5 text-sm text-slate-500">See your CRS score by category, all pathway eligibility, and the exact improvements that would move your score.</p>
+                <p className="font-bold text-heading">Unlock the full breakdown</p>
+                <p className="mt-0.5 text-sm text-muted-text">See your CRS score by category, all pathway eligibility, and the exact improvements that would move your score.</p>
               </div>
-              <ArrowRight className="ml-4 h-5 w-5 shrink-0 text-[#D62828]" />
+              <ArrowRight className="ml-4 h-5 w-5 shrink-0 text-navly-red" />
             </button>
           </div>
         }
@@ -708,10 +708,10 @@ export default function PRTrackerPage() {
         <EEDrawsCard crs={score?.crs?.total ?? 0} />
       )}
 
-      <div className="flex gap-3 rounded-2xl border border-[#0B1F3A]/15 bg-[#0B1F3A]/5 p-4">
-        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#0B1F3A]" />
-        <p className="text-sm leading-6 text-slate-600">
-          <span className="font-semibold text-[#0B1F3A]">Reminder: </span>
+      <div className="flex gap-3 rounded-2xl border border-navly-navy/15 bg-navly-navy/5 p-4">
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-heading" />
+        <p className="text-sm leading-6 text-muted-text">
+          <span className="font-semibold text-heading">Reminder: </span>
           Navly provides estimates based on the data you entered. Final eligibility depends on official IRCC program rules and document review by a licensed professional. This is not legal advice.
         </p>
       </div>

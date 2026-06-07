@@ -55,25 +55,25 @@ export function UpgradeBanner({ plan, className }: { plan: Plan; className?: str
 
   return (
     <div className={cn(
-      'rounded-2xl border border-[#D62828]/20 bg-linear-to-br from-[#0B1F3A]/3 to-[#D62828]/5 p-5',
+      'rounded-2xl border border-navly-red/20 bg-linear-to-br from-navly-navy/3 to-navly-red/5 p-5',
       className
     )}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#D62828] text-white">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-navly-red text-white">
             <Icon className="h-4 w-4" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <p className="font-bold text-[#0B1F3A]">{c.teaser}</p>
-              <span className="rounded-full bg-[#0B1F3A] px-2.5 py-0.5 text-xs font-semibold text-white">
+              <p className="font-bold text-heading">{c.teaser}</p>
+              <span className="rounded-full bg-navly-navy px-2.5 py-0.5 text-xs font-semibold text-white">
                 {c.plan} · {c.price}
               </span>
             </div>
             <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
               {c.features.map((f) => (
-                <li key={f} className="flex items-center gap-1 text-xs text-slate-600">
-                  <span className="h-1 w-1 shrink-0 rounded-full bg-[#D62828]" aria-hidden="true" />
+                <li key={f} className="flex items-center gap-1 text-xs text-muted-text">
+                  <span className="h-1 w-1 shrink-0 rounded-full bg-navly-red" aria-hidden="true" />
                   {f}
                 </li>
               ))}
@@ -83,7 +83,7 @@ export function UpgradeBanner({ plan, className }: { plan: Plan; className?: str
         <button
           onClick={startCheckout}
           disabled={loading}
-          className="flex shrink-0 items-center gap-1.5 rounded-xl bg-[#D62828] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#B91C1C] disabled:opacity-60"
+          className="flex shrink-0 items-center gap-1.5 rounded-xl bg-navly-red px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-navly-red/80 disabled:opacity-60"
         >
           {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
           {loading ? 'Redirecting…' : c.cta}

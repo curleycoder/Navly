@@ -258,16 +258,16 @@ export default function ChatPage() {
     <>
     <div className="flex h-full flex-col">
       {/* Header — desktop only */}
-      <div className="hidden md:flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
+      <div className="hidden md:flex items-center justify-between border-b border-subtle bg-surface-card px-6 py-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-[#D62828]">AI Assistant</p>
-          <h1 className="mt-0.5 text-xl font-bold text-[#0B1F3A]">Ask an immigration question</h1>
+          <p className="t-eyebrow text-navly-red">AI Assistant</p>
+          <h1 className="mt-0.5 t-page-title">Ask an immigration question</h1>
         </div>
         {messages.length > 0 && (
           <button
             onClick={clearChat}
             aria-label="Clear conversation"
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+            className="flex items-center gap-1.5 rounded-xl border border-subtle px-3 py-2 text-sm font-semibold text-muted-text transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
           >
             <Trash2 className="h-4 w-4" aria-hidden="true" />
             <span>Clear</span>
@@ -276,7 +276,7 @@ export default function ChatPage() {
       </div>
 
       {/* Educational notice + What AI knows — persistent strip */}
-      <div className="border-b border-slate-100 bg-slate-50 px-4 py-3 md:px-6">
+      <div className="border-b border-subtle/50 bg-surface-alt px-4 py-3 md:px-6">
         <div className="mb-2.5 rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-800">
           <span className="font-bold">Educational use only.</span>{' '}
           General immigration information — not legal advice. Consult a licensed RCIC or lawyer for your specific case.
@@ -285,17 +285,17 @@ export default function ChatPage() {
           <div className="flex-1 min-w-0">
             {profileLines.length > 0 ? (
               <>
-                <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">What I know about you</p>
+                <p className="mb-1.5 t-eyebrow text-muted-text/70">What I know about you</p>
                 <div className="flex flex-wrap gap-1.5">
                   {profileLines.map((line) => (
-                    <span key={line} className="rounded-full bg-[#0B1F3A]/5 px-2.5 py-1 text-xs font-semibold text-[#0B1F3A]">
+                    <span key={line} className="rounded-full bg-navly-navy/5 px-2.5 py-1 text-xs font-semibold text-heading">
                       {line}
                     </span>
                   ))}
                 </div>
               </>
             ) : (
-              <p className="text-xs text-slate-400">Complete your profile for personalized answers.</p>
+              <p className="text-xs text-muted-text/70">Complete your profile for personalized answers.</p>
             )}
           </div>
           {/* Clear button — mobile only */}
@@ -303,7 +303,7 @@ export default function ChatPage() {
             <button
               onClick={clearChat}
               aria-label="Clear conversation"
-              className="md:hidden flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500 shrink-0"
+              className="md:hidden flex h-8 w-8 items-center justify-center rounded-xl border border-subtle text-muted-text transition hover:border-red-200 hover:bg-red-50 hover:text-red-500 shrink-0"
             >
               <Trash2 className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -319,13 +319,13 @@ export default function ChatPage() {
           {messages.length === 0 && (
             <div className="mb-4 animate-fade-in">
               {/* Suggested questions — 3, based on permit and situation */}
-              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Try asking</p>
+              <p className="mb-2 t-eyebrow text-muted-text">Try asking</p>
               <div className="flex flex-col gap-2">
                 {suggestions.slice(0, 3).map((s) => (
                   <button
                     key={s}
                     onClick={() => send(s)}
-                    className="rounded-xl border border-slate-200 bg-white p-3 text-left text-sm font-medium text-[#0B1F3A] transition hover:border-[#D62828]/30 hover:bg-[#D62828]/5 hover:text-[#D62828]"
+                    className="rounded-xl border border-subtle bg-surface-card p-3 text-left text-sm font-medium text-heading transition hover:border-navly-red/30 hover:bg-navly-red/5 hover:text-navly-red"
                   >
                     {s}
                   </button>
@@ -346,7 +346,7 @@ export default function ChatPage() {
                   aria-hidden="true"
                   className={cn(
                     'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
-                    msg.role === 'user' ? 'bg-[#0B1F3A]' : 'bg-[#D62828]'
+                    msg.role === 'user' ? 'bg-navly-navy' : 'bg-navly-red'
                   )}
                 >
                   {msg.role === 'user'
@@ -359,8 +359,8 @@ export default function ChatPage() {
                   className={cn(
                     'max-w-[82%] rounded-2xl px-4 py-3',
                     msg.role === 'user'
-                      ? 'bg-[#0B1F3A] text-sm leading-7 text-white'
-                      : 'border border-slate-200 bg-white text-[#0B1F3A]'
+                      ? 'bg-navly-navy text-sm leading-7 text-white'
+                      : 'border border-subtle bg-surface-card text-heading'
                   )}
                 >
                   {msg.role === 'user' ? (
@@ -370,9 +370,9 @@ export default function ChatPage() {
                   ) : (
                     /* Typing indicator */
                     <span className="inline-flex items-center gap-1 py-1" aria-label="Assistant is typing">
-                      <span className="h-2 w-2 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="h-2 w-2 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="h-2 w-2 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span className="h-2 w-2 rounded-full bg-muted-text/40 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="h-2 w-2 rounded-full bg-muted-text/40 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="h-2 w-2 rounded-full bg-muted-text/40 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </span>
                   )}
                 </div>
@@ -385,12 +385,12 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <div className="border-t border-slate-200 bg-white px-4 py-3 md:px-6 md:py-4">
+      <div className="border-t border-subtle bg-surface-card px-4 py-3 md:px-6 md:py-4">
         <div className="mx-auto max-w-2xl">
           {!isPaid ? (
             <button
               onClick={() => setShowUpgradeModal(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-[#D62828]/40 bg-[#D62828]/5 px-5 py-4 text-sm font-semibold text-[#D62828] transition hover:bg-[#D62828]/10"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-navly-red/40 bg-navly-red/5 px-5 py-4 text-sm font-semibold text-navly-red transition hover:bg-navly-red/10"
             >
               <Send className="h-4 w-4" />
               Upgrade to unlock the AI assistant
@@ -411,19 +411,19 @@ export default function ChatPage() {
                   }}
                   rows={1}
                   aria-label="Your message"
-                  className="min-h-0 resize-none rounded-xl border-slate-200 bg-white px-4 py-3 text-sm text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
+                  className="min-h-0 resize-none rounded-xl border-subtle bg-surface-card px-4 py-3 text-sm text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red"
                 />
                 <Button
                   onClick={() => send()}
                   disabled={!input.trim() || loading}
                   aria-label="Send message"
-                  className="gap-2 self-end bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
+                  className="gap-2 self-end bg-navly-red text-white hover:bg-navly-red/80 disabled:opacity-40"
                 >
                   <Send className="h-4 w-4" aria-hidden="true" />
                   Send
                 </Button>
               </div>
-              <p className="mt-2 text-center text-xs text-slate-400">
+              <p className="mt-2 text-center text-xs text-muted-text/70">
                 Enter to send · Shift+Enter for new line · Conversation saved automatically
               </p>
             </>

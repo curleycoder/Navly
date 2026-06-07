@@ -6,21 +6,21 @@ import { cn } from '@/lib/utils'
 import { TOP_COUNTRIES, ALL_COUNTRIES } from '@/lib/geo'
 
 export const selectClass =
-  'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#0B1F3A] focus:outline-none focus:ring-2 focus:ring-[#D62828] focus:border-transparent appearance-none cursor-pointer'
+  'w-full rounded-xl border border-subtle bg-surface-card px-4 py-3 text-sm text-heading focus:outline-none focus:ring-2 focus:ring-navly-red focus:border-transparent appearance-none cursor-pointer'
 
 export function OptionCard({ label, desc, selected, onClick, comingSoon }: {
   label: string; desc?: string; selected: boolean; onClick: () => void; comingSoon?: boolean
 }) {
   if (comingSoon) {
     return (
-      <div className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 p-4 opacity-60 cursor-not-allowed">
+      <div className="w-full rounded-2xl border-2 border-subtle/50 bg-surface-alt p-4 opacity-60 cursor-not-allowed">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <p className="font-semibold text-slate-400">{label}</p>
-              <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-500">Coming soon</span>
+              <p className="font-semibold text-muted-text/70">{label}</p>
+              <span className="rounded-full bg-subtle px-2 py-0.5 text-xs font-medium text-muted-text">Coming soon</span>
             </div>
-            {desc && <p className="mt-0.5 text-sm text-slate-400">{desc}</p>}
+            {desc && <p className="mt-0.5 text-sm text-muted-text/70">{desc}</p>}
           </div>
         </div>
       </div>
@@ -33,22 +33,22 @@ export function OptionCard({ label, desc, selected, onClick, comingSoon }: {
       aria-checked={selected}
       onClick={onClick}
       className={cn(
-        'w-full rounded-2xl border-2 p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D62828] focus-visible:ring-offset-1',
+        'w-full rounded-2xl border-2 p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navly-red focus-visible:ring-offset-1',
         selected
-          ? 'border-[#D62828] bg-[#D62828]/5'
-          : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'
+          ? 'border-navly-red bg-navly-red/5'
+          : 'border-subtle bg-surface-card hover:border-subtle/80 hover:shadow-sm'
       )}
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className={cn('font-semibold text-[#0B1F3A]', selected && 'text-[#D62828]')}>{label}</p>
-          {desc && <p className="mt-0.5 text-sm text-slate-500">{desc}</p>}
+          <p className={cn('font-semibold text-heading', selected && 'text-navly-red')}>{label}</p>
+          {desc && <p className="mt-0.5 text-sm text-muted-text">{desc}</p>}
         </div>
         <div
           aria-hidden="true"
           className={cn(
             'ml-3 h-5 w-5 shrink-0 rounded-full border-2 transition-all',
-            selected ? 'border-[#D62828] bg-[#D62828]' : 'border-slate-300'
+            selected ? 'border-navly-red bg-navly-red' : 'border-subtle'
           )}
         />
       </div>
@@ -59,7 +59,7 @@ export function OptionCard({ label, desc, selected, onClick, comingSoon }: {
 export function ChevronDownIcon() {
   return (
     <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-      <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg className="h-4 w-4 text-muted-text/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
       </svg>
     </div>
@@ -73,7 +73,7 @@ export function CountrySelect({ id, value, onChange, placeholder }: {
 }) {
   return (
     <div className="relative">
-      <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className={cn(selectClass, !value && 'text-slate-400')}>
+      <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className={cn(selectClass, !value && 'text-muted-text/70')}>
         <option value="" disabled>{placeholder}</option>
         <optgroup label="Common source countries">
           {TOP_COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -130,19 +130,19 @@ export function LanguageScoreFields({ testType, values, onChange }: {
 
   return (
     <div>
-      <Label className="mb-3 block text-sm font-semibold text-[#0B1F3A]">Enter your scores</Label>
+      <Label className="mb-3 block text-sm font-semibold text-heading">Enter your scores</Label>
       <div className="grid grid-cols-2 gap-4">
         {(['r', 'w', 'l', 's'] as const).map((skill) => {
           const maxVal = isFrench ? frenchMax[testType as 'tef' | 'tcf'][skill] : cfg.max
           return (
             <div key={skill} className="flex flex-col gap-1.5">
-              <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{labels[skill]}</Label>
+              <Label className="text-xs font-semibold text-muted-text uppercase tracking-wide">{labels[skill]}</Label>
               <Input
                 type="number" min={0} max={maxVal} step={isFrench ? 1 : cfg.step}
                 placeholder={`e.g. ${Math.floor(maxVal * 0.75)}`}
                 value={values[skill]}
                 onChange={(e) => onChange(skill, e.target.value)}
-                className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
+                className="rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red"
               />
             </div>
           )

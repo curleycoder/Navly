@@ -53,8 +53,8 @@ export function Sidebar() {
   const visibleItems = allNavItems.filter((item) => !isOutside || item.outsideOk)
 
   return (
-    <aside className="hidden h-full w-60 flex-col border-r border-slate-200 bg-white md:flex">
-      <div className="flex h-16 items-center border-b border-slate-200 px-5">
+    <aside className="hidden h-full w-60 flex-col border-r border-subtle bg-surface-card md:flex">
+      <div className="flex h-16 items-center border-b border-subtle px-5">
         <Link href="/">
           <NavlyLogo size="sm" />
         </Link>
@@ -72,14 +72,14 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors',
                 active
-                  ? 'bg-[#0B1F3A] text-white'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-[#0B1F3A]'
+                  ? 'bg-navly-navy text-white'
+                  : 'text-muted-text hover:bg-subtle hover:text-heading'
               )}
             >
               <Icon aria-hidden="true" className="h-4 w-4 shrink-0" />
               {label}
               {isNews && newsUnread > 0 && !active && (
-                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#D62828] px-1.5 text-[10px] font-bold text-white">
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-navly-red px-1.5 text-[10px] font-bold text-white">
                   {newsUnread > 9 ? '9+' : newsUnread}
                 </span>
               )}
@@ -88,35 +88,35 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="border-t border-slate-200 p-3">
+      <div className="border-t border-subtle p-3">
         <Link
           href="/dashboard/profile"
           aria-current={pathname === '/dashboard/profile' ? 'page' : undefined}
           className={cn(
             'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors',
             pathname === '/dashboard/profile'
-              ? 'bg-[#0B1F3A] text-white'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-[#0B1F3A]'
+              ? 'bg-navly-navy text-white'
+              : 'text-muted-text hover:bg-subtle hover:text-heading'
           )}
         >
           <UserCircle className="h-4 w-4 shrink-0" />
           Edit Profile
         </Link>
-        <div className="my-2 border-t border-slate-100" />
+        <div className="my-2 border-t border-subtle/60" />
         <button
           onClick={async () => {
             await supabase.auth.signOut()
             localStorage.clear()
             window.location.href = '/'
           }}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-[#0B1F3A]"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-text transition-colors hover:bg-subtle hover:text-heading"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           Log out
         </button>
         <div className="mt-2 flex gap-3 px-3 pb-1">
-          <Link href="/privacy" className="text-xs text-slate-400 hover:text-slate-600">Privacy</Link>
-          <Link href="/terms" className="text-xs text-slate-400 hover:text-slate-600">Terms</Link>
+          <Link href="/privacy" className="text-xs text-muted-text/70 hover:text-muted-text">Privacy</Link>
+          <Link href="/terms" className="text-xs text-muted-text/70 hover:text-muted-text">Terms</Link>
         </div>
       </div>
     </aside>

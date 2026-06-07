@@ -11,20 +11,20 @@ export function StepEducation({ data, onChange }: {
   const isForeign = data.educationLevel && !['less-than-secondary', 'secondary'].includes(data.educationLevel)
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Education</h1>
-      <p className="mt-2 text-slate-500">Your highest completed credential. Foreign education needs an ECA for Express Entry.</p>
+      <h1 className="text-3xl font-bold text-heading">Education</h1>
+      <p className="mt-2 text-muted-text">Your highest completed credential. Foreign education needs an ECA for Express Entry.</p>
       <div className="mt-8 flex flex-col gap-8">
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">Highest education completed</Label>
+          <Label className="text-sm font-semibold text-heading">Highest education completed</Label>
           {educationOptions.map((opt) => (
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.educationLevel === opt.value} onClick={() => onChange({ educationLevel: opt.value })} />
           ))}
         </div>
         {isForeign && (
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Canadian education
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Adds 15 or 30 bonus CRS points.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Adds 15 or 30 bonus CRS points.</span>
             </Label>
             {[
               { value: 'none', label: 'No Canadian education', desc: 'All education is from outside Canada' },
@@ -37,9 +37,9 @@ export function StepEducation({ data, onChange }: {
         )}
         {isForeign && (!data.canadianEducation || data.canadianEducation === 'none') && (
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               ECA (Educational Credential Assessment) completed?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Required to use foreign education in an Express Entry application.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Required to use foreign education in an Express Entry application.</span>
             </Label>
             {[
               { value: 'yes', label: 'Yes, ECA is done', desc: '' },

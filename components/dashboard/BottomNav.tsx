@@ -19,7 +19,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Bottom navigation"
-      className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-stretch border-t border-slate-200 bg-white md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-stretch border-t border-subtle bg-surface-card md:hidden"
     >
       {BOTTOM_TABS.map(({ href, label, icon: Icon }) => {
         const active = pathname === href
@@ -31,13 +31,13 @@ export function BottomNav() {
             aria-current={active ? 'page' : undefined}
             className={cn(
               'relative flex flex-1 flex-col items-center justify-center gap-1 text-xs font-semibold transition-colors',
-              active ? 'text-[#0B1F3A]' : 'text-slate-400 hover:text-[#0B1F3A]'
+              active ? 'text-heading' : 'text-muted-text/70 hover:text-heading'
             )}
           >
             {active && (
-              <span className="absolute top-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-b-full bg-[#D62828]" />
+              <span className="absolute top-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-b-full bg-navly-red" />
             )}
-            <Icon className={cn('h-5 w-5', active ? 'text-[#D62828]' : 'text-slate-400')} aria-hidden="true" />
+            <Icon className={cn('h-5 w-5', active ? 'text-navly-red' : 'text-muted-text/70')} aria-hidden="true" />
             <span>{label}</span>
           </Link>
         )

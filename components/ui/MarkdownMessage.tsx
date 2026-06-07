@@ -111,12 +111,12 @@ function renderInline(text: string): React.ReactNode[] {
       parts.push(text.slice(last, match.index))
     }
     if (match[0].startsWith('**')) {
-      parts.push(<strong key={match.index} className="font-semibold text-[#0B1F3A]">{match[2]}</strong>)
+      parts.push(<strong key={match.index} className="font-semibold text-heading">{match[2]}</strong>)
     } else if (match[0].startsWith('*')) {
       parts.push(<em key={match.index}>{match[3]}</em>)
     } else if (match[0].startsWith('`')) {
       parts.push(
-        <code key={match.index} className="rounded bg-slate-100 px-1 py-0.5 font-mono text-xs text-[#0B1F3A]">
+        <code key={match.index} className="rounded bg-subtle px-1 py-0.5 font-mono text-xs text-heading">
           {match[4]}
         </code>
       )
@@ -144,7 +144,7 @@ export function MarkdownMessage({ content, className }: { content: string; class
               <Tag
                 key={i}
                 className={cn(
-                  'font-bold text-[#0B1F3A]',
+                  'font-bold text-heading',
                   token.level === 1 && 'text-base mt-1',
                   token.level === 2 && 'text-sm mt-1',
                   token.level === 3 && 'text-sm'
@@ -160,7 +160,7 @@ export function MarkdownMessage({ content, className }: { content: string; class
               <ul key={i} className="flex flex-col gap-1 pl-4">
                 {token.items.map((item, j) => (
                   <li key={j} className="flex items-start gap-2">
-                    <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#D62828]" aria-hidden="true" />
+                    <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-navly-red" aria-hidden="true" />
                     <span>{renderInline(item)}</span>
                   </li>
                 ))}
@@ -172,7 +172,7 @@ export function MarkdownMessage({ content, className }: { content: string; class
               <ol key={i} className="flex flex-col gap-1 pl-4">
                 {token.items.map((item, j) => (
                   <li key={j} className="flex items-start gap-2">
-                    <span className="mt-0.5 shrink-0 font-semibold text-[#D62828]">{j + 1}.</span>
+                    <span className="mt-0.5 shrink-0 font-semibold text-navly-red">{j + 1}.</span>
                     <span>{renderInline(item)}</span>
                   </li>
                 ))}
@@ -181,13 +181,13 @@ export function MarkdownMessage({ content, className }: { content: string; class
 
           case 'blockquote':
             return (
-              <blockquote key={i} className="border-l-2 border-[#D62828]/40 pl-3 text-slate-500 italic">
+              <blockquote key={i} className="border-l-2 border-navly-red/40 pl-3 text-muted-text italic">
                 {renderInline(token.text)}
               </blockquote>
             )
 
           case 'hr':
-            return <hr key={i} className="border-slate-200" />
+            return <hr key={i} className="border-subtle" />
 
           case 'empty':
             return null

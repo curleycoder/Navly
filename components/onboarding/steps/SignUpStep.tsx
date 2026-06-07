@@ -145,11 +145,11 @@ export function StepSignUp({
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">
+      <h1 className="text-3xl font-bold text-heading">
         Save your result
       </h1>
 
-      <p className="mt-2 text-slate-500">
+      <p className="mt-2 text-muted-text">
         Create your free account so Navly can save your answers and build your
         immigration roadmap.
       </p>
@@ -158,7 +158,7 @@ export function StepSignUp({
         <div className="flex flex-col gap-2">
           <Label
             htmlFor="su-full-name"
-            className="text-sm font-semibold text-[#0B1F3A]"
+            className="text-sm font-semibold text-heading"
           >
             Full name
           </Label>
@@ -173,14 +173,14 @@ export function StepSignUp({
               setFullName(event.target.value)
               setError('')
             }}
-            className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
+            className="rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red"
           />
         </div>
 
         <div className="flex flex-col gap-2">
           <Label
             htmlFor="su-email"
-            className="text-sm font-semibold text-[#0B1F3A]"
+            className="text-sm font-semibold text-heading"
           >
             Email address
           </Label>
@@ -195,7 +195,7 @@ export function StepSignUp({
               setEmail(event.target.value)
               setError('')
             }}
-            className="rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
+            className="rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red"
           />
         </div>
 
@@ -203,7 +203,7 @@ export function StepSignUp({
           <div className="flex items-center justify-between">
             <Label
               htmlFor="su-password"
-              className="text-sm font-semibold text-[#0B1F3A]"
+              className="text-sm font-semibold text-heading"
             >
               Password
             </Label>
@@ -211,7 +211,7 @@ export function StepSignUp({
             <button
               type="button"
               onClick={handleForgotPassword}
-              className="text-xs text-slate-400 hover:text-[#D62828]"
+              className="text-xs text-muted-text/70 hover:text-navly-red"
             >
               {resetSent ? 'Reset email sent ✓' : 'Forgot password?'}
             </button>
@@ -228,13 +228,13 @@ export function StepSignUp({
                 setPassword(event.target.value)
                 setError('')
               }}
-              className="rounded-xl border-slate-200 bg-white px-4 py-3 pr-11 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]"
+              className="rounded-xl border-subtle bg-surface-card px-4 py-3 pr-11 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red"
             />
 
             <button
               type="button"
               onClick={() => setShowPassword((value) => !value)}
-              className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600"
+              className="absolute inset-y-0 right-3 flex items-center text-muted-text/70 hover:text-muted-text"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? (
@@ -246,16 +246,16 @@ export function StepSignUp({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <div className="rounded-2xl border border-subtle bg-surface-alt p-4">
           <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
               checked={consent}
               onChange={(event) => setConsent(event.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-[#D62828]"
+              className="mt-0.5 h-4 w-4 rounded border-subtle accent-navly-red"
             />
 
-            <p className="text-sm leading-6 text-slate-600">
+            <p className="text-sm leading-6 text-muted-text">
               I understand that Navly is a planning and information tool only —
               not legal advice or immigration consulting. By creating an
               account I agree to the{' '}
@@ -263,7 +263,7 @@ export function StepSignUp({
                 href="/terms"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold text-[#D62828] hover:underline"
+                className="font-semibold text-navly-red hover:underline"
               >
                 Terms of Service
               </a>{' '}
@@ -272,7 +272,7 @@ export function StepSignUp({
                 href="/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold text-[#D62828] hover:underline"
+                className="font-semibold text-navly-red hover:underline"
               >
                 Privacy Policy
               </a>
@@ -292,7 +292,7 @@ export function StepSignUp({
             !consent ||
             loading
           }
-          className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40"
+          className="gap-2 bg-navly-red text-white hover:bg-navly-red/80 disabled:opacity-40"
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
 
@@ -301,11 +301,11 @@ export function StepSignUp({
           {!loading && <ArrowRight className="h-4 w-4" />}
         </Button>
 
-        <p className="text-center text-sm text-slate-500">
+        <p className="text-center text-sm text-muted-text">
           Already have an account?{' '}
           <Link
             href="/login"
-            className="font-semibold text-[#D62828] hover:underline"
+            className="font-semibold text-navly-red hover:underline"
           >
             Log in →
           </Link>

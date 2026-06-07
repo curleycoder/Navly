@@ -16,7 +16,7 @@ export default function DashboardLayout({
 }) {
   return (
     <AuthGuard>
-      <div className="flex h-screen flex-col overflow-hidden bg-[#F8FAFC] md:flex-row">
+      <div className="flex h-screen flex-col overflow-hidden bg-surface md:flex-row">
         <Sidebar />
         <div className="flex flex-1 flex-col overflow-hidden">
           <MobileNav />

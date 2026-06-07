@@ -24,18 +24,18 @@ export function DashboardSkeleton() {
 
       {/* Profile summary cards */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="rounded-2xl border border-subtle bg-surface-card p-5">
           <Skeleton className="mb-2 h-4 w-28" />
           <Skeleton className="h-6 w-44" />
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="rounded-2xl border border-subtle bg-surface-card p-5">
           <Skeleton className="mb-2 h-4 w-20" />
           <Skeleton className="h-6 w-36" />
         </div>
       </div>
 
       {/* Score tracker placeholder */}
-      <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-6">
+      <div className="mb-8 rounded-3xl border border-subtle bg-surface-card p-6">
         <div className="flex flex-col gap-4 lg:flex-row">
           <div className="flex flex-col items-center gap-4 lg:w-[350px]">
             <Skeleton className="h-48 w-48 rounded-full" />
@@ -43,7 +43,7 @@ export function DashboardSkeleton() {
           </div>
           <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="rounded-2xl border border-slate-200 p-4">
+              <div key={i} className="rounded-2xl border border-subtle p-4">
                 <Skeleton className="mb-3 h-4 w-28" />
                 <Skeleton className="mb-2 h-3 w-full" />
                 <Skeleton className="h-3 w-3/4" />
@@ -58,7 +58,7 @@ export function DashboardSkeleton() {
         <Skeleton className="mb-4 h-4 w-28" />
         <div className="grid gap-4 sm:grid-cols-2">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-2xl border border-slate-200 bg-white p-5">
+            <div key={i} className="rounded-2xl border border-subtle bg-surface-card p-5">
               <div className="flex items-start gap-4">
                 <Skeleton className="h-10 w-10 rounded-xl" />
                 <div className="flex flex-col gap-2 flex-1">

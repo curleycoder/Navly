@@ -43,22 +43,22 @@ function FormModal({
 
   const field = (label: string, key: keyof typeof form, type = 'text') => (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-xs font-semibold text-slate-600">{label}</Label>
+      <Label className="text-xs font-semibold text-muted-text">{label}</Label>
       <Input
         type={type}
         value={String(form[key] ?? '')}
         onChange={(e) => set(key, e.target.value)}
-        className="rounded-lg border-slate-200 text-sm"
+        className="rounded-lg border-subtle text-sm"
       />
     </div>
   )
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="font-bold text-[#0B1F3A]">{initial.id ? 'Edit consultant' : 'Add consultant'}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><X className="h-5 w-5" /></button>
+      <div className="w-full max-w-2xl rounded-2xl bg-surface-card shadow-2xl">
+        <div className="flex items-center justify-between border-b border-subtle/50 px-6 py-4">
+          <h2 className="font-bold text-heading">{initial.id ? 'Edit consultant' : 'Add consultant'}</h2>
+          <button onClick={onClose} className="text-muted-text/70 hover:text-muted-text"><X className="h-5 w-5" /></button>
         </div>
         <div className="max-h-[70vh] overflow-y-auto px-6 py-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -75,26 +75,26 @@ function FormModal({
           </div>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <Label className="text-xs font-semibold text-slate-600">Languages (comma-separated)</Label>
-              <Input value={langStr} onChange={(e) => setLangStr(e.target.value)} className="rounded-lg border-slate-200 text-sm" placeholder="English, French, Hindi" />
+              <Label className="text-xs font-semibold text-muted-text">Languages (comma-separated)</Label>
+              <Input value={langStr} onChange={(e) => setLangStr(e.target.value)} className="rounded-lg border-subtle text-sm" placeholder="English, French, Hindi" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label className="text-xs font-semibold text-slate-600">Services (comma-separated)</Label>
-              <Input value={svcStr} onChange={(e) => setSvcStr(e.target.value)} className="rounded-lg border-slate-200 text-sm" placeholder="Express Entry, PNP, Work Permits" />
+              <Label className="text-xs font-semibold text-muted-text">Services (comma-separated)</Label>
+              <Input value={svcStr} onChange={(e) => setSvcStr(e.target.value)} className="rounded-lg border-subtle text-sm" placeholder="Express Entry, PNP, Work Permits" />
             </div>
           </div>
           <div className="mt-4 flex flex-wrap gap-6">
             {(['sponsored', 'verified', 'active'] as const).map((key) => (
               <label key={key} className="flex cursor-pointer items-center gap-2">
-                <input type="checkbox" checked={!!form[key]} onChange={(e) => set(key, e.target.checked)} className="h-4 w-4 accent-[#D62828]" />
-                <span className="text-sm font-semibold capitalize text-slate-700">{key}</span>
+                <input type="checkbox" checked={!!form[key]} onChange={(e) => set(key, e.target.checked)} className="h-4 w-4 accent-navly-red" />
+                <span className="text-sm font-semibold capitalize text-muted-text">{key}</span>
               </label>
             ))}
           </div>
         </div>
-        <div className="flex justify-end gap-3 border-t border-slate-100 px-6 py-4">
+        <div className="flex justify-end gap-3 border-t border-subtle/50 px-6 py-4">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave} disabled={!form.name || saving} className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C]">
+          <Button onClick={handleSave} disabled={!form.name || saving} className="gap-2 bg-navly-red text-white hover:bg-navly-red/80">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
             {saving ? 'Saving…' : 'Save'}
           </Button>
@@ -146,49 +146,49 @@ export default function AdminConsultantsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <header className="border-b border-slate-200 bg-white px-6 py-4">
+    <div className="min-h-screen bg-surface">
+      <header className="border-b border-subtle bg-surface-card px-6 py-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div className="flex items-center gap-3">
             <NavlyLogo size="sm" />
-            <span className="rounded-full bg-[#D62828]/10 px-2.5 py-0.5 text-xs font-bold text-[#D62828]">Admin</span>
+            <span className="rounded-full bg-navly-red/10 px-2.5 py-0.5 text-xs font-bold text-navly-red">Admin</span>
           </div>
-          <button onClick={() => router.push('/dashboard')} className="text-sm text-slate-400 hover:text-slate-700">← Dashboard</button>
+          <button onClick={() => router.push('/dashboard')} className="text-sm text-muted-text/70 hover:text-muted-text">← Dashboard</button>
         </div>
       </header>
 
       <div className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-[#0B1F3A]">Consultants</h1>
-          <Button onClick={() => setEditing({})} className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C]">
+          <h1 className="text-2xl font-bold text-heading">Consultants</h1>
+          <Button onClick={() => setEditing({})} className="gap-2 bg-navly-red text-white hover:bg-navly-red/80">
             <Plus className="h-4 w-4" /> Add consultant
           </Button>
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-slate-300" /></div>
+          <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-text/50" /></div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <div className="overflow-hidden rounded-2xl border border-subtle bg-surface-card">
             <table className="w-full text-sm">
-              <thead className="border-b border-slate-100 bg-slate-50">
+              <thead className="border-b border-subtle/50 bg-surface-alt">
                 <tr>
                   {['Name', 'Type', 'Location', 'Status', ''].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-500">{h}</th>
+                    <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-muted-text">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-subtle/50">
                 {consultants.length === 0 && (
-                  <tr><td colSpan={5} className="py-12 text-center text-slate-400">No consultants yet. Add one above.</td></tr>
+                  <tr><td colSpan={5} className="py-12 text-center text-muted-text/70">No consultants yet. Add one above.</td></tr>
                 )}
                 {consultants.map((c) => (
-                  <tr key={c.id} className="hover:bg-slate-50">
+                  <tr key={c.id} className="hover:bg-surface-alt">
                     <td className="px-4 py-3">
-                      <p className="font-semibold text-[#0B1F3A]">{c.name}</p>
-                      <p className="text-xs text-slate-400">{c.business_name}</p>
+                      <p className="font-semibold text-heading">{c.name}</p>
+                      <p className="text-xs text-muted-text/70">{c.business_name}</p>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{c.certification_type}</td>
-                    <td className="px-4 py-3 text-slate-600">{[c.city, c.province].filter(Boolean).join(', ') || '—'}</td>
+                    <td className="px-4 py-3 text-muted-text">{c.certification_type}</td>
+                    <td className="px-4 py-3 text-muted-text">{[c.city, c.province].filter(Boolean).join(', ') || '—'}</td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {c.verified && <span className="flex items-center gap-0.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700"><ShieldCheck className="h-3 w-3" /> Verified</span>}
@@ -198,13 +198,13 @@ export default function AdminConsultantsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => setEditing(c)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-[#0B1F3A]">
+                        <button onClick={() => setEditing(c)} className="rounded-lg p-1.5 text-muted-text/70 hover:bg-subtle hover:text-heading">
                           <Pencil className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(c.id)}
                           disabled={deleting === c.id}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                          className="rounded-lg p-1.5 text-muted-text/70 hover:bg-red-50 hover:text-red-600"
                         >
                           {deleting === c.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                         </button>

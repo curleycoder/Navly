@@ -90,25 +90,25 @@ export default function TasksPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10 animate-fade-in">
       <div className="mb-8">
-        <p className="hidden md:block text-sm font-semibold uppercase tracking-wide text-[#D62828]">Action plan</p>
-        <h1 className="hidden md:block mt-1 text-3xl font-bold text-[#0B1F3A]">Your Settlement & PR Checklist</h1>
-        <p className="mt-2 text-slate-500">
+        <p className="hidden md:block t-eyebrow text-navly-red">Action plan</p>
+        <h1 className="hidden md:block mt-1 t-page-title">Your Settlement & PR Checklist</h1>
+        <p className="mt-2 t-body">
           Step-by-step tasks generated from your profile. Tap any item for specific instructions on how and where to complete it.
         </p>
       </div>
 
       {/* Progress */}
-      <Card className="mb-8 rounded-2xl border-slate-200 bg-white">
+      <Card className="mb-8 rounded-2xl border-subtle bg-surface-card">
         <CardContent className="p-5">
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-sm font-semibold text-[#0B1F3A]">
+            <p className="t-section-title">
               {done} of {total} tasks complete
             </p>
-            <span className="text-sm font-bold text-[#D62828]">{progress}%</span>
+            <span className="t-section-title text-navly-red">{progress}%</span>
           </div>
-          <div className="h-2 w-full rounded-full bg-slate-100">
+          <div className="h-2 w-full rounded-full bg-subtle">
             <div
-              className="h-2 rounded-full bg-[#D62828] transition-all duration-1000"
+              className="h-2 rounded-full bg-navly-red transition-all duration-1000"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -119,11 +119,11 @@ export default function TasksPage() {
       {Array.from(pendingByCategory.entries()).map(([category, catTasks]) => (
         <div key={category} className="mb-8">
            <div className="mb-4 flex items-center justify-between">
-             <h2 className="text-xs font-bold uppercase tracking-wide text-slate-400 flex items-center gap-2">
-               <div className="w-1.5 h-1.5 rounded-full bg-[#D62828]"></div>
+             <h2 className="t-eyebrow text-muted-text/70 flex items-center gap-2">
+               <div className="w-1.5 h-1.5 rounded-full bg-navly-red"></div>
                {category}
              </h2>
-             <span className="text-xs font-semibold text-slate-400">{catTasks.length} remaining</span>
+             <span className="t-caption">{catTasks.length} remaining</span>
            </div>
            <div className="flex flex-col">
               {catTasks.map(task => (
@@ -137,11 +137,11 @@ export default function TasksPage() {
       {completedTasks.length > 0 && (
         <div className="mb-8">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-wide text-green-600 flex items-center gap-2">
+            <h2 className="t-eyebrow text-green-600 flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
               Completed
             </h2>
-            <span className="text-xs font-semibold text-green-600">{completedTasks.length} done</span>
+            <span className="t-caption text-green-600">{completedTasks.length} done</span>
           </div>
           <div className="flex flex-col opacity-60 hover:opacity-100 transition-opacity">
             {completedTasks.map((task) => (
@@ -152,12 +152,12 @@ export default function TasksPage() {
       )}
 
       {total === 0 && (
-        <div className="mb-6 flex flex-col items-center rounded-2xl border-2 border-dashed border-slate-200 bg-white py-14 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-            <ListChecks className="h-5 w-5 text-slate-400" />
+        <div className="mb-6 flex flex-col items-center rounded-2xl border-2 border-dashed border-subtle bg-surface-card py-14 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-subtle">
+            <ListChecks className="h-5 w-5 text-muted-text/70" />
           </div>
-          <p className="mt-4 font-semibold text-[#0B1F3A]">No tasks yet</p>
-          <p className="mt-1 max-w-xs text-sm text-slate-500">
+          <p className="mt-4 font-semibold text-heading">No tasks yet</p>
+          <p className="mt-1 max-w-xs text-sm text-muted-text">
             Complete your profile in onboarding to generate a personalised checklist, or add a custom task below.
           </p>
         </div>
@@ -166,18 +166,18 @@ export default function TasksPage() {
       <Toast message={message} />
 
       {/* Add task Input */}
-      <div className="flex gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-200 shadow-inner mt-4">
+      <div className="flex gap-3 bg-surface-alt p-2 rounded-2xl border border-subtle shadow-inner mt-4">
         <Input
           placeholder="Add a custom task (e.g. 'Book English test', 'Update NOC description')…"
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addTask()}
-          className="rounded-xl border-transparent bg-white shadow-sm px-4 py-3 text-[#0B1F3A] focus-visible:ring-[#D62828]"
+          className="rounded-xl border-transparent bg-surface-card shadow-sm px-4 py-3 text-heading focus-visible:ring-navly-red"
         />
         <Button
           onClick={addTask}
           disabled={!newTitle.trim()}
-          className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-40 rounded-xl px-6"
+          className="gap-2 bg-navly-red text-white hover:bg-navly-red/80 disabled:opacity-40 rounded-xl px-6"
         >
           <Plus className="h-4 w-4" />
           Add
@@ -200,14 +200,14 @@ function TaskRow({
     <div
       className={cn(
         'group flex items-center gap-4 rounded-2xl border p-4 transition-all mb-3',
-        task.done ? 'border-slate-100 bg-slate-50 shadow-none' : 'border-slate-200 bg-white shadow-sm hover:border-[#0B1F3A]/20 hover:shadow-md'
+        task.done ? 'border-subtle/50 bg-surface-alt shadow-none' : 'border-subtle bg-surface-card shadow-sm hover:border-navly-navy/20 hover:shadow-md'
       )}
     >
       <button
         onClick={() => onToggle(task.id)}
         className={cn(
           'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all focus:outline-none cursor-pointer',
-          task.done ? 'border-[#10b981] bg-[#10b981]' : 'border-slate-300 hover:border-[#10b981] hover:bg-green-50'
+          task.done ? 'border-[#10b981] bg-[#10b981]' : 'border-subtle hover:border-[#10b981] hover:bg-green-50'
         )}
       >
         {task.done && (
@@ -221,20 +221,20 @@ function TaskRow({
         <span
           className={cn(
             'block text-[15px] font-semibold truncate',
-            task.done ? 'text-slate-400 line-through' : 'text-[#0B1F3A]'
+            task.done ? 'text-muted-text/70 line-through' : 'text-heading'
           )}
         >
           {task.title}
         </span>
         {task.details && !task.done && (
-          <p className="text-xs text-slate-400 truncate mt-0.5 max-w-[90%]">{task.details}</p>
+          <p className="text-xs text-muted-text/70 truncate mt-0.5 max-w-[90%]">{task.details}</p>
         )}
       </div>
 
       {hasGuide && !task.done && (
         <Link
           href={`/dashboard/tasks/${task.id}`}
-          className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:border-[#0B1F3A] hover:text-[#0B1F3A] transition-colors"
+          className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-subtle px-2.5 py-1.5 text-xs font-semibold text-muted-text hover:border-navly-navy hover:text-heading transition-colors"
           onClick={(e) => e.stopPropagation()}
         >
           More info

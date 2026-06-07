@@ -32,66 +32,66 @@ export default function ReferralPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0B1F3A]">
-      <header className="border-b border-slate-200 bg-white px-6 py-4">
+    <div className="min-h-screen bg-surface text-heading">
+      <header className="border-b border-subtle bg-surface-card px-6 py-4">
         <div className="mx-auto flex max-w-2xl items-center justify-between">
           <Link href="/" className="pt-1"><NavlyLogo size="sm" /></Link>
-          <Link href="/dashboard" className="text-sm pt-3 text-slate-600 hover:text-[#0B1F3A]">Back to app</Link>
+          <Link href="/dashboard" className="text-sm pt-3 text-muted-text hover:text-heading">Back to app</Link>
         </div>
       </header>
 
       <main className="mx-auto max-w-2xl px-6 py-14">
         {/* Hero */}
         <div className="flex flex-col items-center text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0B1F3A]">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-navly-navy">
             <Gift className="h-6 w-6 text-white" />
           </div>
-          <p className="mt-5 text-sm font-bold uppercase tracking-wide text-[#D62828]">Refer a Friend</p>
+          <p className="mt-5 text-sm font-bold uppercase tracking-wide text-navly-red">Refer a Friend</p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight">Share Navly, get rewarded</h1>
-          <p className="mt-2 text-slate-500 text-sm">Share your link. They sign up. You earn.</p>
+          <p className="mt-2 text-muted-text text-sm">Share your link. They sign up. You earn.</p>
         </div>
 
         {/* Referral link */}
-        <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-6">
-          <p className="text-sm font-semibold text-slate-700">Your referral link</p>
+        <div className="mt-10 rounded-2xl border border-subtle bg-surface-card p-6">
+          <p className="text-sm font-semibold text-muted-text">Your referral link</p>
           {referralLink ? (
-            <div className="mt-3 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <span className="flex-1 truncate text-sm text-slate-600 font-mono">{referralLink}</span>
+            <div className="mt-3 flex items-center gap-2 rounded-xl border border-subtle bg-surface-alt p-3">
+              <span className="flex-1 truncate text-sm text-muted-text font-mono">{referralLink}</span>
               <button
                 onClick={handleCopy}
-                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-[#0B1F3A] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#0B1F3A]/90 active:scale-95"
+                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-navly-navy px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-navly-navy/90 active:scale-95"
               >
                 {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                 {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
           ) : (
-            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <div className="h-5 w-64 animate-pulse rounded bg-slate-200" />
+            <div className="mt-3 rounded-xl border border-subtle bg-surface-alt p-3">
+              <div className="h-5 w-64 animate-pulse rounded bg-subtle" />
             </div>
           )}
           {referralCode && (
-            <p className="mt-2 text-xs text-slate-400">
-              Code: <span className="font-mono font-semibold text-slate-600">{referralCode}</span>
+            <p className="mt-2 text-xs text-muted-text/70">
+              Code: <span className="font-mono font-semibold text-muted-text">{referralCode}</span>
             </p>
           )}
         </div>
 
         {/* Milestone reward */}
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-6">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Milestone Reward</p>
+        <div className="mt-4 rounded-2xl border border-subtle bg-surface-card p-6">
+          <p className="text-xs font-bold uppercase tracking-wide text-muted-text/70">Milestone Reward</p>
           <div className="mt-4 flex items-center gap-5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#0B1F3A]/5">
-              <Users className="h-5 w-5 text-[#0B1F3A]" />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-navly-navy/5">
+              <Users className="h-5 w-5 text-heading" />
             </div>
             <div>
               <p className="text-sm font-bold">Refer 3 active users</p>
-              <p className="text-sm text-slate-500">1 month free</p>
+              <p className="text-sm text-muted-text">1 month free</p>
             </div>
           </div>
         </div>
 
-        <p className="mt-6 text-center text-xs text-slate-400">
+        <p className="mt-6 text-center text-xs text-muted-text/70">
           Credits are non-transferable and cannot be redeemed for cash.
         </p>
       </main>

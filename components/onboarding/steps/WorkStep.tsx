@@ -34,13 +34,13 @@ function TeerOptionCard({ opt, selected, onClick }: { opt: typeof teerOptions[nu
   const info = teerJobExamples[opt.value]
   return (
     <div className="flex flex-col">
-      <div className={cn('flex items-center justify-between rounded-2xl border-2 p-4 transition-all', selected ? 'border-[#D62828] bg-[#D62828]/5' : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm')}>
+      <div className={cn('flex items-center justify-between rounded-2xl border-2 p-4 transition-all', selected ? 'border-navly-red bg-navly-red/5' : 'border-subtle bg-surface-card hover:border-subtle/80 hover:shadow-sm')}>
         <button type="button" role="radio" aria-checked={selected} onClick={onClick} className="flex-1 text-left focus-visible:outline-none">
-          <p className={cn('font-semibold text-[#0B1F3A]', selected && 'text-[#D62828]')}>{opt.label}</p>
-          <p className="mt-0.5 text-sm text-slate-500">{opt.desc}</p>
+          <p className={cn('font-semibold text-heading', selected && 'text-navly-red')}>{opt.label}</p>
+          <p className="mt-0.5 text-sm text-muted-text">{opt.desc}</p>
         </button>
         <button type="button" onClick={(e) => { e.stopPropagation(); setOpen((v) => !v) }}
-          className="ml-3 shrink-0 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none"
+          className="ml-3 shrink-0 rounded-full p-1.5 text-muted-text/70 hover:bg-subtle hover:text-muted-text focus-visible:outline-none"
           aria-label={`See ${opt.label} job examples`}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
@@ -48,10 +48,10 @@ function TeerOptionCard({ opt, selected, onClick }: { opt: typeof teerOptions[nu
         </button>
       </div>
       {open && info && (
-        <div className="mt-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-          <p className="text-xs font-semibold text-slate-600 mb-2">{info.title}</p>
+        <div className="mt-1 rounded-xl border border-subtle bg-surface-alt px-4 py-3">
+          <p className="text-xs font-semibold text-muted-text mb-2">{info.title}</p>
           <div className="flex flex-wrap gap-1.5">
-            {info.examples.map((ex) => <span key={ex} className="rounded-full bg-white border border-slate-200 px-2.5 py-0.5 text-xs text-slate-700">{ex}</span>)}
+            {info.examples.map((ex) => <span key={ex} className="rounded-full bg-surface-card border border-subtle px-2.5 py-0.5 text-xs text-muted-text">{ex}</span>)}
           </div>
         </div>
       )}
@@ -64,9 +64,9 @@ function OccupationFields({ data, onChange, showForeignYears }: { data: IntakeDa
   return (
     <>
       <div className="flex flex-col gap-3">
-        <Label className="text-sm font-semibold text-[#0B1F3A]">
+        <Label className="text-sm font-semibold text-heading">
           TEER level of your main occupation
-          <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Tap ⓘ on each option to see job examples. TEER 0–3 are skilled occupations for Express Entry.</span>
+          <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Tap ⓘ on each option to see job examples. TEER 0–3 are skilled occupations for Express Entry.</span>
         </Label>
         <div className="flex flex-col gap-2">
           {teerOptions.map((opt) => (
@@ -76,23 +76,23 @@ function OccupationFields({ data, onChange, showForeignYears }: { data: IntakeDa
       </div>
       {isSkilled && (
         <div className="flex flex-col gap-2">
-          <Label htmlFor="noc" className="text-sm font-semibold text-[#0B1F3A]">
+          <Label htmlFor="noc" className="text-sm font-semibold text-heading">
             NOC code (if known)
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">5-digit code from the National Occupational Classification. Improves PNP stream matching.</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">5-digit code from the National Occupational Classification. Improves PNP stream matching.</span>
           </Label>
           <Input id="noc" placeholder="e.g. 21231" value={data.noc} onChange={(e) => onChange({ noc: e.target.value })}
-            className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+            className="max-w-xs rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red" />
         </div>
       )}
       {isSkilled && showForeignYears && (
         <div className="flex flex-col gap-2">
-          <Label htmlFor="foreignYears" className="text-sm font-semibold text-[#0B1F3A]">
+          <Label htmlFor="foreignYears" className="text-sm font-semibold text-heading">
             Years of skilled work experience outside Canada (last 10 years)
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">TEER 0–3 only. Enter 0 if none.</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">TEER 0–3 only. Enter 0 if none.</span>
           </Label>
           <Input id="foreignYears" type="number" min={0} max={10} step={0.5} placeholder="e.g. 3"
             value={data.foreignWorkYears} onChange={(e) => onChange({ foreignWorkYears: e.target.value })}
-            className="max-w-xs rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]" />
+            className="max-w-xs rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red" />
         </div>
       )}
     </>
@@ -123,27 +123,27 @@ const workPermitOptions = [
 export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fields: Partial<IntakeData>) => void }) {
   const isInside = data.locationStatus === 'inside'
   const status = data.status
-  const inputClass = 'rounded-xl border-slate-200 bg-white px-4 py-3 text-[#0B1F3A] placeholder:text-slate-400 focus-visible:ring-[#D62828]'
+  const inputClass = 'rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red'
 
   // ── Student branch ──────────────────────────────────────────────────────────
   if (isInside && status === 'student') {
     const pgwpEligible = ['college-diploma', 'bachelor', 'master', 'doctoral'].includes(data.programLevel)
     return (
       <div>
-        <h1 className="text-3xl font-bold text-[#0B1F3A]">Your study program</h1>
-        <p className="mt-2 text-slate-500">PGWP eligibility and your CEC timeline depend on these details.</p>
+        <h1 className="text-3xl font-bold text-heading">Your study program</h1>
+        <p className="mt-2 text-muted-text">PGWP eligibility and your CEC timeline depend on these details.</p>
         <div className="mt-8 flex flex-col gap-8">
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="schoolName" className="text-sm font-semibold text-[#0B1F3A]">School name</Label>
+              <Label htmlFor="schoolName" className="text-sm font-semibold text-heading">School name</Label>
               <Input id="schoolName" placeholder="e.g. University of British Columbia" value={data.schoolName}
                 onChange={(e) => onChange({ schoolName: e.target.value })} className={inputClass} />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="dliNumber" className="text-sm font-semibold text-[#0B1F3A]">
+              <Label htmlFor="dliNumber" className="text-sm font-semibold text-heading">
                 DLI number
-                <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Designated Learning Institution number from your letter of acceptance.</span>
+                <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Designated Learning Institution number from your letter of acceptance.</span>
               </Label>
               <Input id="dliNumber" placeholder="e.g. O19395641872" value={data.dliNumber}
                 onChange={(e) => onChange({ dliNumber: e.target.value })} className={inputClass} />
@@ -151,15 +151,15 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="fieldOfStudy" className="text-sm font-semibold text-[#0B1F3A]">Field of study</Label>
+            <Label htmlFor="fieldOfStudy" className="text-sm font-semibold text-heading">Field of study</Label>
             <Input id="fieldOfStudy" placeholder="e.g. Computer Science, Nursing, Business Administration" value={data.fieldOfStudy}
               onChange={(e) => onChange({ fieldOfStudy: e.target.value })} className={inputClass} />
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Current program level
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Your current enrollment — not your previously completed education. This determines PGWP eligibility.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Your current enrollment — not your previously completed education. This determines PGWP eligibility.</span>
             </Label>
             {programLevelOptions.map((opt) => (
               <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.programLevel === opt.value} onClick={() => onChange({ programLevel: opt.value })} />
@@ -168,24 +168,24 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="progStart" className="text-sm font-semibold text-[#0B1F3A]">Program start</Label>
+              <Label htmlFor="progStart" className="text-sm font-semibold text-heading">Program start</Label>
               <Input id="progStart" type="month" value={data.programStartDate}
                 onChange={(e) => onChange({ programStartDate: e.target.value })} className={inputClass} />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="progEnd" className="text-sm font-semibold text-[#0B1F3A]">Program end (expected)</Label>
+              <Label htmlFor="progEnd" className="text-sm font-semibold text-heading">Program end (expected)</Label>
               <Input id="progEnd" type="month" value={data.programEndDate}
                 onChange={(e) => onChange({ programEndDate: e.target.value })} className={inputClass} />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="progLen" className="text-sm font-semibold text-[#0B1F3A]">Program length (months)</Label>
+              <Label htmlFor="progLen" className="text-sm font-semibold text-heading">Program length (months)</Label>
               <Input id="progLen" type="number" min={1} max={72} placeholder="e.g. 24" value={data.programLengthMonths}
                 onChange={(e) => onChange({ programLengthMonths: e.target.value })} className={inputClass} />
             </div>
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">Is your program full-time?</Label>
+            <Label className="text-sm font-semibold text-heading">Is your program full-time?</Label>
             {[
               { value: 'yes', label: 'Yes — full-time', desc: 'Enrolled full-time every semester' },
               { value: 'no', label: 'No — part-time', desc: 'Currently enrolled part-time' },
@@ -196,9 +196,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
 
           {data.fullTimeStudy === 'yes' && (
             <div className="flex flex-col gap-3">
-              <Label className="text-sm font-semibold text-[#0B1F3A]">
+              <Label className="text-sm font-semibold text-heading">
                 Have you had any part-time semesters?
-                <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Any part-time semester can reduce your PGWP length.</span>
+                <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Any part-time semester can reduce your PGWP length.</span>
               </Label>
               {[
                 { value: 'no', label: 'No', desc: 'All semesters have been full-time' },
@@ -210,9 +210,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           )}
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Have you done any unauthorized work?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Working without authorization while studying can affect future permit and PR applications.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Working without authorization while studying can affect future permit and PR applications.</span>
             </Label>
             {[
               { value: 'no', label: 'No', desc: 'I have not worked without authorization' },
@@ -230,9 +230,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
 
           {pgwpEligible && (
             <div className="flex flex-col gap-3">
-              <Label className="text-sm font-semibold text-[#0B1F3A]">
+              <Label className="text-sm font-semibold text-heading">
                 Have you applied for a PGWP?
-                <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Post-Graduation Work Permit — allows you to work in Canada after graduation and build CEC-eligible experience.</span>
+                <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Post-Graduation Work Permit — allows you to work in Canada after graduation and build CEC-eligible experience.</span>
               </Label>
               {[
                 { value: 'not-yet', label: 'Not yet — still studying', desc: 'I will apply after graduating' },
@@ -251,9 +251,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
 
           {data.pgwpApplied === 'yes' && (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="pgwpExpiry" className="text-sm font-semibold text-[#0B1F3A]">
+              <Label htmlFor="pgwpExpiry" className="text-sm font-semibold text-heading">
                 PGWP expiry date
-                <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Navly will remind you before it expires.</span>
+                <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Navly will remind you before it expires.</span>
               </Label>
               <Input id="pgwpExpiry" type="month" value={data.pgwpExpiry}
                 onChange={(e) => onChange({ pgwpExpiry: e.target.value })} className={cn(inputClass, 'max-w-xs')} />
@@ -261,9 +261,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           )}
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Current work authorization
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Work gained while studying full-time does not count toward CEC. Post-graduation PGWP work may count if TEER 0–3 at 30+ hrs/week.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Work gained while studying full-time does not count toward CEC. Post-graduation PGWP work may count if TEER 0–3 at 30+ hrs/week.</span>
             </Label>
             {[
               { value: 'none', label: 'None — student only', desc: 'Not currently working' },
@@ -277,9 +277,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
 
           {['pgwp', 'bridging'].includes(data.workAuthAfterGrad) && (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="canWorkPGWP" className="text-sm font-semibold text-[#0B1F3A]">
+              <Label htmlFor="canWorkPGWP" className="text-sm font-semibold text-heading">
                 Months of skilled Canadian work experience
-                <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">TEER 0–3 occupations, 30+ hrs/week. 12 months qualifies for CEC.</span>
+                <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">TEER 0–3 occupations, 30+ hrs/week. 12 months qualifies for CEC.</span>
               </Label>
               <Input id="canWorkPGWP" type="number" min={0} max={120} placeholder="e.g. 8" value={data.canadianWorkMonths}
                 onChange={(e) => onChange({ canadianWorkMonths: e.target.value })} className={cn(inputClass, 'max-w-xs')} />
@@ -297,25 +297,25 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
   if (isInside && status === 'work-permit') {
     return (
       <div>
-        <h1 className="text-3xl font-bold text-[#0B1F3A]">Your work experience in Canada</h1>
-        <p className="mt-2 text-slate-500">Canadian skilled work is the most direct path to PR through Canadian Experience Class.</p>
+        <h1 className="text-3xl font-bold text-heading">Your work experience in Canada</h1>
+        <p className="mt-2 text-muted-text">Canadian skilled work is the most direct path to PR through Canadian Experience Class.</p>
         <div className="mt-8 flex flex-col gap-8">
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="employerName" className="text-sm font-semibold text-[#0B1F3A]">Employer name</Label>
+              <Label htmlFor="employerName" className="text-sm font-semibold text-heading">Employer name</Label>
               <Input id="employerName" placeholder="e.g. Acme Corp" value={data.employerName}
                 onChange={(e) => onChange({ employerName: e.target.value })} className={inputClass} />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="jobTitle" className="text-sm font-semibold text-[#0B1F3A]">Job title</Label>
+              <Label htmlFor="jobTitle" className="text-sm font-semibold text-heading">Job title</Label>
               <Input id="jobTitle" placeholder="e.g. Software Developer" value={data.jobTitle}
                 onChange={(e) => onChange({ jobTitle: e.target.value })} className={inputClass} />
             </div>
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">Work permit type</Label>
+            <Label className="text-sm font-semibold text-heading">Work permit type</Label>
             {workPermitOptions.map((opt) => (
               <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.workPermitType === opt.value} onClick={() => onChange({ workPermitType: opt.value })} />
             ))}
@@ -323,15 +323,15 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="permitExpiry" className="text-sm font-semibold text-[#0B1F3A]">
+              <Label htmlFor="permitExpiry" className="text-sm font-semibold text-heading">
                 Work permit expiry
-                <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Navly will remind you before it expires.</span>
+                <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Navly will remind you before it expires.</span>
               </Label>
               <Input id="permitExpiry" type="month" value={data.permitExpiry}
                 onChange={(e) => onChange({ permitExpiry: e.target.value })} className={inputClass} />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="workStart" className="text-sm font-semibold text-[#0B1F3A]">
+              <Label htmlFor="workStart" className="text-sm font-semibold text-heading">
                 Start date in current skilled job
               </Label>
               <Input id="workStart" type="date" value={data.workStartDate}
@@ -340,10 +340,10 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">Province of job</Label>
+            <Label className="text-sm font-semibold text-heading">Province of job</Label>
             <div className="relative">
               <select value={data.provinceOfJob} onChange={(e) => onChange({ provinceOfJob: e.target.value })}
-                className={cn(selectClass, !data.provinceOfJob && 'text-slate-400')}>
+                className={cn(selectClass, !data.provinceOfJob && 'text-muted-text/70')}>
                 <option value="" disabled>Select province or territory…</option>
                 {CA_PROVINCES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
               </select>
@@ -353,19 +353,19 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="wage" className="text-sm font-semibold text-[#0B1F3A]">Hourly wage (CAD)</Label>
+              <Label htmlFor="wage" className="text-sm font-semibold text-heading">Hourly wage (CAD)</Label>
               <Input id="wage" type="number" min={0} step={0.5} placeholder="e.g. 28.50" value={data.wage}
                 onChange={(e) => onChange({ wage: e.target.value })} className={inputClass} />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="hours" className="text-sm font-semibold text-[#0B1F3A]">Hours per week</Label>
+              <Label htmlFor="hours" className="text-sm font-semibold text-heading">Hours per week</Label>
               <Input id="hours" type="number" min={1} max={80} placeholder="e.g. 40" value={data.hoursPerWeek}
                 onChange={(e) => onChange({ hoursPerWeek: e.target.value })} className={inputClass} />
             </div>
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">Full-time or part-time?</Label>
+            <Label className="text-sm font-semibold text-heading">Full-time or part-time?</Label>
             {[
               { value: 'full-time', label: 'Full-time', desc: '30 or more hours per week' },
               { value: 'part-time', label: 'Part-time', desc: 'Less than 30 hours per week' },
@@ -375,9 +375,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Is this job permanent and non-seasonal?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">CEC requires work that is non-seasonal and ongoing.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">CEC requires work that is non-seasonal and ongoing.</span>
             </Label>
             {[
               { value: 'yes', label: 'Yes', desc: 'Permanent, non-seasonal position' },
@@ -388,7 +388,7 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">Are you self-employed?</Label>
+            <Label className="text-sm font-semibold text-heading">Are you self-employed?</Label>
             {[
               { value: 'no', label: 'No', desc: 'Employed by a company or organization' },
               { value: 'yes', label: 'Yes', desc: 'Self-employed, freelance, or own a business' },
@@ -404,9 +404,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Do you have a written job offer from a Canadian employer?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">A qualifying arranged employment offer may add 50 or 200 CRS points, but many job offers do not qualify. It must be LMIA-backed or LMIA-exempt under specific categories.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">A qualifying arranged employment offer may add 50 or 200 CRS points, but many job offers do not qualify. It must be LMIA-backed or LMIA-exempt under specific categories.</span>
             </Label>
             {[
               { value: 'yes', label: 'Yes', desc: 'I have a written offer from a Canadian employer' },
@@ -419,7 +419,7 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           {data.hasJobOffer === 'yes' && (
             <>
               <div className="flex flex-col gap-3">
-                <Label className="text-sm font-semibold text-[#0B1F3A]">Is this the same employer as your current job?</Label>
+                <Label className="text-sm font-semibold text-heading">Is this the same employer as your current job?</Label>
                 {[
                   { value: 'yes', label: 'Yes', desc: 'Same employer I currently work for' },
                   { value: 'no', label: 'No', desc: 'Different employer' },
@@ -428,9 +428,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
                 ))}
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="lmia" className="text-sm font-semibold text-[#0B1F3A]">
+                <Label htmlFor="lmia" className="text-sm font-semibold text-heading">
                   LMIA number (if applicable)
-                  <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Leave blank if not LMIA-backed.</span>
+                  <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Leave blank if not LMIA-backed.</span>
                 </Label>
                 <Input id="lmia" placeholder="e.g. A1234567" value={data.lmiaNumber}
                   onChange={(e) => onChange({ lmiaNumber: e.target.value })} className={cn(inputClass, 'max-w-xs')} />
@@ -439,9 +439,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           )}
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="canWorkMonths" className="text-sm font-semibold text-[#0B1F3A]">
+            <Label htmlFor="canWorkMonths" className="text-sm font-semibold text-heading">
               Total months of skilled Canadian work experience
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">TEER 0–3 occupations, 30+ hrs/week. 12 months qualifies for CEC.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">TEER 0–3 occupations, 30+ hrs/week. 12 months qualifies for CEC.</span>
             </Label>
             <Input id="canWorkMonths" type="number" min={0} max={120} placeholder="e.g. 14" value={data.canadianWorkMonths}
               onChange={(e) => onChange({ canadianWorkMonths: e.target.value })} className={cn(inputClass, 'max-w-xs')} />
@@ -458,7 +458,7 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
   if (isInside && status === 'visitor') {
     return (
       <div>
-        <h1 className="text-3xl font-bold text-[#0B1F3A]">Your visitor situation</h1>
+        <h1 className="text-3xl font-bold text-heading">Your visitor situation</h1>
         <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
           <div>
@@ -469,16 +469,16 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
         <div className="mt-8 flex flex-col gap-8">
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="visitorExpiry" className="text-sm font-semibold text-[#0B1F3A]">
+            <Label htmlFor="visitorExpiry" className="text-sm font-semibold text-heading">
               Visitor record / authorized stay expiry
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">The date you must leave Canada or apply to extend.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">The date you must leave Canada or apply to extend.</span>
             </Label>
             <Input id="visitorExpiry" type="date" value={data.visitorRecordExpiry}
               onChange={(e) => onChange({ visitorRecordExpiry: e.target.value })} className={cn(inputClass, 'max-w-xs')} />
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">Have you applied to extend your visitor status?</Label>
+            <Label className="text-sm font-semibold text-heading">Have you applied to extend your visitor status?</Label>
             {[
               { value: 'no', label: 'No', desc: 'I have not applied to extend' },
               { value: 'yes', label: 'Yes — applied', desc: 'Extension application is in progress' },
@@ -489,9 +489,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Do you have a Canadian citizen or PR spouse / partner?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Family sponsorship may be possible, but your spouse must meet income and other requirements.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Family sponsorship may be possible, but your spouse must meet income and other requirements.</span>
             </Label>
             {[
               { value: 'no', label: 'No', desc: 'I do not have a Canadian spouse or partner' },
@@ -503,9 +503,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Are you planning to apply for a study permit?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Studying in Canada can lead to a PGWP and eventually CEC. This is a common route for visitors who want PR.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Studying in Canada can lead to a PGWP and eventually CEC. This is a common route for visitors who want PR.</span>
             </Label>
             {[
               { value: 'no', label: 'No', desc: 'I am not planning to study' },
@@ -517,9 +517,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Do you have skilled work experience that may qualify for Express Entry from outside Canada?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">You can leave Canada and apply through Express Entry if you meet FSW or other federal program requirements.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">You can leave Canada and apply through Express Entry if you meet FSW or other federal program requirements.</span>
             </Label>
             {[
               { value: 'no', label: 'No', desc: 'I do not have qualifying skilled work experience' },
@@ -531,9 +531,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Do you have a job offer from a Canadian employer?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Visitors generally cannot work in Canada. A job offer alone does not give you work authorization.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Visitors generally cannot work in Canada. A job offer alone does not give you work authorization.</span>
             </Label>
             {[
               { value: 'no', label: 'No', desc: 'I do not have a Canadian job offer' },
@@ -552,14 +552,14 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
   if (data.locationStatus === 'outside') {
     return (
       <div>
-        <h1 className="text-3xl font-bold text-[#0B1F3A]">Work experience</h1>
-        <p className="mt-2 text-slate-500">Federal Skilled Worker requires at least 1 year of continuous skilled work. These details determine your FSW 67-point eligibility and CRS score.</p>
+        <h1 className="text-3xl font-bold text-heading">Work experience</h1>
+        <p className="mt-2 text-muted-text">Federal Skilled Worker requires at least 1 year of continuous skilled work. These details determine your FSW 67-point eligibility and CRS score.</p>
         <div className="mt-8 flex flex-col gap-8">
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Do you have at least 1 year of continuous full-time (or equivalent) skilled work experience?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Must be paid, non-self-employed, TEER 0–3, in the last 10 years. FSW requires 1 continuous year or equivalent part-time.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Must be paid, non-self-employed, TEER 0–3, in the last 10 years. FSW requires 1 continuous year or equivalent part-time.</span>
             </Label>
             {[
               { value: 'yes', label: 'Yes', desc: 'I have at least 1 continuous year of skilled paid work' },
@@ -577,21 +577,21 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="fswFrom" className="text-sm font-semibold text-[#0B1F3A]">
+              <Label htmlFor="fswFrom" className="text-sm font-semibold text-heading">
                 Work experience start (most recent qualifying job)
               </Label>
               <Input id="fswFrom" type="month" value={data.fswWorkDateFrom}
                 onChange={(e) => onChange({ fswWorkDateFrom: e.target.value })} className={inputClass} />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="fswTo" className="text-sm font-semibold text-[#0B1F3A]">Work experience end</Label>
+              <Label htmlFor="fswTo" className="text-sm font-semibold text-heading">Work experience end</Label>
               <Input id="fswTo" type="month" value={data.fswWorkDateTo}
                 onChange={(e) => onChange({ fswWorkDateTo: e.target.value })} className={inputClass} />
             </div>
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">Was this paid employment?</Label>
+            <Label className="text-sm font-semibold text-heading">Was this paid employment?</Label>
             {[
               { value: 'yes', label: 'Yes — paid', desc: 'I received wages or salary' },
               { value: 'no', label: 'No — unpaid / volunteer', desc: 'Volunteer or unpaid work does not count' },
@@ -601,7 +601,7 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">Full-time or part-time equivalent?</Label>
+            <Label className="text-sm font-semibold text-heading">Full-time or part-time equivalent?</Label>
             {[
               { value: 'full-time', label: 'Full-time', desc: '30 or more hours per week' },
               { value: 'part-time-equivalent', label: 'Part-time equivalent', desc: 'Multiple part-time jobs totalling 30+ hrs/week' },
@@ -612,30 +612,30 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
 
           <OccupationFields data={data} onChange={onChange} showForeignYears />
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm font-semibold text-[#0B1F3A]">Education Credential Assessment (ECA)</p>
-            <p className="mt-1 text-xs text-slate-500">FSW applicants with foreign credentials must have an ECA from a designated organization (e.g. WES, ICAS, IQAS).</p>
+          <div className="rounded-2xl border border-subtle bg-surface-alt p-4">
+            <p className="text-sm font-semibold text-heading">Education Credential Assessment (ECA)</p>
+            <p className="mt-1 text-xs text-muted-text">FSW applicants with foreign credentials must have an ECA from a designated organization (e.g. WES, ICAS, IQAS).</p>
             <div className="mt-4 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="ecaCountry" className="text-sm font-semibold text-[#0B1F3A]">Country where credential was obtained</Label>
+                <Label htmlFor="ecaCountry" className="text-sm font-semibold text-heading">Country where credential was obtained</Label>
                 <Input id="ecaCountry" placeholder="e.g. India, Philippines, Nigeria" value={data.educationCredentialCountry}
                   onChange={(e) => onChange({ educationCredentialCountry: e.target.value })} className={inputClass} />
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="ecaOrg" className="text-sm font-semibold text-[#0B1F3A]">ECA organization (if completed)</Label>
+                <Label htmlFor="ecaOrg" className="text-sm font-semibold text-heading">ECA organization (if completed)</Label>
                 <Input id="ecaOrg" placeholder="e.g. WES, ICAS, IQAS, PEBC" value={data.ecaOrganization}
                   onChange={(e) => onChange({ ecaOrganization: e.target.value })} className={inputClass} />
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="ecaIssued" className="text-sm font-semibold text-[#0B1F3A]">ECA issue date</Label>
+                  <Label htmlFor="ecaIssued" className="text-sm font-semibold text-heading">ECA issue date</Label>
                   <Input id="ecaIssued" type="month" value={data.ecaIssueDate}
                     onChange={(e) => onChange({ ecaIssueDate: e.target.value })} className={inputClass} />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="ecaExpiry" className="text-sm font-semibold text-[#0B1F3A]">
+                  <Label htmlFor="ecaExpiry" className="text-sm font-semibold text-heading">
                     ECA expiry
-                    <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">Most ECAs are valid 5 years from issue.</span>
+                    <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Most ECAs are valid 5 years from issue.</span>
                   </Label>
                   <Input id="ecaExpiry" type="month" value={data.ecaExpiryDate}
                     onChange={(e) => onChange({ ecaExpiryDate: e.target.value })} className={inputClass} />
@@ -645,9 +645,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Do you have relatives in Canada (citizen or PR)?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">A sibling, parent, child, grandparent, aunt, or uncle who is a Canadian citizen or PR may add adaptability points to your FSW score.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">A sibling, parent, child, grandparent, aunt, or uncle who is a Canadian citizen or PR may add adaptability points to your FSW score.</span>
             </Label>
             {[
               { value: 'no', label: 'No', desc: 'No close relatives in Canada' },
@@ -658,7 +658,7 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">Current job search status</Label>
+            <Label className="text-sm font-semibold text-heading">Current job search status</Label>
             {[
               { value: 'not-yet', label: 'Not actively searching yet', desc: 'I am focused on qualifying first' },
               { value: 'actively-searching', label: 'Actively searching', desc: 'I am applying to Canadian employers' },
@@ -669,9 +669,9 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
           </div>
 
           <div className="flex flex-col gap-3">
-            <Label className="text-sm font-semibold text-[#0B1F3A]">
+            <Label className="text-sm font-semibold text-heading">
               Do you have a valid job offer from a Canadian employer?
-              <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">A qualifying arranged employment offer may add 50 or 200 CRS points, but many job offers do not qualify. It must be LMIA-backed or LMIA-exempt under specific categories.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">A qualifying arranged employment offer may add 50 or 200 CRS points, but many job offers do not qualify. It must be LMIA-backed or LMIA-exempt under specific categories.</span>
             </Label>
             {[
               { value: 'yes', label: 'Yes', desc: 'I have a written offer that may qualify' },
@@ -689,14 +689,14 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
   // ── Default branch (refugee, family-member, other inside statuses) ───────────
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Work experience</h1>
-      <p className="mt-2 text-slate-500">Your work history helps determine which PR pathways may be available to you.</p>
+      <h1 className="text-3xl font-bold text-heading">Work experience</h1>
+      <p className="mt-2 text-muted-text">Your work history helps determine which PR pathways may be available to you.</p>
       <div className="mt-8 flex flex-col gap-8">
         <OccupationFields data={data} onChange={onChange} showForeignYears />
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-[#0B1F3A]">
+          <Label className="text-sm font-semibold text-heading">
             Do you have a valid job offer from a Canadian employer?
-            <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">A qualifying arranged employment offer may add 50 or 200 CRS points, but many job offers do not qualify.</span>
+            <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">A qualifying arranged employment offer may add 50 or 200 CRS points, but many job offers do not qualify.</span>
           </Label>
           {[
             { value: 'yes', label: 'Yes', desc: 'I have a written job offer from a Canadian employer' },

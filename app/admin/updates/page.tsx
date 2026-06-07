@@ -22,7 +22,7 @@ type Update = {
 const IMPACT_STYLES: Record<string, string> = {
   high: 'bg-red-100 text-red-700',
   medium: 'bg-amber-100 text-amber-700',
-  low: 'bg-slate-100 text-slate-600',
+  low: 'bg-subtle text-muted-text',
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -89,16 +89,16 @@ export default function AdminUpdatesPage() {
   const pendingCount = updates.filter(u => !u.reviewed).length
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <header className="border-b border-slate-200 bg-white px-6 py-4">
+    <div className="min-h-screen bg-surface">
+      <header className="border-b border-subtle bg-surface-card px-6 py-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div className="flex items-center gap-3">
             <NavlyLogo size="sm" />
-            <span className="rounded-full bg-[#D62828]/10 px-2.5 py-0.5 text-xs font-bold text-[#D62828]">Admin</span>
+            <span className="rounded-full bg-navly-red/10 px-2.5 py-0.5 text-xs font-bold text-navly-red">Admin</span>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => router.push('/admin/consultants')} className="text-sm text-slate-400 hover:text-slate-700">Consultants</button>
-            <button onClick={() => router.push('/dashboard')} className="text-sm text-slate-400 hover:text-slate-700">← Dashboard</button>
+            <button onClick={() => router.push('/admin/consultants')} className="text-sm text-muted-text/70 hover:text-muted-text">Consultants</button>
+            <button onClick={() => router.push('/dashboard')} className="text-sm text-muted-text/70 hover:text-muted-text">← Dashboard</button>
           </div>
         </div>
       </header>
@@ -107,21 +107,21 @@ export default function AdminUpdatesPage() {
         {/* Title + controls */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#0B1F3A]">Immigration Updates</h1>
+            <h1 className="text-2xl font-bold text-heading">Immigration Updates</h1>
             {!showAll && pendingCount > 0 && (
-              <p className="mt-0.5 text-sm text-slate-500">{pendingCount} pending review</p>
+              <p className="mt-0.5 text-sm text-muted-text">{pendingCount} pending review</p>
             )}
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={load}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+              className="flex items-center gap-1.5 rounded-xl border border-subtle bg-surface-card px-3 py-2 text-sm text-muted-text hover:bg-surface-alt"
             >
               <RefreshCw className="h-3.5 w-3.5" /> Refresh
             </button>
             <button
               onClick={() => setShowAll(v => !v)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+              className="rounded-xl border border-subtle bg-surface-card px-3 py-2 text-sm text-muted-text hover:bg-surface-alt"
             >
               {showAll ? 'Pending only' : 'Show all'}
             </button>
@@ -136,8 +136,8 @@ export default function AdminUpdatesPage() {
               onClick={() => setFilter(cat)}
               className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
                 filter === cat
-                  ? 'bg-[#0B1F3A] text-white'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  ? 'bg-navly-navy text-white'
+                  : 'bg-surface-card border border-subtle text-muted-text hover:bg-surface-alt'
               }`}
             >
               {CATEGORY_LABELS[cat] ?? cat}
@@ -147,10 +147,10 @@ export default function AdminUpdatesPage() {
 
         {loading ? (
           <div className="flex justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-300" />
+            <Loader2 className="h-8 w-8 animate-spin text-muted-text/50" />
           </div>
         ) : visible.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white py-16 text-center text-slate-400">
+          <div className="rounded-2xl border border-subtle bg-surface-card py-16 text-center text-muted-text/70">
             {showAll ? 'No updates yet. Run sync-sources to populate.' : 'All caught up — nothing pending review.'}
           </div>
         ) : (
@@ -158,7 +158,7 @@ export default function AdminUpdatesPage() {
             {visible.map(u => (
               <div
                 key={u.id}
-                className={`rounded-2xl border bg-white p-5 transition-opacity ${u.reviewed ? 'opacity-60' : ''}`}
+                className={`rounded-2xl border bg-surface-card p-5 transition-opacity ${u.reviewed ? 'opacity-60' : ''}`}
                 style={{ borderColor: u.impact_level === 'high' ? '#fca5a5' : '#e2e8f0' }}
               >
                 <div className="flex items-start gap-4">
@@ -168,7 +168,7 @@ export default function AdminUpdatesPage() {
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${IMPACT_STYLES[u.impact_level]}`}>
                         {u.impact_level}
                       </span>
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                      <span className="rounded-full bg-subtle px-2 py-0.5 text-[10px] font-semibold text-muted-text">
                         {CATEGORY_LABELS[u.category] ?? u.category}
                       </span>
                       {u.affects.map(a => (
@@ -184,7 +184,7 @@ export default function AdminUpdatesPage() {
                       href={u.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group inline-flex items-start gap-1 font-semibold text-[#0B1F3A] hover:text-[#D62828]"
+                      className="group inline-flex items-start gap-1 font-semibold text-heading hover:text-navly-red"
                     >
                       {u.title}
                       <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-0 group-hover:opacity-100" />
@@ -192,11 +192,11 @@ export default function AdminUpdatesPage() {
 
                     {/* Summary */}
                     {u.summary && (
-                      <p className="mt-1 line-clamp-2 text-sm text-slate-500">{u.summary}</p>
+                      <p className="mt-1 line-clamp-2 text-sm text-muted-text">{u.summary}</p>
                     )}
 
                     {/* Meta */}
-                    <p className="mt-2 text-xs text-slate-400">
+                    <p className="mt-2 text-xs text-muted-text/70">
                       Published {new Date(u.published_at).toLocaleDateString('en-CA')} ·{' '}
                       Detected {new Date(u.detected_at).toLocaleDateString('en-CA')}
                     </p>

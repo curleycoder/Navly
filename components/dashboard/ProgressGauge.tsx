@@ -26,7 +26,7 @@ export function ProgressGauge({ value, max = 100, label, sublabel }: ProgressGau
             cx="60"
             cy="60"
             r={radius}
-            className="text-slate-100"
+            className="text-subtle"
             strokeWidth={strokeWidth}
             stroke="currentColor"
             fill="transparent"
@@ -36,7 +36,7 @@ export function ProgressGauge({ value, max = 100, label, sublabel }: ProgressGau
             cx="60"
             cy="60"
             r={radius}
-            className="text-[#D62828] transition-all duration-1000 ease-in-out"
+            className="text-navly-red transition-all duration-1000 ease-in-out"
             strokeWidth={strokeWidth}
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
@@ -46,18 +46,18 @@ export function ProgressGauge({ value, max = 100, label, sublabel }: ProgressGau
           />
         </svg>
         <div className="absolute flex flex-col items-center justify-center text-center">
-          <span className="text-4xl font-bold text-[#0B1F3A] sm:text-5xl">
+          <span className="text-4xl font-bold text-heading sm:text-5xl">
             {percentage.toFixed(0)}%
           </span>
           {label && (
-            <span className="mt-1 text-sm font-medium text-slate-500">
+            <span className="mt-1 text-sm font-medium text-muted-text">
               {label}
             </span>
           )}
         </div>
       </div>
       {sublabel && (
-        <p className="mt-4 text-center text-sm font-medium text-slate-600">
+        <p className="mt-4 text-center text-sm font-medium text-muted-text">
           {sublabel}
         </p>
       )}

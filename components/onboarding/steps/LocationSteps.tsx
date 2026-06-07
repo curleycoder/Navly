@@ -33,8 +33,8 @@ const goalOptions = [
 export function StepLocationSplit({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">Are you currently in Canada?</h1>
-      <p className="mt-2 text-slate-500">This determines which pathways apply to you right now.</p>
+      <h1 className="text-3xl font-bold text-heading">Are you currently in Canada?</h1>
+      <p className="mt-2 text-muted-text">This determines which pathways apply to you right now.</p>
       <div role="radiogroup" aria-label="Current location" className="mt-6 flex flex-col gap-3">
         <OptionCard
           label="Yes, I am in Canada"
@@ -56,8 +56,8 @@ export function StepLocationSplit({ value, onChange }: { value: string; onChange
 export function StepPlannedEntry({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">How are you planning to come to Canada?</h1>
-      <p className="mt-2 text-slate-500">
+      <h1 className="text-3xl font-bold text-heading">How are you planning to come to Canada?</h1>
+      <p className="mt-2 text-muted-text">
         Your planned entry route shapes the entire pathway to permanent residence. Each route has different requirements and timelines.
       </p>
       <div role="radiogroup" aria-label="Planned entry route" className="mt-6 flex flex-col gap-3">
@@ -72,8 +72,8 @@ export function StepPlannedEntry({ value, onChange }: { value: string; onChange:
 export function StepInsideStatus({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">What is your current status in Canada?</h1>
-      <p className="mt-2 text-slate-500">Your current status determines which PR pathways are open to you and what questions we ask next.</p>
+      <h1 className="text-3xl font-bold text-heading">What is your current status in Canada?</h1>
+      <p className="mt-2 text-muted-text">Your current status determines which PR pathways are open to you and what questions we ask next.</p>
       <div role="radiogroup" aria-label="Current status in Canada" className="mt-6 flex flex-col gap-3">
         {insideStatusOptions.map((opt) => (
           <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={value === opt.value} onClick={() => onChange(opt.value)} />
@@ -91,8 +91,8 @@ export function StepGoal({ data, onChange }: {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#0B1F3A]">What is your main goal?</h1>
-      <p className="mt-2 text-slate-500">This helps us show the most relevant pathways and requirements for your situation.</p>
+      <h1 className="text-3xl font-bold text-heading">What is your main goal?</h1>
+      <p className="mt-2 text-muted-text">This helps us show the most relevant pathways and requirements for your situation.</p>
 
       {isVisitorGoingForPR && (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
