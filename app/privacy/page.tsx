@@ -14,12 +14,14 @@ export default function PrivacyPage() {
     <div className="min-h-screen bg-[#F8FAFC] text-[#0B1F3A]">
       <header className="border-b border-slate-200 bg-white px-6 py-4">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
-          <Link href="/"><NavlyLogo size="sm" /></Link>
-          <Link href="/terms" className="text-sm text-slate-500 hover:text-[#0B1F3A]">Terms of Service</Link>
+          <Link href="/" className="pt-1">
+            <NavlyLogo size="sm" />
+          </Link>
+          <Link href="/dashboard" className="text-sm pt-3 text-slate-600 hover:text-[#0B1F3A]">Back to app</Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-6 py-14">
+      <main className="mx-auto max-w-3xl px-6 py-6">
         <p className="text-sm font-bold uppercase tracking-wide text-[#D62828]">Legal</p>
         <h1 className="mt-2 text-4xl font-bold tracking-tight">Privacy Policy</h1>
         <p className="mt-3 text-sm text-slate-500">Last updated: {LAST_UPDATED}</p>
