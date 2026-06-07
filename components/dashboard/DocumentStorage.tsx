@@ -9,6 +9,7 @@ import {
   listDocuments, uploadDocument, deleteDocument, getDocumentUrl,
   DOC_CATEGORY_LABELS, UserDocument, DocCategory,
 } from '@/lib/documents'
+import { useLocale } from '@/lib/i18n'
 
 const UPLOAD_CATEGORIES = (
   Object.entries(DOC_CATEGORY_LABELS) as [DocCategory, string][]
@@ -28,6 +29,7 @@ function fmtDate(iso: string): string {
 }
 
 export function DocumentStorage({ userId }: { userId: string }) {
+  const { t } = useLocale()
   const [docs, setDocs] = useState<UserDocument[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -53,7 +55,7 @@ export function DocumentStorage({ userId }: { userId: string }) {
 
   async function handleUpload() {
     if (!file || !name.trim()) return
-    if (file.size > MAX_SIZE) { setError('File must be under 10 MB'); return }
+    if (file.size > MAX_SIZE) { setError(t('profile.fileSizeError')); return }
     setUploading(true)
     setError('')
     const { error: err } = await uploadDocument(userId, file, name.trim(), category)
@@ -91,7 +93,7 @@ export function DocumentStorage({ userId }: { userId: string }) {
       {showForm ? (
         <div className="border-b border-subtle/50 px-4 py-4">
           <div className="mb-4 flex items-center justify-between">
-            <p className="t-section-title">Add document</p>
+            <p className="t-section-title">{t('profile.addDocument')}</p>
             <button
               onClick={resetForm}
               className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-text/60 hover:bg-subtle hover:text-heading"
@@ -131,19 +133,19 @@ export function DocumentStorage({ userId }: { userId: string }) {
             ) : (
               <>
                 <Upload className="mx-auto mb-2 h-5 w-5 text-muted-text/40" />
-                <p className="t-body">Click to choose a file</p>
-                <p className="t-caption mt-0.5">PDF, JPG, PNG, DOC · max 10 MB</p>
+                <p className="t-body">{t('profile.clickToChoose')}</p>
+                <p className="t-caption mt-0.5">{t('profile.fileTypes')}</p>
               </>
             )}
           </button>
 
           {/* Label */}
           <div className="mt-3">
-            <label className="t-label mb-1 block">Label</label>
+            <label className="t-label mb-1 block">{t('profile.documentLabel')}</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Work Permit – expires June 2026"
+              placeholder={t('profile.labelPlaceholder')}
               className="w-full rounded-xl border border-subtle bg-surface-alt px-3 py-2 text-sm text-heading placeholder:text-muted-text/40 focus:outline-none focus:ring-2 focus:ring-navly-red"
             />
           </div>
@@ -170,16 +172,13 @@ export function DocumentStorage({ userId }: { userId: string }) {
             className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-navly-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-navly-navy/80 disabled:opacity-40"
           >
             {uploading ? (
-              <><Loader2 className="h-4 w-4 animate-spin" /> Uploading…</>
+              <><Loader2 className="h-4 w-4 animate-spin" /> {t('profile.uploading')}</>
             ) : (
-              <>Upload</>
+              <>{t('profile.uploadBtn')}</>
             )}
           </button>
 
-          <p className="mt-3 t-caption text-center">
-            Stored securely for your personal reference only.
-            Navly does not review your documents.
-          </p>
+          <p className="mt-3 t-caption text-center">{t('profile.storedSecurely')}</p>
         </div>
       ) : (
         <button
@@ -197,10 +196,8 @@ export function DocumentStorage({ userId }: { userId: string }) {
       {docs.length === 0 ? (
         <div className="px-4 py-10 text-center">
           <FileText className="mx-auto mb-2 h-7 w-7 text-muted-text/25" />
-          <p className="t-section-title">No documents yet</p>
-          <p className="t-caption mt-1">
-            Upload permits, test results, or other files for personal reference.
-          </p>
+          <p className="t-section-title">{t('profile.noDocuments')}</p>
+          <p className="t-caption mt-1">{t('profile.noDocumentsDesc')}</p>
         </div>
       ) : (
         <ul className="divide-y divide-subtle/50">

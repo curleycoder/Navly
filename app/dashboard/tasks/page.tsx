@@ -13,8 +13,10 @@ import { cn } from '@/lib/utils'
 import { useToast } from '@/lib/useToast'
 import { Toast } from '@/components/ui/Toast'
 import { TASK_GUIDES } from '@/lib/task-guides'
+import { useLocale } from '@/lib/i18n'
 
 export default function TasksPage() {
+  const { t } = useLocale()
   const [tasks, setTasks] = useState<Task[]>([])
   const [newTitle, setNewTitle] = useState('')
   const { message, showToast } = useToast()
@@ -88,13 +90,11 @@ export default function TasksPage() {
   if (!isLoaded) return null;
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 py-10 animate-fade-in">
-      <div className="mb-8">
-        <p className="hidden md:block t-eyebrow text-navly-red">Action plan</p>
-        <h1 className="hidden md:block mt-1 t-page-title">Your Settlement & PR Checklist</h1>
-        <p className="mt-2 t-body">
-          Step-by-step tasks generated from your profile. Tap any item for specific instructions on how and where to complete it.
-        </p>
+    <div className="mx-auto w-full max-w-3xl px-6 py-5 animate-fade-in">
+      <div className="mb-2">
+        <p className="hidden md:block t-eyebrow text-navly-red">{t('tasks.eyebrow')}</p>
+        <h1 className="hidden md:block mt-1 t-page-title">{t('tasks.title')}</h1>
+        <p className="mt-2 t-body">{t('tasks.subtitle')}</p>
       </div>
 
       {/* Progress */}
@@ -102,7 +102,7 @@ export default function TasksPage() {
         <CardContent className="p-5">
           <div className="mb-3 flex items-center justify-between">
             <p className="t-section-title">
-              {done} of {total} tasks complete
+              {done} {t('tasks.ofTotal')} {total} {t('tasks.tasksComplete')}
             </p>
             <span className="t-section-title text-navly-red">{progress}%</span>
           </div>

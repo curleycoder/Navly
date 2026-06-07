@@ -19,6 +19,7 @@ import { supabase } from '@/lib/supabase/client'
 import { getRequiredFunds } from '@/lib/settlement-funds'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LanguageToggle } from '@/components/ui/LanguageToggle'
+import { useLocale } from '@/lib/i18n'
 import { DocumentStorage } from '@/components/dashboard/DocumentStorage'
 
 // ─── Options ─────────────────────────────────────────────────────────────────
@@ -411,6 +412,7 @@ function PasswordChangeForm() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
+  const { t } = useLocale()
   const [data, setData] = useState<IntakeData>({ ...EMPTY_PROFILE })
   const [editingAccount, setEditingAccount] = useState(false)
   const [savingAccount, setSavingAccount] = useState(false)
@@ -618,26 +620,13 @@ export default function ProfilePage() {
         </SettingsGroup>
 
         {/* ── App settings ─────────────────────────────────────────────── */}
-        <SettingsGroup title="App">
+        <SettingsGroup title={t('profile.appSection')}>
           <div className="flex items-center justify-between px-4 py-3">
-            <p className="t-section-title">Appearance</p>
+            <p className="t-section-title">{t('profile.appearance')}</p>
+            <div className="bg-accent rounded-full flex items-center gap-2">
             <ThemeToggle />
-          </div>
-          <div className="flex items-center justify-between border-t border-subtle/50 px-4 py-3">
-            <div>
-              <p className="t-section-title">Language</p>
-              <p className="t-caption mt-0.5">Canadian English · Canadian French</p>
             </div>
-            <LanguageToggle />
           </div>
-          <Link href="/terms" className="flex items-center justify-between px-4 py-4">
-            <p className="text-sm font-semibold text-heading">Terms & Conditions</p>
-            <ChevronRight className="h-4 w-4 text-muted-text/50" />
-          </Link>
-          <Link href="/privacy" className="flex items-center justify-between px-4 py-4">
-            <p className="text-sm font-semibold text-heading">Privacy Policy</p>
-            <ChevronRight className="h-4 w-4 text-muted-text/50" />
-          </Link>
         </SettingsGroup>
 
         {/* ── Immigration profile card ──────────────────────────────────── */}

@@ -16,6 +16,7 @@ import { loadProfile } from '@/lib/profile'
 import { usePlan, hasPlan } from '@/lib/subscription'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
 import { cn } from '@/lib/utils'
+import { useLocale } from '@/lib/i18n'
 
 // ─── Cache ────────────────────────────────────────────────────────────────────
 
@@ -78,6 +79,7 @@ function CardSkeleton() {
 
 function UpdateCard({ update, highlight, isPaid }: { update: NewsUpdate; highlight?: boolean; isPaid: boolean }) {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const { t } = useLocale()
 
   return (
     <div className={cn(
@@ -88,7 +90,7 @@ function UpdateCard({ update, highlight, isPaid }: { update: NewsUpdate; highlig
       <div className="mb-3 flex flex-wrap items-center gap-2">
         {highlight && (
           <span className="flex items-center gap-1 rounded-full bg-navly-red/10 px-2.5 py-0.5 text-xs font-bold text-navly-red">
-            <Bell className="h-3 w-3" /> Affects you
+            <Bell className="h-3 w-3" /> {t('news.affectsYou')}
           </span>
         )}
         <span className={cn('rounded-full border px-2.5 py-0.5 text-xs font-semibold', categoryColors[update.category])}>
@@ -97,7 +99,7 @@ function UpdateCard({ update, highlight, isPaid }: { update: NewsUpdate; highlig
         <span className="flex items-center gap-1.5">
           <span className={cn('h-2 w-2 rounded-full', importanceDot[update.importance])} />
           <span className="text-xs font-semibold text-muted-text">
-            {update.importance === 'high' ? 'High impact' : update.importance === 'medium' ? 'Medium impact' : 'Low impact'}
+            {update.importance === 'high' ? t('news.highImpact') : update.importance === 'medium' ? t('news.mediumImpact') : t('news.lowImpact')}
           </span>
         </span>
         <span className="ml-auto text-xs text-muted-text/70">{formatDate(update.publishedAt)}</span>
@@ -116,12 +118,12 @@ function UpdateCard({ update, highlight, isPaid }: { update: NewsUpdate; highlig
         >
           <ExternalLink className="h-3.5 w-3.5" />
           {update.sourceType === 'official'
-            ? `Official source — ${update.sourceName}`
-            : `Read more — ${update.sourceName}`}
+            ? `${t('news.officialSourceLabel')} ${update.sourceName}`
+            : `${t('news.readMoreLabel')} ${update.sourceName}`}
         </a>
         {update.sourceType === 'third_party' && (
           <span className="self-start rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
-            Third-party — not official IRCC
+            {t('news.thirdParty')}
           </span>
         )}
         {isPaid ? (
@@ -129,7 +131,7 @@ function UpdateCard({ update, highlight, isPaid }: { update: NewsUpdate; highlig
             href="/dashboard/chat"
             className="inline-flex items-center gap-1.5 rounded-lg bg-navly-navy px-3 py-2 text-xs font-semibold text-white hover:bg-navly-navy/80 transition-colors sm:ml-auto"
           >
-            Ask AI how this affects me
+            {t('news.askAI')}
           </Link>
         ) : (
           <button
@@ -137,7 +139,7 @@ function UpdateCard({ update, highlight, isPaid }: { update: NewsUpdate; highlig
             className="inline-flex items-center gap-1.5 rounded-lg border border-subtle bg-surface-alt px-3 py-2 text-xs font-semibold text-muted-text/70 hover:border-subtle/80 transition-colors sm:ml-auto"
           >
             <Lock className="h-3 w-3" />
-            Ask AI how this affects me
+            {t('news.askAI')}
           </button>
         )}
       </div>
@@ -152,6 +154,7 @@ function UpdateCard({ update, highlight, isPaid }: { update: NewsUpdate; highlig
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function NewsPage() {
+  const { t } = useLocale()
   const [activeCategory, setActiveCategory] = useState<NewsCategory | 'all'>('all')
   const [allUpdates, setAllUpdates] = useState<NewsUpdate[]>([])
   const [personalizedIds, setPersonalizedIds] = useState<Set<string>>(new Set())
@@ -203,16 +206,16 @@ export default function NewsPage() {
       {/* Header */}
       <div className="mb-6">
         <Link href="/dashboard" className="mb-4 hidden md:inline-flex items-center gap-1.5 text-sm text-muted-text hover:text-heading">
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to dashboard
+          <ArrowLeft className="h-3.5 w-3.5" /> {t('news.backToDashboard')}
         </Link>
-        <p className="hidden md:block t-eyebrow text-navly-red">Immigration Updates</p>
-        <h1 className="hidden md:block mt-1 t-page-title">News & Policy Updates</h1>
+        <p className="hidden md:block t-eyebrow text-navly-red">{t('news.eyebrow')}</p>
+        <h1 className="hidden md:block mt-1 t-page-title">{t('news.title')}</h1>
         <p className="mt-1 text-sm text-muted-text">
-          Updates highlighted with{' '}
+          {t('news.affectsYouDesc')}{' '}
           <span className="inline-flex items-center gap-1 rounded-full bg-navly-red/10 px-2 py-0.5 text-xs font-bold text-navly-red">
-            <Bell className="h-3 w-3" /> Affects you
+            <Bell className="h-3 w-3" /> {t('news.affectsYou')}
           </span>{' '}
-          are relevant to your profile.
+          {t('news.subtitle')}
         </p>
       </div>
 
@@ -255,13 +258,13 @@ export default function NewsPage() {
         <div className="flex flex-col gap-8">
           {officialUpdates.length === 0 && thirdPartyUpdates.length === 0 ? (
             <div className="rounded-2xl border border-subtle bg-surface-card p-8 text-center text-muted-text">
-              No updates in this category yet.
+              {t('news.noCategoryUpdates')}
             </div>
           ) : (
             <>
               {officialUpdates.length > 0 && (
                 <section>
-                  <h2 className="mb-3 t-eyebrow text-muted-text/70">Official Updates</h2>
+                  <h2 className="mb-3 t-eyebrow text-muted-text/70">{t('news.officialUpdates')}</h2>
                   <div className="flex flex-col gap-4">
                     {officialUpdates.map((update) => (
                       <UpdateCard key={update.id} update={update} highlight={personalizedIds.has(update.id)} isPaid={isPaid} />
@@ -272,9 +275,9 @@ export default function NewsPage() {
               {thirdPartyUpdates.length > 0 && (
                 <section>
                   <div className="mb-3 flex flex-wrap items-center gap-2">
-                    <h2 className="t-eyebrow text-muted-text/70">Immigration News & Commentary</h2>
+                    <h2 className="t-eyebrow text-muted-text/70">{t('news.commentaryTitle')}</h2>
                     <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                      Not official IRCC
+                      {t('news.notOfficial')}
                     </span>
                   </div>
                   <div className="flex flex-col gap-4">
@@ -289,9 +292,7 @@ export default function NewsPage() {
         </div>
       )}
 
-      <p className="mt-8 text-center text-xs text-muted-text/70">
-        Official updates are sourced from IRCC and Canada Gazette. Third-party summaries are for context only. Nothing here is legal advice.
-      </p>
+      <p className="mt-8 text-center text-xs text-muted-text/70">{t('news.disclaimer')}</p>
     </div>
   )
 }

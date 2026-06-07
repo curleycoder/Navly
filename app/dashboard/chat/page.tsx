@@ -10,6 +10,7 @@ import { calculateScore } from '@/lib/scoring'
 import { MarkdownMessage } from '@/components/ui/MarkdownMessage'
 import { usePlan, hasPlan } from '@/lib/subscription'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
+import { useLocale } from '@/lib/i18n'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -156,6 +157,7 @@ function getProfileSummaryLines(profile: IntakeData): string[] {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ChatPage() {
+  const { t } = useLocale()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -260,8 +262,8 @@ export default function ChatPage() {
       {/* Header — desktop only */}
       <div className="hidden md:flex items-center justify-between border-b border-subtle bg-surface-card px-6 py-4">
         <div>
-          <p className="t-eyebrow text-navly-red">AI Assistant</p>
-          <h1 className="mt-0.5 t-page-title">Ask an immigration question</h1>
+          <p className="t-eyebrow text-navly-red">{t('nav.aiAssistant')}</p>
+          <h1 className="mt-0.5 t-page-title">{t('chat.pageTitle')}</h1>
         </div>
         {messages.length > 0 && (
           <button
@@ -278,14 +280,14 @@ export default function ChatPage() {
       {/* Educational notice + What AI knows — persistent strip */}
       <div className="border-b border-subtle/50 bg-surface-alt px-4 py-3 md:px-6">
         <div className="mb-2.5 rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-800">
-          <span className="font-bold">Educational use only.</span>{' '}
-          General immigration information — not legal advice. Consult a licensed RCIC or lawyer for your specific case.
+          <span className="font-bold">{t('chat.educationalUse')}</span>{' '}
+          {t('chat.educationalDesc')}
         </div>
         <div className="flex items-start gap-2">
           <div className="flex-1 min-w-0">
             {profileLines.length > 0 ? (
               <>
-                <p className="mb-1.5 t-eyebrow text-muted-text/70">What I know about you</p>
+                <p className="mb-1.5 t-eyebrow text-muted-text/70">{t('chat.whatIKnow')}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {profileLines.map((line) => (
                     <span key={line} className="rounded-full bg-navly-navy/5 px-2.5 py-1 text-xs font-semibold text-heading">
@@ -295,7 +297,7 @@ export default function ChatPage() {
                 </div>
               </>
             ) : (
-              <p className="text-xs text-muted-text/70">Complete your profile for personalized answers.</p>
+              <p className="text-xs text-muted-text/70">{t('chat.completeProfile')}</p>
             )}
           </div>
           {/* Clear button — mobile only */}
@@ -319,7 +321,7 @@ export default function ChatPage() {
           {messages.length === 0 && (
             <div className="mb-4 animate-fade-in">
               {/* Suggested questions — 3, based on permit and situation */}
-              <p className="mb-2 t-eyebrow text-muted-text">Try asking</p>
+              <p className="mb-2 t-eyebrow text-muted-text">{t('chat.tryAsking')}</p>
               <div className="flex flex-col gap-2">
                 {suggestions.slice(0, 3).map((s) => (
                   <button
@@ -393,14 +395,14 @@ export default function ChatPage() {
               className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-navly-red/40 bg-navly-red/5 px-5 py-4 text-sm font-semibold text-navly-red transition hover:bg-navly-red/10"
             >
               <Send className="h-4 w-4" />
-              Upgrade to unlock the AI assistant
+              {t('chat.upgradeToUnlock')}
             </button>
           ) : (
             <>
               <div className="flex gap-3">
                 <Textarea
                   ref={inputRef}
-                  placeholder="Ask an immigration question…"
+                  placeholder={t('chat.placeholder')}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
@@ -423,9 +425,7 @@ export default function ChatPage() {
                   Send
                 </Button>
               </div>
-              <p className="mt-2 text-center text-xs text-muted-text/70">
-                Enter to send · Shift+Enter for new line · Conversation saved automatically
-              </p>
+              <p className="mt-2 text-center text-xs text-muted-text/70">{t('chat.sendHint')}</p>
             </>
           )}
         </div>

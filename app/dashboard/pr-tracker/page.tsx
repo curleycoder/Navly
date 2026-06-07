@@ -28,6 +28,7 @@ import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import { PlanGate } from '@/components/ui/PlanGate'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
 import { matchPNPStreams, pnpStatusLabels, pnpStatusColors, type PNPStream } from '@/lib/pnp'
+import { useLocale } from '@/lib/i18n'
 
 // ─── Status Roadmap ───────────────────────────────────────────────────────────
 
@@ -524,6 +525,7 @@ function EEDrawsCard({ crs }: { crs: number }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PRTrackerPage() {
+  const { t } = useLocale()
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
   const [pnpStreams, setPnpStreams] = useState<PNPStream[]>([])
@@ -566,18 +568,18 @@ export default function PRTrackerPage() {
       {/* Header */}
       <div className="mb-6">
         <Link href="/dashboard" className="mb-3 hidden md:inline-flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-muted-text hover:text-heading focus-visible:text-heading">
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to overview
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> {t('prTracker.backToOverview')}
         </Link>
-        <p className="hidden md:block t-eyebrow text-navly-red">PR Tracker</p>
-        <h1 className="hidden md:block mt-1 t-page-title">Score & pathway analysis</h1>
-        <p className="mt-2 t-body">Your estimated CRS score, pathway strength, and what to improve next.</p>
+        <p className="hidden md:block t-eyebrow text-navly-red">{t('prTracker.eyebrow')}</p>
+        <h1 className="hidden md:block mt-1 t-page-title">{t('prTracker.title')}</h1>
+        <p className="mt-2 t-body">{t('prTracker.subtitle')}</p>
       </div>
 
       {!profile && (
         <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          No profile found.{' '}
-          <Link href="/onboarding" className="font-semibold underline">Complete the intake</Link>{' '}
-          to see your score and pathways.
+          {t('prTracker.noProfile')}{' '}
+          <Link href="/onboarding" className="font-semibold underline">{t('prTracker.noProfileLink')}</Link>{' '}
+          {t('prTracker.noProfileSuffix')}
         </div>
       )}
 
@@ -607,12 +609,12 @@ export default function PRTrackerPage() {
             <div className="flex items-start gap-3 rounded-2xl border border-navly-red/20 bg-navly-red/5 p-4">
               <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-navly-red" aria-hidden="true" />
               <div>
-                <p className="font-semibold text-heading">Profile incomplete — score estimate unavailable</p>
+                <p className="font-semibold text-heading">{t('prTracker.incompleteTitle')}</p>
                 <p className="mt-1 text-sm text-muted-text">
-                  Missing: <span className="font-medium text-navly-red">{score.missingFields.join(', ')}</span>
+                  {t('prTracker.missingLabel')} <span className="font-medium text-navly-red">{score.missingFields.join(', ')}</span>
                 </p>
                 <Link href="/onboarding" className="mt-3 inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-navly-red hover:underline">
-                  Update profile <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t('prTracker.updateProfile')} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
               </div>
             </div>
@@ -628,14 +630,14 @@ export default function PRTrackerPage() {
               <div className="flex items-center justify-around gap-2">
                 <div className="flex flex-col items-center text-center">
                   <span className="t-stat">{score.crs?.total ?? 0}</span>
-                  <span className="mt-1 t-eyebrow text-muted-text">Your CRS</span>
+                  <span className="mt-1 t-eyebrow text-muted-text">{t('prTracker.yourCRS')}</span>
                 </div>
                 {cutoff !== null && (
                   <>
                     <div className="h-10 w-px bg-subtle" />
                     <div className="flex flex-col items-center text-center">
                       <span className="t-stat">{cutoff}</span>
-                      <span className="mt-1 t-eyebrow text-muted-text">Last draw</span>
+                      <span className="mt-1 t-eyebrow text-muted-text">{t('prTracker.lastDraw')}</span>
                     </div>
                   </>
                 )}
@@ -644,7 +646,7 @@ export default function PRTrackerPage() {
                     <div className="h-10 w-px bg-subtle" />
                     <div className="flex flex-col items-center text-center">
                       <span className="t-stat">{score.fsw.score}</span>
-                      <span className="mt-1 t-eyebrow text-muted-text">FSW Grid</span>
+                      <span className="mt-1 t-eyebrow text-muted-text">{t('prTracker.fswGrid')}</span>
                     </div>
                   </>
                 )}
@@ -675,11 +677,11 @@ export default function PRTrackerPage() {
               const top = score.pathways.find(p => p.status === 'eligible' || p.status === 'possible') ?? score.pathways[0]
               return (
                 <div className="mb-4 rounded-2xl border border-subtle bg-surface-card p-5 shadow-sm">
-                  <p className="mb-2 t-eyebrow text-muted-text/70">Top pathway preview</p>
+                  <p className="mb-2 t-eyebrow text-muted-text/70">{t('prTracker.topPathwayPreview')}</p>
                   <div className="flex items-center justify-between">
                     <p className="font-bold text-heading">{top.name}</p>
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${top.status === 'eligible' ? 'bg-green-100 text-green-700' : top.status === 'possible' ? 'bg-amber-100 text-amber-700' : 'bg-subtle text-muted-text'}`}>
-                      {top.status === 'eligible' ? 'Eligible' : top.status === 'possible' ? 'Possible' : 'Not ready'}
+                      {top.status === 'eligible' ? t('prTracker.eligible') : top.status === 'possible' ? t('prTracker.possible') : t('prTracker.notReady')}
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-muted-text line-clamp-2">{top.reason}</p>
@@ -691,8 +693,8 @@ export default function PRTrackerPage() {
               className="flex w-full items-center justify-between rounded-2xl border border-dashed border-navly-red/40 bg-navly-red/5 p-5 text-left transition hover:bg-navly-red/10"
             >
               <div>
-                <p className="font-bold text-heading">Unlock the full breakdown</p>
-                <p className="mt-0.5 text-sm text-muted-text">See your CRS score by category, all pathway eligibility, and the exact improvements that would move your score.</p>
+                <p className="font-bold text-heading">{t('prTracker.unlockTitle')}</p>
+                <p className="mt-0.5 text-sm text-muted-text">{t('prTracker.unlockDesc')}</p>
               </div>
               <ArrowRight className="ml-4 h-5 w-5 shrink-0 text-navly-red" />
             </button>
@@ -711,8 +713,8 @@ export default function PRTrackerPage() {
       <div className="flex gap-3 rounded-2xl border border-navly-navy/15 bg-navly-navy/5 p-4">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-heading" />
         <p className="text-sm leading-6 text-muted-text">
-          <span className="font-semibold text-heading">Reminder: </span>
-          Navly provides estimates based on the data you entered. Final eligibility depends on official IRCC program rules and document review by a licensed professional. This is not legal advice.
+          <span className="font-semibold text-heading">{t('prTracker.reminder')} </span>
+          {t('prTracker.reminderText')}
         </p>
       </div>
     </div>

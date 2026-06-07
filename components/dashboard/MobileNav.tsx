@@ -11,23 +11,25 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-
-const PAGE_TITLES: Record<string, string> = {
-  '/dashboard': 'Home',
-  '/dashboard/pr-tracker': 'Tracker',
-  '/dashboard/days': 'Days in Canada',
-  '/dashboard/tasks': 'Tasks',
-  '/dashboard/news': 'Immigration News',
-  '/dashboard/chat': 'AI Assistant',
-  '/dashboard/consultants': 'Consultant',
-  '/dashboard/profile': 'My Profile',
-}
+import { useLocale } from '@/lib/i18n'
 
 export function MobileNav() {
   const pathname = usePathname()
   const router = useRouter()
+  const { t } = useLocale()
 
-  const pageTitle = PAGE_TITLES[pathname] ?? 'Dashboard'
+  const PAGE_TITLES: Record<string, string> = {
+    '/dashboard': t('nav.home'),
+    '/dashboard/pr-tracker': t('nav.prTracker'),
+    '/dashboard/days': t('nav.daysInCanada'),
+    '/dashboard/tasks': t('nav.tasks'),
+    '/dashboard/news': t('nav.immigrationNews'),
+    '/dashboard/chat': t('nav.aiAssistant'),
+    '/dashboard/consultants': t('nav.consultant'),
+    '/dashboard/profile': t('nav.myProfile'),
+  }
+
+  const pageTitle = PAGE_TITLES[pathname] ?? t('nav.dashboard')
   const isHome = pathname === '/dashboard'
 
   return (
@@ -45,23 +47,23 @@ export function MobileNav() {
             <DropdownMenuContent align="start" className="min-w-44">
               <DropdownMenuItem render={<Link href="/help" />}>
                 <HelpCircle className="h-4 w-4" />
-                Help Center
+                {t('nav.helpCenter')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem render={<Link href="/privacy" />}>
                 <Shield className="h-4 w-4" />
-                Privacy Policy
+                {t('nav.privacyPolicy')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem render={<Link href="/terms" />}>
                 <FileText className="h-4 w-4" />
-                Terms of Service
+                {t('nav.termsOfService')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem disabled className="opacity-40 cursor-not-allowed">
                 <Gift className="h-4 w-4" />
-                Refer a Friend
-                <span className="ml-auto text-[10px] font-semibold text-muted-text/70">Soon</span>
+                {t('nav.referFriend')}
+                <span className="ml-auto text-[10px] font-semibold text-muted-text/70">{t('common.comingSoon')}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

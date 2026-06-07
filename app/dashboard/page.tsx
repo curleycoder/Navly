@@ -120,8 +120,8 @@ export default function DashboardPage() {
             className="flex items-center justify-between rounded-2xl border-2 border-dashed border-navly-red/30 bg-surface-card p-5 transition hover:border-navly-red/60 hover:bg-navly-red/5 focus-visible:ring-2 focus-visible:ring-navly-red focus-visible:ring-offset-2"
           >
             <div>
-              <p className="t-section-title">Start your immigration profile</p>
-              <p className="mt-1 t-body">See your CRS score, eligible pathways, and next steps.</p>
+              <p className="t-section-title">{t('dashboard.profileSummary')}</p>
+              <p className="mt-1 t-body">{t('dashboard.crsNote')}</p>
             </div>
             <div className="ml-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navly-red">
               <ArrowRight className="h-5 w-5 text-white" aria-hidden="true" />
@@ -179,7 +179,7 @@ export default function DashboardPage() {
                 {crs > 0 ? (
                   <p className="mt-1 text-5xl font-bold text-white leading-none">{crs}</p>
                 ) : (
-                  <p className="mt-2 text-lg font-semibold text-white/50">No score yet</p>
+                  <p className="mt-2 text-lg font-semibold text-white/50">{t('dashboard.noScoreYet')}</p>
                 )}
                
               </div>
@@ -189,7 +189,7 @@ export default function DashboardPage() {
                 </span>
                 <div className="mt-3 flex items-center justify-end gap-1 font-bold text-xs text-white/80 group-hover:text-white transition">
                   <TrendingUp className="h-3.5 w-3.5" />
-                  <span>Full tracker</span>
+                  <span>{t('dashboard.fullTracker')}</span>
                   <ChevronRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
                 </div>
               </div>
@@ -229,7 +229,7 @@ export default function DashboardPage() {
                         <CheckCircle2 className="h-3 w-3 text-green-600" />
                       </span>
                       <Link href="/dashboard/days" className="pt-3 text-xs font-semibold text-muted-text hover:text-heading">
-                        Details →
+                        {t('dashboard.details')}
                       </Link>
                     </>
                   ) : (
@@ -237,7 +237,7 @@ export default function DashboardPage() {
                       onClick={handleHomeCheckIn}
                       className="rounded-lg bg-navly-red px-3 py-1.5 text-xs font-bold text-white hover:bg-navly-red/80 transition-colors"
                     >
-                      Check in
+                      {t('dashboard.checkIn')}
                     </button>
                   )}
                 </div>
@@ -251,13 +251,13 @@ export default function DashboardPage() {
                 className="group flex flex-col rounded-2xl border border-subtle bg-surface-card p-4 transition hover:border-subtle/80"
               >
                 <ListChecks className={`h-4 w-4 ${nextTask ? 'text-heading' : 'text-green-500'}`} aria-hidden="true" />
-                <p className="mt-3 t-eyebrow text-navly-red">Next task</p>
+                <p className="mt-3 t-eyebrow text-navly-red">{t('dashboard.nextTask')}</p>
                 <p className={`mt-1 line-clamp-2 t-section-title leading-snug ${nextTask ? '' : 'text-green-700'}`}>
-                  {nextTask ? nextTask.title : 'All done'}
+                  {nextTask ? nextTask.title : t('dashboard.allDone')}
                 </p>
                 {doneTasks > 0 && (
                   <p className="mt-auto pt-3 t-caption">
-                    {doneTasks} task{doneTasks !== 1 ? 's' : ''} complete
+                    {doneTasks} {t('dashboard.tasksComplete')}
                   </p>
                 )}
               </Link>
@@ -271,10 +271,10 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between border-b border-subtle/60 px-5 py-3">
             <div className="flex items-center gap-2">
               <Newspaper className="h-4 w-4 text-muted-text/70" aria-hidden="true" />
-              <p className="t-section-title">Latest updates</p>
+              <p className="t-section-title">{t('dashboard.latestUpdates')}</p>
             </div>
             <Link href="/dashboard/news" className="text-xs pt-3 font-semibold text-navly-red hover:underline">
-              View all →
+              {t('dashboard.viewAll')}
             </Link>
           </div>
           {news.length > 0 ? (
@@ -290,7 +290,7 @@ export default function DashboardPage() {
               ))}
             </ul>
           ) : (
-            <p className="px-5 py-4 text-sm text-muted-text/70">No updates yet.</p>
+            <p className="px-5 py-4 text-sm text-muted-text/70">{t('dashboard.noUpdatesYet')}</p>
           )}
         </div>
 
@@ -303,8 +303,8 @@ export default function DashboardPage() {
             <Sparkles className="h-5 w-5 text-heading" aria-hidden="true" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="t-section-title">Talk to a certified consultant</p>
-            <p className="mt-0.5 t-caption">RCICs, lawyers & advisors. Navly does not provide legal advice.</p>
+            <p className="t-section-title">{t('dashboard.talkToConsultant')}</p>
+            <p className="mt-0.5 t-caption">{t('dashboard.consultantDesc')}</p>
           </div>
           <ChevronRight className="h-5 w-5 shrink-0 text-muted-text/50 transition group-hover:translate-x-0.5 group-hover:text-navly-red" aria-hidden="true" />
         </Link>

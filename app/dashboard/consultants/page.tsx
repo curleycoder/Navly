@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { usePlan, hasPlan } from '@/lib/subscription'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
+import { useLocale } from '@/lib/i18n'
 
 const NOTES_KEY = 'navly_prep_notes'
 
@@ -78,6 +79,7 @@ function SummarySection({ title, children }: { title: string; children: React.Re
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function ConsultantsPage() {
+  const { t } = useLocale()
   // Profile / checklist state
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
@@ -135,8 +137,8 @@ export default function ConsultantsPage() {
       <div className="mb-8">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <h2 className="mb-1 t-section-title">Consultation checklist</h2>
-            <p className="text-sm text-muted-text">A clean summary of your situation to share with a consultant or lawyer.</p>
+            <h2 className="mb-1 t-section-title">{t('consultants.checklistTitle')}</h2>
+            <p className="text-sm text-muted-text">{t('consultants.checklistDesc')}</p>
           </div>
           {!isPaid && (
             <span className="flex shrink-0 items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
