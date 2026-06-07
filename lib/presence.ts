@@ -221,12 +221,28 @@ export function getDaysSinceArrival(data: PresenceData): number {
   return daysBetween(data.arrivalDate, today) + 1
 }
 
-// Exact days physically in Canada = days since arrival minus days abroad.
-// This is the authoritative number for PR / citizenship planning.
+// Exact days physically in Canada = days from arrival through yesterday + today if checked in.
+// Today is only credited after the user checks in — this makes the check-in button
+// visually add +1 to the counter, which matches user expectations.
 export function getDaysInCanada(data: PresenceData): number {
-  const total = getDaysSinceArrival(data)
-  if (total === 0) return 0
-  return Math.max(0, total - getTravelDays(data.travelLog))
+  if (!data.arrivalDate) return 0
+  const today = todayStr()
+  if (data.arrivalDate > today) return 0
+
+  // Count completed days: arrival through yesterday (inclusive)
+  const d = new Date(today + 'T12:00:00')
+  d.setDate(d.getDate() - 1)
+  const yesterday = toDateStr(d)
+
+  let confirmed = 0
+  if (data.arrivalDate <= yesterday) {
+    confirmed = daysBetween(data.arrivalDate, yesterday) + 1
+  }
+
+  // Credit today only if checked in
+  if (data.lastCheckIn === today) confirmed += 1
+
+  return Math.max(0, confirmed - getTravelDays(data.travelLog))
 }
 
 export function isCheckedInToday(data: PresenceData): boolean {

@@ -224,16 +224,18 @@ export default function DashboardPage() {
             {/* Days in Canada */}
             {!isOutside && effectivePresence.arrivalDate && (
               <div data-tour="days" className={`flex flex-col rounded-2xl border bg-surface-card p-4 ${checkedInToday ? 'border-subtle' : 'border-orange-200'}`}>
-                <CalendarDays className={`h-4 w-4 ${checkedInToday ? 'text-heading' : 'text-orange-400'}`} aria-hidden="true" />
-                <p className="mt-3 t-stat">{daysInCanada}</p>
-                <p className="mt-1 t-caption">Days in Canada</p>
+                <div className="flex items-center justify-between">
+                  <CalendarDays className={`h-10 w-10 ${checkedInToday ? 'text-heading' : 'text-orange-400'}`} aria-hidden="true" />
+                  <p className="t-stat leading-none">{daysInCanada}</p>
+                </div>
+                <p className="mt-2 t-caption">Days in Canada</p>
                 <div className="mt-auto pt-3 flex items-center gap-2">
                   {checkedInToday ? (
                     <>
                       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100">
                         <CheckCircle2 className="h-3 w-3 text-green-600" />
                       </span>
-                      <Link href="/dashboard/days" className="pt-3 text-xs font-semibold text-muted-text hover:text-heading">
+                      <Link href="/dashboard/days" className="text-xs font-semibold text-muted-text hover:text-heading">
                         {t('dashboard.details')}
                       </Link>
                     </>

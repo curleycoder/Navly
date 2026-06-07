@@ -80,7 +80,7 @@ export function MobileNav() {
 
       {/* Center: page title */}
       <div className="flex flex-1 items-center justify-center px-2">
-        <span className="truncate text-sm font-bold text-heading">{pageTitle}</span>
+        <span className="truncate text-medium font-bold text-heading">{pageTitle}</span>
       </div>
 
       {/* Right: Navly logo */}
