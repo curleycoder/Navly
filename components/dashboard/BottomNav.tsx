@@ -2,13 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { TrendingUp, LayoutDashboard, MessageSquare } from 'lucide-react'
+import { TrendingUp, LayoutDashboard, MessageSquare, ListChecks, UserCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const BOTTOM_TABS = [
+  { href: '/dashboard/tasks', label: 'Tasks', icon: ListChecks },
   { href: '/dashboard/pr-tracker', label: 'Tracker', icon: TrendingUp },
   { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
   { href: '/dashboard/chat', label: 'AI', icon: MessageSquare },
+  { href: '/dashboard/profile', label: 'Profile', icon: UserCircle },
 ]
 
 export function BottomNav() {

@@ -2,12 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, CheckCircle2, AlertTriangle, ChevronDown, Eye, EyeOff, Loader2 } from 'lucide-react'
+import {
+  ArrowLeft, CheckCircle2, AlertTriangle, ChevronDown, ChevronRight,
+  Eye, EyeOff, Loader2, Sun, Moon, Archive, Phone, Pencil,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { loadProfile, saveProfile, loadProfileFromSupabase, saveProfileToSupabase, EMPTY_PROFILE, type IntakeData } from '@/lib/profile'
+import {
+  loadProfile, saveProfile, loadProfileFromSupabase, saveProfileToSupabase,
+  EMPTY_PROFILE, type IntakeData,
+} from '@/lib/profile'
 import { TOP_COUNTRIES, ALL_COUNTRIES, CA_PROVINCES } from '@/lib/geo'
 import { supabase } from '@/lib/supabase/client'
 import { getRequiredFunds } from '@/lib/settlement-funds'
@@ -15,16 +21,15 @@ import { getRequiredFunds } from '@/lib/settlement-funds'
 // ─── Options ─────────────────────────────────────────────────────────────────
 
 const statusOptions = [
-  { value: 'student',        label: 'International student' },
-  { value: 'work-permit',    label: 'Work permit holder' },
-  { value: 'visitor',        label: 'Visitor / tourist' },
-  { value: 'refugee',        label: 'Refugee / protected person' },
-  { value: 'family-member',  label: 'Spouse / family of Canadian or PR' },
-  { value: 'out-of-status',  label: 'Out of status' },
-  { value: 'pr',             label: 'Permanent resident' },
-  { value: 'other',          label: 'Other / not sure' },
+  { value: 'student',       label: 'International student' },
+  { value: 'work-permit',   label: 'Work permit holder' },
+  { value: 'visitor',       label: 'Visitor / tourist' },
+  { value: 'refugee',       label: 'Refugee / protected person' },
+  { value: 'family-member', label: 'Spouse / family of Canadian or PR' },
+  { value: 'out-of-status', label: 'Out of status' },
+  { value: 'pr',            label: 'Permanent resident' },
+  { value: 'other',         label: 'Other / not sure' },
 ]
-
 const goalOptions = [
   { value: 'pr',           label: 'Apply for permanent residence' },
   { value: 'work-permit',  label: 'Extend or change work permit' },
@@ -35,9 +40,8 @@ const goalOptions = [
   { value: 'compare',      label: 'Compare all my options' },
   { value: 'other',        label: 'Other / not sure yet' },
 ]
-
 const plannedEntryOptions = [
-  { value: 'express-entry', label: 'Express Entry / Permanent residence' },
+  { value: 'express-entry', label: 'Express Entry / PR' },
   { value: 'study-permit',  label: 'Study permit' },
   { value: 'work-permit',   label: 'Work permit' },
   { value: 'visitor',       label: 'Visitor / tourism' },
@@ -45,13 +49,11 @@ const plannedEntryOptions = [
   { value: 'business',      label: 'Business / investor' },
   { value: 'unsure',        label: 'Not sure yet' },
 ]
-
 const maritalOptions = [
-  { value: 'single',      label: 'Single' },
-  { value: 'married',     label: 'Married' },
-  { value: 'common-law',  label: 'Common-law' },
+  { value: 'single',     label: 'Single' },
+  { value: 'married',    label: 'Married' },
+  { value: 'common-law', label: 'Common-law' },
 ]
-
 const arrivalTimelineOptions = [
   { value: 'within-3-months', label: 'Within 3 months' },
   { value: '3-6-months',      label: '3–6 months' },
@@ -59,68 +61,77 @@ const arrivalTimelineOptions = [
   { value: '1-2-years',       label: '1–2 years' },
   { value: 'not-sure',        label: 'Not sure yet' },
 ]
-
 const englishTestOptions = [
   { value: 'ielts-general', label: 'IELTS General Training' },
   { value: 'celpip',        label: 'CELPIP-General' },
   { value: 'pte',           label: 'PTE Core' },
 ]
-
 const frenchOnlyTestOptions = [
   { value: 'tef', label: 'TEF Canada' },
   { value: 'tcf', label: 'TCF Canada' },
 ]
-
 const educationOptions = [
   { value: 'less-than-secondary', label: 'Less than high school' },
   { value: 'secondary',           label: 'High school diploma' },
   { value: '1-year',              label: '1-year post-secondary' },
   { value: '2-year',              label: '2-year post-secondary' },
   { value: 'bachelors',           label: "Bachelor's degree (3+ years)" },
-  { value: 'two-credentials',     label: 'Two post-secondary credentials (one 3+ years)' },
+  { value: 'two-credentials',     label: 'Two credentials (one 3+ yrs)' },
   { value: 'masters',             label: "Master's degree" },
-  { value: 'doctoral',            label: 'Doctoral degree (PhD)' },
+  { value: 'doctoral',            label: 'Doctoral / PhD' },
 ]
-
 const canadianEducationOptions = [
   { value: 'none',        label: 'No Canadian education' },
   { value: '1-2-year',    label: '1–2 year Canadian program' },
-  { value: '3-plus-year', label: '3+ year Canadian degree or graduate program' },
+  { value: '3-plus-year', label: '3+ year Canadian degree' },
 ]
-
 const teerOptions = [
   { value: '0', label: 'TEER 0 — Senior management' },
   { value: '1', label: 'TEER 1 — University-level' },
-  { value: '2', label: 'TEER 2 — College diploma / 2-year apprenticeship' },
-  { value: '3', label: 'TEER 3 — College diploma / 1-year apprenticeship' },
+  { value: '2', label: 'TEER 2 — College / 2-yr apprenticeship' },
+  { value: '3', label: 'TEER 3 — College / 1-yr apprenticeship' },
   { value: '4', label: 'TEER 4 — High school diploma' },
   { value: '5', label: 'TEER 5 — Short demonstration' },
 ]
-
 const programLevelOptions = [
-  { value: 'certificate',  label: 'Certificate' },
-  { value: 'diploma',      label: 'College diploma' },
-  { value: 'bachelors',    label: "Bachelor's degree" },
-  { value: 'masters',      label: "Master's degree" },
-  { value: 'doctoral',     label: 'Doctoral / PhD' },
-  { value: 'other',        label: 'Other' },
+  { value: 'certificate', label: 'Certificate' },
+  { value: 'diploma',     label: 'College diploma' },
+  { value: 'bachelors',   label: "Bachelor's degree" },
+  { value: 'masters',     label: "Master's degree" },
+  { value: 'doctoral',    label: 'Doctoral / PhD' },
+  { value: 'other',       label: 'Other' },
 ]
-
 const prPreStatusOptions = [
   { value: 'student',   label: 'International student' },
   { value: 'worker',    label: 'Worker (work permit / PGWP)' },
   { value: 'visitor',   label: 'Visitor' },
   { value: 'protected', label: 'Refugee / protected person' },
-  { value: 'outside',   label: 'I was outside Canada' },
+  { value: 'outside',   label: 'Outside Canada' },
   { value: 'other',     label: 'Other' },
 ]
 
 const otherCountries = ALL_COUNTRIES.filter((c) => !TOP_COUNTRIES.includes(c))
 
+// ─── Display helpers ──────────────────────────────────────────────────────────
+
+const dv = (val: string | undefined, opts: { value: string; label: string }[]) =>
+  val ? (opts.find((o) => o.value === val)?.label ?? val) : null
+
+const yn = (val: string | undefined) =>
+  val === 'yes' ? 'Yes' : val === 'no' ? 'No' : null
+
+const scoreLine = (r: string, w: string, l: string, s: string) => {
+  if (!r && !w && !l && !s) return null
+  return `R: ${r || '—'}  W: ${w || '—'}  L: ${l || '—'}  S: ${s || '—'}`
+}
+
+const provinceName = (val: string) =>
+  (CA_PROVINCES.find((p) => p.value === val)?.label ?? val) || null
+
 // ─── Shared select style ──────────────────────────────────────────────────────
 
 const selectCls =
-  'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#0B1F3A] focus:outline-none focus:ring-2 focus:ring-[#D62828] focus:border-transparent appearance-none cursor-pointer pr-10'
+  'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#0B1F3A] focus:outline-none focus:ring-2 focus:ring-[#D62828] focus:border-transparent appearance-none cursor-pointer pr-10 disabled:cursor-not-allowed disabled:opacity-60'
 
 function SelectWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -131,12 +142,13 @@ function SelectWrapper({ children }: { children: React.ReactNode }) {
   )
 }
 
-// ─── Country select ───────────────────────────────────────────────────────────
-
-function CountrySelect({ id, value, onChange, placeholder }: { id?: string; value: string; onChange: (v: string) => void; placeholder: string }) {
+function CountrySelect({ value, onChange, placeholder }: {
+  value: string; onChange: (v: string) => void; placeholder: string
+}) {
   return (
     <SelectWrapper>
-      <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className={cn(selectCls, !value && 'text-slate-400')}>
+      <select value={value} onChange={(e) => onChange(e.target.value)}
+        className={cn(selectCls, !value && 'text-slate-400')}>
         <option value="" disabled>{placeholder}</option>
         <optgroup label="Common source countries">
           {TOP_COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -149,9 +161,81 @@ function CountrySelect({ id, value, onChange, placeholder }: { id?: string; valu
   )
 }
 
+// ─── UI primitives ────────────────────────────────────────────────────────────
+
+/** WhatsApp-style section group: optional gray label above a white divided card.
+ *  Pass `flat` when rendered inside an outer card — renders without its own background/shadow. */
+function SettingsGroup({ title, children, flat = false }: { title?: string; children: React.ReactNode; flat?: boolean }) {
+  if (flat) {
+    return (
+      <div className="border-t border-slate-100">
+        {title && (
+          <p className="px-5 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-slate-400">{title}</p>
+        )}
+        <div className="divide-y divide-slate-100">{children}</div>
+      </div>
+    )
+  }
+  return (
+    <div className="flex flex-col gap-1.5">
+      {title && (
+        <p className="px-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{title}</p>
+      )}
+      <div className="overflow-hidden rounded-2xl bg-white shadow-sm divide-y divide-slate-100">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * A single row within a SettingsGroup.
+ * - View mode: label (left) + value (right), single line.
+ * - Edit mode: label (top, small gray) + children (input/select).
+ */
+function SettingsRow({ label, value, editing = false, note, children }: {
+  label: string
+  value?: string | null
+  editing?: boolean
+  note?: string
+  children?: React.ReactNode
+}) {
+  if (editing && children) {
+    return (
+      <div className="px-4 py-3.5">
+        <div className="mb-1.5 flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-500">{label}</span>
+          {note && <span className="text-xs text-slate-400">{note}</span>}
+        </div>
+        {children}
+      </div>
+    )
+  }
+  return (
+    <div className="flex min-h-[52px] items-center gap-4 px-4 py-2">
+      <span className="shrink-0 text-sm text-slate-600">{label}</span>
+      <span className="ml-auto text-right text-sm font-medium text-[#0B1F3A] min-w-0 truncate pl-4">
+        {value || <span className="text-xs font-normal text-slate-400">Not set</span>}
+      </span>
+    </div>
+  )
+}
+
+/** A static info-only row (no value, used for warnings/notes) */
+function SettingsNote({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-start gap-2 px-4 py-3">
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+      <p className="text-xs text-amber-700">{children}</p>
+    </div>
+  )
+}
+
 // ─── Confirmation prompt ──────────────────────────────────────────────────────
 
-function ConfirmChange({ label, onConfirm, onCancel }: { label: string; onConfirm: () => void; onCancel: () => void }) {
+function ConfirmChange({ label, onConfirm, onCancel }: {
+  label: string; onConfirm: () => void; onCancel: () => void
+}) {
   return (
     <div className="mt-2 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
@@ -174,61 +258,34 @@ function ConfirmChange({ label, onConfirm, onCancel }: { label: string; onConfir
   )
 }
 
-// ─── Section / Field wrappers ─────────────────────────────────────────────────
+// ─── Risk yes/no row ──────────────────────────────────────────────────────────
 
-function Section({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white">
-      <div className="border-b border-slate-100 px-6 py-4">
-        <h2 className="font-semibold text-[#0B1F3A]">{title}</h2>
-        {desc && <p className="mt-0.5 text-sm text-slate-500">{desc}</p>}
-      </div>
-      <div className="flex flex-col gap-5 px-6 py-5">{children}</div>
-    </section>
-  )
-}
-
-function Field({ label, note, children }: { label: string; note?: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-center gap-2">
-        <Label className="text-sm font-semibold text-[#0B1F3A]">{label}</Label>
-        {note && <span className="text-xs text-slate-400">{note}</span>}
-      </div>
-      {children}
-    </div>
-  )
-}
-
-// ─── Risk yes/no field ────────────────────────────────────────────────────────
-
-function RiskField({ label, note, value, onChange, warningText, level = 'warning' }: {
-  label: string; note?: string; value: string; onChange: (v: string) => void
-  warningText?: string; level?: 'warning' | 'critical'
+function RiskRow({ label, value, onChange, editing, warningText, level = 'warning' }: {
+  label: string; value: string; onChange: (v: string) => void
+  editing: boolean; warningText?: string; level?: 'warning' | 'critical'
 }) {
   return (
-    <div className="flex flex-col gap-2">
-      <Label className="text-sm font-semibold text-[#0B1F3A]">
-        {label}
-        {note && <span className="ml-1.5 block text-xs font-normal text-slate-500 mt-0.5">{note}</span>}
-      </Label>
-      <SelectWrapper>
-        <select value={value} onChange={(e) => onChange(e.target.value)} className={cn(selectCls, !value && 'text-slate-400')}>
-          <option value="" disabled>Select…</option>
-          <option value="no">No</option>
-          <option value="yes">Yes</option>
-        </select>
-      </SelectWrapper>
+    <>
+      <SettingsRow label={label} value={yn(value)} editing={editing}>
+        <SelectWrapper>
+          <select value={value} onChange={(e) => onChange(e.target.value)}
+            className={cn(selectCls, !value && 'text-slate-400')}>
+            <option value="" disabled>Select…</option>
+            <option value="no">No</option>
+            <option value="yes">Yes</option>
+          </select>
+        </SelectWrapper>
+      </SettingsRow>
       {value === 'yes' && warningText && (
         <div className={cn(
-          'flex items-start gap-2 rounded-xl border p-3',
-          level === 'critical' ? 'border-red-200 bg-red-50' : 'border-amber-200 bg-amber-50',
+          'flex items-start gap-2 px-4 py-3',
+          level === 'critical' ? 'bg-red-50' : 'bg-amber-50',
         )}>
-          <AlertTriangle className={cn('mt-0.5 h-4 w-4 shrink-0', level === 'critical' ? 'text-red-500' : 'text-amber-600')} />
-          <p className={cn('text-sm', level === 'critical' ? 'text-red-800' : 'text-amber-800')}>{warningText}</p>
+          <AlertTriangle className={cn('mt-0.5 h-4 w-4 shrink-0', level === 'critical' ? 'text-red-500' : 'text-amber-500')} />
+          <p className={cn('text-xs', level === 'critical' ? 'text-red-700' : 'text-amber-700')}>{warningText}</p>
         </div>
       )}
-    </div>
+    </>
   )
 }
 
@@ -243,14 +300,15 @@ function LangScoreGrid({ keys, values, onChange }: {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {keys.map((key, i) => (
-        <Field key={key as string} label={labels[i]}>
+        <div key={key as string} className="flex flex-col gap-1.5">
+          <Label className="text-xs font-semibold text-slate-500">{labels[i]}</Label>
           <Input
             value={values[i]}
             onChange={(e) => onChange(key, e.target.value)}
             placeholder="—"
             className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]"
           />
-        </Field>
+        </div>
       ))}
     </div>
   )
@@ -268,7 +326,9 @@ function PasswordChangeForm() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
-  function reset() { setNewPassword(''); setConfirm(''); setError(''); setSuccess(false); setOpen(false) }
+  function reset() {
+    setNewPassword(''); setConfirm(''); setError(''); setSuccess(false); setOpen(false)
+  }
 
   async function handleChange() {
     setError('')
@@ -284,14 +344,15 @@ function PasswordChangeForm() {
 
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className="text-xs font-semibold text-[#D62828] hover:underline">
-        Change
+      <button type="button" onClick={() => setOpen(true)}
+        className="text-xs font-semibold text-[#D62828] hover:underline">
+        Change password
       </button>
     )
   }
 
   return (
-    <div className="mt-3 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4">
+    <div className="mt-3 flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
       <div className="flex flex-col gap-1.5">
         <Label className="text-xs font-semibold text-slate-600">New password</Label>
         <div className="relative">
@@ -335,7 +396,8 @@ function PasswordChangeForm() {
           {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           {loading ? 'Saving…' : 'Update password'}
         </Button>
-        <Button type="button" variant="outline" size="sm" onClick={reset} className="border-slate-200 text-slate-600">
+        <Button type="button" variant="outline" size="sm" onClick={reset}
+          className="border-slate-200 text-slate-600">
           Cancel
         </Button>
       </div>
@@ -347,15 +409,24 @@ function PasswordChangeForm() {
 
 export default function ProfilePage() {
   const [data, setData] = useState<IntakeData>({ ...EMPTY_PROFILE })
-  const [saved, setSaved] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [editingAccount, setEditingAccount] = useState(false)
+  const [savingAccount, setSavingAccount] = useState(false)
+  const [savedAccount, setSavedAccount] = useState(false)
+  const [editingProfile, setEditingProfile] = useState(false)
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [savedProfile, setSavedProfile] = useState(false)
+  const [originalData, setOriginalData] = useState<IntakeData | null>(null)
   const [loaded, setLoaded] = useState(false)
-
+  const [darkMode, setDarkMode] = useState(false)
   const [pendingStatus, setPendingStatus] = useState<string | null>(null)
   const [pendingGoal, setPendingGoal] = useState<string | null>(null)
-  const [pendingCountry, setPendingCountry] = useState<string | null>(null)
 
   useEffect(() => {
+    const theme = localStorage.getItem('navly_theme')
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+      setDarkMode(true)
+    }
     async function load() {
       const local = loadProfile()
       if (local) setData(local)
@@ -373,11 +444,20 @@ export default function ProfilePage() {
     setData((d) => ({ ...d, ...fields }))
   }
 
-  async function handleSave() {
-    setSaving(true)
+  async function handleSaveAccount() {
+    setSavingAccount(true)
+    const toSave = { ...data }
+    saveProfile(toSave)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) await saveProfileToSupabase(user.id, toSave)
+    setSavingAccount(false)
+    setSavedAccount(true)
+    setEditingAccount(false)
+    setTimeout(() => setSavedAccount(false), 3000)
+  }
 
-    // Sync lang2 fields → frenchTestType for scoring engine compatibility
-    // (scoring.ts reads frenchTestType/frenchReading; onboarding saves lang2*)
+  async function handleSaveProfile() {
+    setSavingProfile(true)
     const toSave = { ...data }
     if (data.lang2TestType === 'tef' || data.lang2TestType === 'tcf') {
       toSave.frenchTestType  = data.lang2TestType
@@ -386,20 +466,31 @@ export default function ProfilePage() {
       toSave.frenchListening = data.lang2Listening
       toSave.frenchSpeaking  = data.lang2Speaking
     } else {
-      toSave.frenchTestType  = ''
-      toSave.frenchReading   = ''
-      toSave.frenchWriting   = ''
-      toSave.frenchListening = ''
-      toSave.frenchSpeaking  = ''
+      toSave.frenchTestType = ''; toSave.frenchReading = ''
+      toSave.frenchWriting  = ''; toSave.frenchListening = ''
+      toSave.frenchSpeaking = ''
     }
-
     saveProfile(toSave)
     const { data: { user } } = await supabase.auth.getUser()
     if (user) await saveProfileToSupabase(user.id, toSave)
+    setSavingProfile(false)
+    setSavedProfile(true)
+    setEditingProfile(false)
+    setTimeout(() => setSavedProfile(false), 3000)
+  }
 
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+  function handleCancelProfile() {
+    if (originalData) setData(originalData)
+    setEditingProfile(false)
+    setPendingStatus(null)
+    setPendingGoal(null)
+  }
+
+  function toggleDark() {
+    const next = !darkMode
+    setDarkMode(next)
+    document.documentElement.classList.toggle('dark', next)
+    localStorage.setItem('navly_theme', next ? 'dark' : 'light')
   }
 
   if (!loaded) return null
@@ -411,806 +502,811 @@ export default function ProfilePage() {
   const isWorker  = ['work-permit', 'pgwp', 'open-work-permit', 'employer-specific-work-permit'].includes(data.status)
   const hasPartner = data.maritalStatus === 'married' || data.maritalStatus === 'common-law'
   const hasSpouse  = hasPartner && data.spouseComing === 'yes'
-
   const showCanadaDates = isInside && !isPR
-  const showSettlement  = isOutside ||
-    (isInside && data.status !== 'student' && !isWorker && !isPR)
+  const showSettlement  = isOutside || (isInside && data.status !== 'student' && !isWorker && !isPR)
 
-  // Second language options depend on which language is first
-  const isEnglishFirst = data.firstOfficialLanguage === 'english'
-  const isFrenchFirst  = data.firstOfficialLanguage === 'french'
-  const firstTestOptions  = isEnglishFirst ? englishTestOptions : isFrenchFirst ? frenchOnlyTestOptions : []
+  const isEnglishFirst   = data.firstOfficialLanguage === 'english'
+  const isFrenchFirst    = data.firstOfficialLanguage === 'french'
+  const firstTestOptions = isEnglishFirst ? englishTestOptions : isFrenchFirst ? frenchOnlyTestOptions : []
   const secondTestOptions = isEnglishFirst ? frenchOnlyTestOptions : isFrenchFirst ? englishTestOptions : []
   const showFirstScores  = !!data.langTestType  && data.langTestType  !== 'none'
   const showSecondScores = !!data.lang2TestType && data.lang2TestType !== 'none'
 
-  const familySize     = parseInt(data.familySize) || 1
-  const requiredFunds  = getRequiredFunds(familySize)
-  const fundsOk        = data.settlementFunds ? parseFloat(data.settlementFunds) >= requiredFunds : null
+  const familySize    = parseInt(data.familySize) || 1
+  const requiredFunds = getRequiredFunds(familySize)
+  const fundsOk       = data.settlementFunds ? parseFloat(data.settlementFunds) >= requiredFunds : null
+
+  const ep = editingProfile // shorthand
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-6 py-10">
+    <div className="min-h-screen bg-slate-50">
+      <div className="mx-auto w-full max-w-2xl space-y-5 px-4 py-6 pb-24 sm:px-6 sm:py-10">
 
-      {/* Header */}
-      <div className="mb-8">
-        <Link href="/dashboard" className="mb-4 hidden md:inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#0B1F3A]">
+        {/* Back link — desktop only */}
+        <Link href="/dashboard"
+          className="hidden md:inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#0B1F3A]">
           <ArrowLeft className="h-3.5 w-3.5" /> Back to dashboard
         </Link>
-        <p className="hidden md:block text-sm font-semibold uppercase tracking-wide text-[#D62828]">Settings</p>
-        <h1 className="hidden md:block mt-1 text-3xl font-bold text-[#0B1F3A]">Your profile</h1>
-        <p className="mt-2 text-slate-500">Keep your details up to date so your pathway estimates stay accurate.</p>
-      </div>
 
-      <div className="flex flex-col gap-5">
-
-        {/* ── Account ─────────────────────────────────────────────────────── */}
-        <Section title="Account" desc="Your login details.">
-          <Field label="Full name">
-            <Input value={data.fullName} onChange={(e) => update({ fullName: e.target.value })}
-              placeholder="e.g. Amara Osei"
-              className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-          </Field>
-
-          <Field label="Email address">
-            <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <span className="flex-1 text-sm text-[#0B1F3A]">{data.email || 'Not set'}</span>
-              <span className="text-xs text-slate-400">Contact support to change</span>
+        {/* ── Profile header ──────────────────────────────────────────────── */}
+        <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+          {/* Avatar + identity */}
+          <div className="flex flex-col items-center px-6 pb-6 pt-8">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#0B1F3A] text-2xl font-bold text-white shadow-md">
+              {data.fullName ? data.fullName.trim()[0].toUpperCase() : '?'}
             </div>
-          </Field>
-
-          <Field label="Password">
-            <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <span className="flex-1 text-sm text-slate-400">••••••••••••</span>
-              <PasswordChangeForm />
+            <div className="mt-4 flex items-center gap-2">
+              <p className="text-xl font-bold text-[#0B1F3A]">{data.fullName || 'Your name'}</p>
+              <button onClick={() => setEditingAccount(true)} aria-label="Edit name"
+                className="text-slate-400 hover:text-[#D62828] transition-colors">
+                <Pencil className="h-4 w-4" />
+              </button>
             </div>
-          </Field>
-        </Section>
+            <p className="mt-0.5 text-sm text-slate-500">{data.email || 'No email'}</p>
+            {data.phone && (
+              <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-400">
+                <Phone className="h-3 w-3" />{data.phone}
+              </p>
+            )}
+            {(data.status || data.goal) && (
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                {data.status && (
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-[#0B1F3A]">
+                    {statusOptions.find(o => o.value === data.status)?.label ?? data.status}
+                  </span>
+                )}
+                {data.goal && (
+                  <span className="rounded-full bg-[#D62828]/10 px-3 py-1 text-xs font-semibold text-[#D62828]">
+                    {goalOptions.find(o => o.value === data.goal)?.label ?? data.goal}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
 
-        {/* ── Status & Goal ────────────────────────────────────────────────── */}
-        <Section title="Status & goal" desc="Changing these updates your pathway analysis.">
-          {isInside && (
-            <Field label="Current status in Canada">
+          {/* Edit form — only when editing account */}
+          {editingAccount && (
+            <div className="border-t border-slate-100 px-4 py-4 flex flex-col gap-4 sm:px-6">
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs font-semibold text-slate-500">Full name</Label>
+                <Input value={data.fullName} onChange={(e) => update({ fullName: e.target.value })}
+                  placeholder="e.g. Amara Osei"
+                  className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs font-semibold text-slate-500">Phone number</Label>
+                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <span className="text-sm text-[#0B1F3A]">{data.phone || 'Not set'}</span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs font-semibold text-slate-500">Email address</Label>
+                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <span className="text-sm text-[#0B1F3A]">{data.email || 'Not set'}</span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs font-semibold text-slate-500">Password</Label>
+                <PasswordChangeForm />
+              </div>
+            </div>
+          )}
+
+          {/* Save/Cancel — only when editing */}
+          {editingAccount && (
+            <div className="flex items-center gap-3 border-t border-slate-100 px-4 py-3 sm:px-6">
+              <Button onClick={handleSaveAccount} disabled={savingAccount} size="sm"
+                className="gap-1.5 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-60">
+                {savingAccount && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                {savingAccount ? 'Saving…' : 'Save'}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setEditingAccount(false)}
+                className="border-slate-200 text-slate-600">
+                Cancel
+              </Button>
+              {savedAccount && (
+                <span className="flex items-center gap-1 text-xs font-semibold text-green-600">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Saved
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── Document archive ─────────────────────────────────────────── */}
+        <SettingsGroup title="Documents">
+          <div className="flex items-center gap-4 px-4 py-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100">
+              <Archive className="h-5 w-5 text-slate-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-[#0B1F3A]">Document storage</p>
+              <p className="text-xs text-slate-400">Coming soon — permits, ECA letters, test results</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
+          </div>
+        </SettingsGroup>
+
+        {/* ── App settings ─────────────────────────────────────────────── */}
+        <SettingsGroup title="App">
+          <div className="flex items-center justify-between px-4 py-4">
+            <div className="flex items-center gap-3">
+              {darkMode ? <Moon className="h-4 w-4 text-slate-400" /> : <Sun className="h-4 w-4 text-slate-400" />}
+              <p className="text-sm font-semibold text-[#0B1F3A]">{darkMode ? 'Dark mode' : 'Light mode'}</p>
+            </div>
+            <button onClick={toggleDark}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${darkMode ? 'bg-[#0B1F3A]' : 'bg-slate-200'}`}
+              role="switch" aria-checked={darkMode}>
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+          <Link href="/terms" className="flex items-center justify-between px-4 py-4">
+            <p className="text-sm font-semibold text-[#0B1F3A]">Terms & Conditions</p>
+            <ChevronRight className="h-4 w-4 text-slate-300" />
+          </Link>
+          <Link href="/privacy" className="flex items-center justify-between px-4 py-4">
+            <p className="text-sm font-semibold text-[#0B1F3A]">Privacy Policy</p>
+            <ChevronRight className="h-4 w-4 text-slate-300" />
+          </Link>
+        </SettingsGroup>
+
+        {/* ── Immigration profile card ──────────────────────────────────── */}
+        <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+
+        {/* Header row */}
+        <div className="flex items-center justify-between px-5 py-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Immigration profile
+          </p>
+          {!editingProfile && (
+            <button
+              onClick={() => { setOriginalData({ ...data }); setEditingProfile(true) }}
+              className="text-sm font-semibold text-[#D62828] hover:underline"
+            >
+              Edit
+            </button>
+          )}
+        </div>
+
+        {/* ── All profile sections ─────────────────────────────────────── */}
+        <fieldset disabled={!ep} className="m-0 border-0 p-0">
+
+          {/* Status & Goal */}
+          <SettingsGroup title="Status & Goal" flat>
+            {isInside && (
+              <SettingsRow label="Current status" value={dv(data.status, statusOptions)} editing={ep}>
+                <SelectWrapper>
+                  <select value={pendingStatus ?? data.status}
+                    onChange={(e) => { if (e.target.value !== data.status) setPendingStatus(e.target.value) }}
+                    className={cn(selectCls, !data.status && 'text-slate-400')}>
+                    <option value="" disabled>Select…</option>
+                    {statusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </SelectWrapper>
+                {pendingStatus && (
+                  <ConfirmChange
+                    label={statusOptions.find((o) => o.value === pendingStatus)?.label ?? pendingStatus}
+                    onConfirm={() => { update({ status: pendingStatus }); setPendingStatus(null) }}
+                    onCancel={() => setPendingStatus(null)}
+                  />
+                )}
+              </SettingsRow>
+            )}
+            {isOutside && (
+              <SettingsRow label="Entry plan" value={dv(data.plannedEntry, plannedEntryOptions)} editing={ep}>
+                <SelectWrapper>
+                  <select value={data.plannedEntry} onChange={(e) => update({ plannedEntry: e.target.value })}
+                    className={cn(selectCls, !data.plannedEntry && 'text-slate-400')}>
+                    <option value="" disabled>Select…</option>
+                    {plannedEntryOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </SelectWrapper>
+              </SettingsRow>
+            )}
+            <SettingsRow label="Main goal" value={dv(data.goal, goalOptions)} editing={ep}>
               <SelectWrapper>
-                <select value={pendingStatus ?? data.status}
-                  onChange={(e) => { if (e.target.value !== data.status) setPendingStatus(e.target.value) }}
-                  className={cn(selectCls, !data.status && 'text-slate-400')}>
-                  <option value="" disabled>Select your status…</option>
-                  {statusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                <select value={pendingGoal ?? data.goal}
+                  onChange={(e) => { if (e.target.value !== data.goal) setPendingGoal(e.target.value) }}
+                  className={cn(selectCls, !data.goal && 'text-slate-400')}>
+                  <option value="" disabled>Select…</option>
+                  {goalOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </SelectWrapper>
-              {pendingStatus && (
+              {pendingGoal && (
                 <ConfirmChange
-                  label={statusOptions.find((o) => o.value === pendingStatus)?.label ?? pendingStatus}
-                  onConfirm={() => { update({ status: pendingStatus }); setPendingStatus(null) }}
-                  onCancel={() => setPendingStatus(null)}
+                  label={goalOptions.find((o) => o.value === pendingGoal)?.label ?? pendingGoal}
+                  onConfirm={() => { update({ goal: pendingGoal }); setPendingGoal(null) }}
+                  onCancel={() => setPendingGoal(null)}
                 />
               )}
-            </Field>
-          )}
+            </SettingsRow>
+          </SettingsGroup>
 
-          {isOutside && (
-            <Field label="Entry plan">
-              <SelectWrapper>
-                <select value={data.plannedEntry} onChange={(e) => update({ plannedEntry: e.target.value })}
-                  className={cn(selectCls, !data.plannedEntry && 'text-slate-400')}>
-                  <option value="" disabled>Select entry plan…</option>
-                  {plannedEntryOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              </SelectWrapper>
-            </Field>
-          )}
-
-          <Field label="Main immigration goal">
-            <SelectWrapper>
-              <select value={pendingGoal ?? data.goal}
-                onChange={(e) => { if (e.target.value !== data.goal) setPendingGoal(e.target.value) }}
-                className={cn(selectCls, !data.goal && 'text-slate-400')}>
-                <option value="" disabled>Select your goal…</option>
-                {goalOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </SelectWrapper>
-            {pendingGoal && (
-              <ConfirmChange
-                label={goalOptions.find((o) => o.value === pendingGoal)?.label ?? pendingGoal}
-                onConfirm={() => { update({ goal: pendingGoal }); setPendingGoal(null) }}
-                onCancel={() => setPendingGoal(null)}
-              />
+          {/* Personal */}
+          <SettingsGroup title="Personal details" flat>
+            <SettingsRow label="Age" value={data.age ? `${data.age} years old` : null} editing={ep}>
+              <Input type="number" min={18} max={80} placeholder="e.g. 29"
+                value={data.age} onChange={(e) => update({ age: e.target.value })}
+                className="w-full max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+            </SettingsRow>
+            <SettingsRow label="Country of citizenship" value={data.originCountry || null} editing={ep}>
+              <CountrySelect value={data.originCountry} onChange={(v) => update({ originCountry: v })}
+                placeholder="Select country…" />
+            </SettingsRow>
+            {isOutside && (
+              <SettingsRow label="Currently living in" value={data.currentCountry || null} editing={ep}>
+                <CountrySelect value={data.currentCountry} onChange={(v) => update({ currentCountry: v })}
+                  placeholder="Select country…" />
+              </SettingsRow>
             )}
-          </Field>
-        </Section>
-
-        {/* ── Personal details ─────────────────────────────────────────────── */}
-        <Section title="Personal details" desc="Age, marital status, and family ties directly affect your CRS score.">
-          <Field label="Age">
-            <Input type="number" min={18} max={80} placeholder="e.g. 29"
-              value={data.age} onChange={(e) => update({ age: e.target.value })}
-              className="max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-          </Field>
-
-          <Field label="Country of citizenship">
-            <CountrySelect value={data.originCountry} onChange={(v) => update({ originCountry: v })}
-              placeholder="Select your country of citizenship…" />
-          </Field>
-
-          {isOutside && (
-            <Field label="Country you are currently in" note="Optional">
-              <CountrySelect value={data.currentCountry}
-                onChange={(v) => update({ currentCountry: v })}
-                placeholder="Select current country…" />
-            </Field>
-          )}
-
-          <Field label="Marital status">
-            <SelectWrapper>
-              <select value={data.maritalStatus}
-                onChange={(e) => update({ maritalStatus: e.target.value, spouseComing: '' })}
-                className={cn(selectCls, !data.maritalStatus && 'text-slate-400')}>
-                <option value="" disabled>Select…</option>
-                {maritalOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </SelectWrapper>
-          </Field>
-
-          {hasPartner && (
-            <Field label="Will your spouse / partner come to Canada with you?"
-              note="Affects CRS calculation">
+            <SettingsRow label="Marital status" value={dv(data.maritalStatus, maritalOptions)} editing={ep}>
               <SelectWrapper>
-                <select value={data.spouseComing} onChange={(e) => update({ spouseComing: e.target.value })}
-                  className={cn(selectCls, !data.spouseComing && 'text-slate-400')}>
+                <select value={data.maritalStatus}
+                  onChange={(e) => update({ maritalStatus: e.target.value, spouseComing: '' })}
+                  className={cn(selectCls, !data.maritalStatus && 'text-slate-400')}>
                   <option value="" disabled>Select…</option>
-                  <option value="yes">Yes — they will accompany me</option>
-                  <option value="no">No — applying without them</option>
+                  {maritalOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </SelectWrapper>
-            </Field>
-          )}
-
-          <Field label="Canadian citizen or PR sibling" note="+15 CRS">
-            <SelectWrapper>
-              <select value={data.canadianSibling} onChange={(e) => update({ canadianSibling: e.target.value })}
-                className={cn(selectCls, !data.canadianSibling && 'text-slate-400')}>
-                <option value="" disabled>Select…</option>
-                <option value="yes">Yes — I have a Canadian citizen or PR sibling</option>
-                <option value="no">No</option>
-              </select>
-            </SelectWrapper>
-          </Field>
-        </Section>
-
-        {/* ── Location & destination ───────────────────────────────────────── */}
-        <Section title="Location & destination" desc="Province determines PNP eligibility and pathway matching.">
-          {isInside && (
-            <Field label="Province / territory you are in" note="Required for PNP scoring">
+            </SettingsRow>
+            {hasPartner && (
+              <SettingsRow label="Spouse coming to Canada?" value={yn(data.spouseComing)} editing={ep}>
+                <SelectWrapper>
+                  <select value={data.spouseComing} onChange={(e) => update({ spouseComing: e.target.value })}
+                    className={cn(selectCls, !data.spouseComing && 'text-slate-400')}>
+                    <option value="" disabled>Select…</option>
+                    <option value="yes">Yes — will accompany me</option>
+                    <option value="no">No — applying without them</option>
+                  </select>
+                </SelectWrapper>
+              </SettingsRow>
+            )}
+            <SettingsRow label="Canadian citizen or PR sibling" note="+15 CRS" value={yn(data.canadianSibling)} editing={ep}>
               <SelectWrapper>
-                <select value={data.province} onChange={(e) => update({ province: e.target.value })}
-                  className={cn(selectCls, !data.province && 'text-slate-400')}>
-                  <option value="" disabled>Select province or territory…</option>
+                <select value={data.canadianSibling} onChange={(e) => update({ canadianSibling: e.target.value })}
+                  className={cn(selectCls, !data.canadianSibling && 'text-slate-400')}>
+                  <option value="" disabled>Select…</option>
+                  <option value="yes">Yes — Canadian citizen or PR sibling</option>
+                  <option value="no">No</option>
+                </select>
+              </SelectWrapper>
+            </SettingsRow>
+          </SettingsGroup>
+
+          {/* Location */}
+          <SettingsGroup title="Location & destination" flat>
+            {isInside && (
+              <SettingsRow label="Province / territory" value={provinceName(data.province)} editing={ep}>
+                <SelectWrapper>
+                  <select value={data.province} onChange={(e) => update({ province: e.target.value })}
+                    className={cn(selectCls, !data.province && 'text-slate-400')}>
+                    <option value="" disabled>Select province…</option>
+                    {CA_PROVINCES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+                  </select>
+                </SelectWrapper>
+              </SettingsRow>
+            )}
+            <SettingsRow label="Intended PR province" value={data.intendedProvince === 'Any' ? 'No preference' : provinceName(data.intendedProvince)} editing={ep}>
+              <SelectWrapper>
+                <select value={data.intendedProvince} onChange={(e) => update({ intendedProvince: e.target.value })}
+                  className={cn(selectCls, !data.intendedProvince && 'text-slate-400')}>
+                  <option value="" disabled>Select…</option>
+                  <option value="Any">No preference — open to any province</option>
                   {CA_PROVINCES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
                 </select>
               </SelectWrapper>
-            </Field>
-          )}
-
-          <Field label="Intended province for PR">
-            <SelectWrapper>
-              <select value={data.intendedProvince} onChange={(e) => update({ intendedProvince: e.target.value })}
-                className={cn(selectCls, !data.intendedProvince && 'text-slate-400')}>
-                <option value="" disabled>Select…</option>
-                <option value="Any">No preference — open to any province</option>
-                {CA_PROVINCES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-              </select>
-            </SelectWrapper>
-          </Field>
-
-          {isOutside && (
-            <Field label="When are you planning to arrive in Canada?">
-              <SelectWrapper>
-                <select value={data.targetArrivalTimeline}
-                  onChange={(e) => update({ targetArrivalTimeline: e.target.value })}
-                  className={cn(selectCls, !data.targetArrivalTimeline && 'text-slate-400')}>
-                  <option value="" disabled>Select…</option>
-                  {arrivalTimelineOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              </SelectWrapper>
-            </Field>
-          )}
-
-          <Field label="Do you intend to live in Quebec?" note="Quebec has a separate immigration system">
-            <SelectWrapper>
-              <select value={data.quebecIntent} onChange={(e) => update({ quebecIntent: e.target.value })}
-                className={cn(selectCls, !data.quebecIntent && 'text-slate-400')}>
-                <option value="" disabled>Select…</option>
-                <option value="yes">Yes — I plan to settle in Quebec</option>
-                <option value="no">No — outside Quebec</option>
-              </select>
-            </SelectWrapper>
-          </Field>
-        </Section>
-
-        {/* ── Canada dates (inside non-PR only) ───────────────────────────── */}
-        {showCanadaDates && (
-          <Section title="Canada dates" desc="Your arrival date calculates days in Canada. Permit expiry triggers renewal reminders.">
-            <Field label="Date you arrived in Canada">
-              <Input type="date" max={new Date().toISOString().slice(0, 10)}
-                value={data.arrivalDate} onChange={(e) => update({ arrivalDate: e.target.value })}
-                className="block w-full rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-            </Field>
-            <Field label="Visa / permit expiry date">
-              <Input type="date" value={data.visaExpiryDate}
-                onChange={(e) => update({ visaExpiryDate: e.target.value })}
-                className="block w-full rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-              <p className="text-xs text-slate-400">
-                Applies to study permits, work permits, visitor visas, and TRPs. You will get a reminder at 90 and 30 days before expiry.
-              </p>
-            </Field>
-          </Section>
-        )}
-
-        {/* ── Spouse / partner details (when spouse is coming) ────────────── */}
-        {hasSpouse && (
-          <Section title="Spouse / partner's details"
-            desc="Their language, education, and Canadian work experience add up to 40 bonus CRS points.">
-            <Field label="Spouse's language test">
-              <SelectWrapper>
-                <select value={data.spouseLangTestType}
-                  onChange={(e) => update({
-                    spouseLangTestType: e.target.value,
-                    spouseLangReading: '', spouseLangWriting: '', spouseLangListening: '', spouseLangSpeaking: '',
-                  })}
-                  className={cn(selectCls, !data.spouseLangTestType && 'text-slate-400')}>
-                  <option value="" disabled>Select test…</option>
-                  {[...englishTestOptions, ...frenchOnlyTestOptions].map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                  <option value="none">No test taken</option>
-                </select>
-              </SelectWrapper>
-            </Field>
-
-            {data.spouseLangTestType && data.spouseLangTestType !== 'none' && (
-              <LangScoreGrid
-                keys={['spouseLangReading', 'spouseLangWriting', 'spouseLangListening', 'spouseLangSpeaking']}
-                values={[data.spouseLangReading, data.spouseLangWriting, data.spouseLangListening, data.spouseLangSpeaking]}
-                onChange={(k, v) => update({ [k]: v })}
-              />
+            </SettingsRow>
+            {isOutside && (
+              <SettingsRow label="Arrival timeline" value={dv(data.targetArrivalTimeline, arrivalTimelineOptions)} editing={ep}>
+                <SelectWrapper>
+                  <select value={data.targetArrivalTimeline}
+                    onChange={(e) => update({ targetArrivalTimeline: e.target.value })}
+                    className={cn(selectCls, !data.targetArrivalTimeline && 'text-slate-400')}>
+                    <option value="" disabled>Select…</option>
+                    {arrivalTimelineOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </SelectWrapper>
+              </SettingsRow>
             )}
-
-            <Field label="Spouse's highest education">
+            <SettingsRow label="Plan to live in Quebec?" value={yn(data.quebecIntent)} editing={ep}>
               <SelectWrapper>
-                <select value={data.spouseEducationLevel}
-                  onChange={(e) => update({ spouseEducationLevel: e.target.value })}
-                  className={cn(selectCls, !data.spouseEducationLevel && 'text-slate-400')}>
+                <select value={data.quebecIntent} onChange={(e) => update({ quebecIntent: e.target.value })}
+                  className={cn(selectCls, !data.quebecIntent && 'text-slate-400')}>
+                  <option value="" disabled>Select…</option>
+                  <option value="yes">Yes — settling in Quebec</option>
+                  <option value="no">No — outside Quebec</option>
+                </select>
+              </SelectWrapper>
+            </SettingsRow>
+          </SettingsGroup>
+
+          {/* Canada dates */}
+          {showCanadaDates && (
+            <SettingsGroup title="Canada dates" flat>
+              <SettingsRow label="Date arrived in Canada" value={data.arrivalDate || null} editing={ep}>
+                <Input type="date" max={new Date().toISOString().slice(0, 10)}
+                  value={data.arrivalDate} onChange={(e) => update({ arrivalDate: e.target.value })}
+                  className="block w-full rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+              </SettingsRow>
+              <SettingsRow label="Permit / visa expiry" value={data.visaExpiryDate || null} editing={ep}>
+                <Input type="date" value={data.visaExpiryDate}
+                  onChange={(e) => update({ visaExpiryDate: e.target.value })}
+                  className="block w-full rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+              </SettingsRow>
+            </SettingsGroup>
+          )}
+
+          {/* Spouse / partner */}
+          {hasSpouse && (
+            <SettingsGroup title="Spouse / partner" flat>
+              <SettingsRow label="Spouse's language test" value={dv(data.spouseLangTestType, [...englishTestOptions, ...frenchOnlyTestOptions])} editing={ep}>
+                <SelectWrapper>
+                  <select value={data.spouseLangTestType}
+                    onChange={(e) => update({
+                      spouseLangTestType: e.target.value,
+                      spouseLangReading: '', spouseLangWriting: '',
+                      spouseLangListening: '', spouseLangSpeaking: '',
+                    })}
+                    className={cn(selectCls, !data.spouseLangTestType && 'text-slate-400')}>
+                    <option value="" disabled>Select test…</option>
+                    {[...englishTestOptions, ...frenchOnlyTestOptions].map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                    <option value="none">No test taken</option>
+                  </select>
+                </SelectWrapper>
+              </SettingsRow>
+              {data.spouseLangTestType && data.spouseLangTestType !== 'none' && (
+                <SettingsRow label="Spouse's scores"
+                  value={scoreLine(data.spouseLangReading, data.spouseLangWriting, data.spouseLangListening, data.spouseLangSpeaking)}
+                  editing={ep}>
+                  <LangScoreGrid
+                    keys={['spouseLangReading', 'spouseLangWriting', 'spouseLangListening', 'spouseLangSpeaking']}
+                    values={[data.spouseLangReading, data.spouseLangWriting, data.spouseLangListening, data.spouseLangSpeaking]}
+                    onChange={(k, v) => update({ [k]: v })}
+                  />
+                </SettingsRow>
+              )}
+              <SettingsRow label="Spouse's education" value={dv(data.spouseEducationLevel, educationOptions)} editing={ep}>
+                <SelectWrapper>
+                  <select value={data.spouseEducationLevel}
+                    onChange={(e) => update({ spouseEducationLevel: e.target.value })}
+                    className={cn(selectCls, !data.spouseEducationLevel && 'text-slate-400')}>
+                    <option value="" disabled>Select level…</option>
+                    {educationOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </SelectWrapper>
+              </SettingsRow>
+              <SettingsRow label="Spouse's Canadian work" note="TEER 0–3 months"
+                value={data.spouseCanadianWorkMonths ? `${data.spouseCanadianWorkMonths} months` : null}
+                editing={ep}>
+                <Input type="number" min={0} max={120} placeholder="e.g. 0"
+                  value={data.spouseCanadianWorkMonths}
+                  onChange={(e) => update({ spouseCanadianWorkMonths: e.target.value })}
+                  className="w-full max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+              </SettingsRow>
+            </SettingsGroup>
+          )}
+
+          {/* Language */}
+          <SettingsGroup title="Language tests" flat>
+            <SettingsRow label="First official language"
+              value={data.firstOfficialLanguage ? data.firstOfficialLanguage.charAt(0).toUpperCase() + data.firstOfficialLanguage.slice(1) : null}
+              editing={ep}>
+              <SelectWrapper>
+                <select value={data.firstOfficialLanguage}
+                  onChange={(e) => update({
+                    firstOfficialLanguage: e.target.value,
+                    langTestType: '', langTestDate: '', langReading: '', langWriting: '', langListening: '', langSpeaking: '',
+                    lang2TestType: '', lang2TestDate: '', lang2Reading: '', lang2Writing: '', lang2Listening: '', lang2Speaking: '',
+                  })}
+                  className={cn(selectCls, !data.firstOfficialLanguage && 'text-slate-400')}>
+                  <option value="" disabled>Select…</option>
+                  <option value="english">English</option>
+                  <option value="french">French</option>
+                </select>
+              </SelectWrapper>
+            </SettingsRow>
+
+            {(isEnglishFirst || isFrenchFirst) && (
+              <>
+                <SettingsRow label={isEnglishFirst ? 'English test' : 'French test'}
+                  value={dv(data.langTestType, firstTestOptions) ?? (data.langTestType === 'none' ? 'Not taken yet' : null)}
+                  editing={ep}>
+                  <SelectWrapper>
+                    <select value={data.langTestType}
+                      onChange={(e) => update({ langTestType: e.target.value, langReading: '', langWriting: '', langListening: '', langSpeaking: '' })}
+                      className={cn(selectCls, !data.langTestType && 'text-slate-400')}>
+                      <option value="" disabled>Select test…</option>
+                      {firstTestOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      <option value="none">No test taken yet</option>
+                    </select>
+                  </SelectWrapper>
+                </SettingsRow>
+
+                {showFirstScores && (
+                  <SettingsRow label="Test date" value={data.langTestDate || null} editing={ep}>
+                    <Input type="date" value={data.langTestDate}
+                      onChange={(e) => update({ langTestDate: e.target.value })}
+                      className="w-full max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+                  </SettingsRow>
+                )}
+
+                {showFirstScores && (
+                  <SettingsRow label="Scores"
+                    value={scoreLine(data.langReading, data.langWriting, data.langListening, data.langSpeaking)}
+                    editing={ep}>
+                    <LangScoreGrid
+                      keys={['langReading', 'langWriting', 'langListening', 'langSpeaking']}
+                      values={[data.langReading, data.langWriting, data.langListening, data.langSpeaking]}
+                      onChange={(k, v) => update({ [k]: v })}
+                    />
+                  </SettingsRow>
+                )}
+
+                <SettingsRow label={isEnglishFirst ? 'French test (optional)' : 'English test (optional)'}
+                  value={dv(data.lang2TestType, secondTestOptions) ?? (data.lang2TestType === 'none' ? 'None' : null)}
+                  editing={ep}>
+                  <SelectWrapper>
+                    <select value={data.lang2TestType}
+                      onChange={(e) => update({
+                        lang2TestType: e.target.value,
+                        lang2TestDate: '', lang2Reading: '', lang2Writing: '', lang2Listening: '', lang2Speaking: '',
+                      })}
+                      className={cn(selectCls, !data.lang2TestType && 'text-slate-400')}>
+                      <option value="" disabled>Select test…</option>
+                      {secondTestOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      <option value="none">No second language test</option>
+                    </select>
+                  </SelectWrapper>
+                </SettingsRow>
+
+                {showSecondScores && (
+                  <>
+                    <SettingsRow label="Second test date" value={data.lang2TestDate || null} editing={ep}>
+                      <Input type="date" value={data.lang2TestDate}
+                        onChange={(e) => update({ lang2TestDate: e.target.value })}
+                        className="w-full max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+                    </SettingsRow>
+                    <SettingsRow label="Second language scores"
+                      value={scoreLine(data.lang2Reading, data.lang2Writing, data.lang2Listening, data.lang2Speaking)}
+                      editing={ep}>
+                      <LangScoreGrid
+                        keys={['lang2Reading', 'lang2Writing', 'lang2Listening', 'lang2Speaking']}
+                        values={[data.lang2Reading, data.lang2Writing, data.lang2Listening, data.lang2Speaking]}
+                        onChange={(k, v) => update({ [k]: v })}
+                      />
+                    </SettingsRow>
+                  </>
+                )}
+              </>
+            )}
+          </SettingsGroup>
+
+          {/* Education */}
+          <SettingsGroup title="Education" flat>
+            <SettingsRow label="Highest education" value={dv(data.educationLevel, educationOptions)} editing={ep}>
+              <SelectWrapper>
+                <select value={data.educationLevel} onChange={(e) => update({ educationLevel: e.target.value })}
+                  className={cn(selectCls, !data.educationLevel && 'text-slate-400')}>
                   <option value="" disabled>Select level…</option>
                   {educationOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </SelectWrapper>
-            </Field>
+            </SettingsRow>
 
-            <Field label="Spouse's skilled Canadian work experience (months)" note="TEER 0–3 only">
-              <Input type="number" min={0} max={120} placeholder="e.g. 0"
-                value={data.spouseCanadianWorkMonths}
-                onChange={(e) => update({ spouseCanadianWorkMonths: e.target.value })}
-                className="max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-            </Field>
-          </Section>
-        )}
-
-        {/* ── Language ─────────────────────────────────────────────────────── */}
-        <Section title="Language test results"
-          desc="Language is the highest-value CRS factor. Results must be less than 2 years old for Express Entry.">
-
-          <Field label="First official language">
-            <SelectWrapper>
-              <select value={data.firstOfficialLanguage}
-                onChange={(e) => update({
-                  firstOfficialLanguage: e.target.value,
-                  langTestType: '', langTestDate: '', langReading: '', langWriting: '', langListening: '', langSpeaking: '',
-                  lang2TestType: '', lang2TestDate: '', lang2Reading: '', lang2Writing: '', lang2Listening: '', lang2Speaking: '',
-                })}
-                className={cn(selectCls, !data.firstOfficialLanguage && 'text-slate-400')}>
-                <option value="" disabled>Select…</option>
-                <option value="english">English</option>
-                <option value="french">French</option>
-              </select>
-            </SelectWrapper>
-          </Field>
-
-          {(isEnglishFirst || isFrenchFirst) && (
-            <>
-              <Field label={isEnglishFirst ? 'English test' : 'French test'}>
-                <SelectWrapper>
-                  <select value={data.langTestType}
-                    onChange={(e) => update({ langTestType: e.target.value, langReading: '', langWriting: '', langListening: '', langSpeaking: '' })}
-                    className={cn(selectCls, !data.langTestType && 'text-slate-400')}>
-                    <option value="" disabled>Select test…</option>
-                    {firstTestOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    <option value="none">No test taken yet</option>
-                  </select>
-                </SelectWrapper>
-              </Field>
-
-              {showFirstScores && (
-                <Field label="Test date" note="Results expire after 2 years for Express Entry">
-                  <Input type="date" value={data.langTestDate}
-                    onChange={(e) => update({ langTestDate: e.target.value })}
-                    className="max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-                </Field>
-              )}
-
-              {showFirstScores && (
-                <LangScoreGrid
-                  keys={['langReading', 'langWriting', 'langListening', 'langSpeaking']}
-                  values={[data.langReading, data.langWriting, data.langListening, data.langSpeaking]}
-                  onChange={(k, v) => update({ [k]: v })}
-                />
-              )}
-
-              {/* Second official language */}
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm font-semibold text-[#0B1F3A]">
-                  Second official language — optional
-                </p>
-                <p className="mt-1 text-sm text-slate-500">
-                  Adding a {isEnglishFirst ? 'French' : 'English'} test can add up to{' '}
-                  <span className="font-semibold">24 bonus CRS points</span> for bilingualism.
-                </p>
-                <div className="mt-4 flex flex-col gap-4">
-                  <Field label={isEnglishFirst ? 'French test' : 'English test'}>
-                    <SelectWrapper>
-                      <select value={data.lang2TestType}
-                        onChange={(e) => update({
-                          lang2TestType: e.target.value,
-                          lang2TestDate: '', lang2Reading: '', lang2Writing: '', lang2Listening: '', lang2Speaking: '',
-                        })}
-                        className={cn(selectCls, !data.lang2TestType && 'text-slate-400')}>
-                        <option value="" disabled>Select test…</option>
-                        {secondTestOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                        <option value="none">No second language test</option>
-                      </select>
-                    </SelectWrapper>
-                  </Field>
-
-                  {showSecondScores && (
-                    <Field label="Test date">
-                      <Input type="date" value={data.lang2TestDate}
-                        onChange={(e) => update({ lang2TestDate: e.target.value })}
-                        className="max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-                    </Field>
-                  )}
-
-                  {showSecondScores && (
-                    <LangScoreGrid
-                      keys={['lang2Reading', 'lang2Writing', 'lang2Listening', 'lang2Speaking']}
-                      values={[data.lang2Reading, data.lang2Writing, data.lang2Listening, data.lang2Speaking]}
-                      onChange={(k, v) => update({ [k]: v })}
-                    />
-                  )}
-                </div>
-              </div>
-            </>
-          )}
-        </Section>
-
-        {/* ── Education ─────────────────────────────────────────────────────── */}
-        <Section title="Education" desc="Your highest completed credential. Foreign education needs an ECA for Express Entry.">
-          <Field label="Highest education level">
-            <SelectWrapper>
-              <select value={data.educationLevel} onChange={(e) => update({ educationLevel: e.target.value })}
-                className={cn(selectCls, !data.educationLevel && 'text-slate-400')}>
-                <option value="" disabled>Select level…</option>
-                {educationOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </SelectWrapper>
-          </Field>
-
-          {data.educationLevel && !['less-than-secondary', 'secondary'].includes(data.educationLevel) && (
-            <>
-              <Field label="Canadian education" note="+15 or +30 CRS">
-                <SelectWrapper>
-                  <select value={data.canadianEducation} onChange={(e) => update({ canadianEducation: e.target.value })}
-                    className={cn(selectCls, !data.canadianEducation && 'text-slate-400')}>
-                    <option value="" disabled>Select…</option>
-                    {canadianEducationOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
-                </SelectWrapper>
-              </Field>
-
-              {(!data.canadianEducation || data.canadianEducation === 'none') && (
-                <Field label="ECA (Educational Credential Assessment)" note="Required for foreign education in Express Entry">
+            {data.educationLevel && !['less-than-secondary', 'secondary'].includes(data.educationLevel) && (
+              <>
+                <SettingsRow label="Canadian education" note="+15 or +30 CRS"
+                  value={dv(data.canadianEducation, canadianEducationOptions)} editing={ep}>
                   <SelectWrapper>
-                    <select value={data.ecaCompleted} onChange={(e) => update({ ecaCompleted: e.target.value })}
-                      className={cn(selectCls, !data.ecaCompleted && 'text-slate-400')}>
+                    <select value={data.canadianEducation} onChange={(e) => update({ canadianEducation: e.target.value })}
+                      className={cn(selectCls, !data.canadianEducation && 'text-slate-400')}>
                       <option value="" disabled>Select…</option>
-                      <option value="yes">Yes — ECA completed</option>
-                      <option value="no">No — not yet</option>
-                      <option value="in-progress">In progress</option>
+                      {canadianEducationOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
                   </SelectWrapper>
-                </Field>
-              )}
-            </>
-          )}
+                </SettingsRow>
 
-          {/* Student-specific education details */}
-          {isStudent && (
-            <>
-              <div className="my-1 border-t border-slate-100" />
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Study permit details</p>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="School name">
+                {(!data.canadianEducation || data.canadianEducation === 'none') && (
+                  <SettingsRow label="ECA completed?" note="Required for foreign education"
+                    value={data.ecaCompleted === 'yes' ? 'Yes' : data.ecaCompleted === 'no' ? 'No' : data.ecaCompleted === 'in-progress' ? 'In progress' : null}
+                    editing={ep}>
+                    <SelectWrapper>
+                      <select value={data.ecaCompleted} onChange={(e) => update({ ecaCompleted: e.target.value })}
+                        className={cn(selectCls, !data.ecaCompleted && 'text-slate-400')}>
+                        <option value="" disabled>Select…</option>
+                        <option value="yes">Yes — ECA completed</option>
+                        <option value="no">No — not yet</option>
+                        <option value="in-progress">In progress</option>
+                      </select>
+                    </SelectWrapper>
+                  </SettingsRow>
+                )}
+              </>
+            )}
+
+            {isStudent && (
+              <>
+                <SettingsRow label="School" value={data.schoolName || null} editing={ep}>
                   <Input value={data.schoolName} onChange={(e) => update({ schoolName: e.target.value })}
                     placeholder="e.g. University of Toronto"
                     className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-                </Field>
-                <Field label="DLI number" note="Optional">
+                </SettingsRow>
+                <SettingsRow label="DLI number" value={data.dliNumber || null} editing={ep}>
                   <Input value={data.dliNumber} onChange={(e) => update({ dliNumber: e.target.value })}
                     placeholder="e.g. O19395641872"
                     className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-                </Field>
-              </div>
-              <Field label="Field of study">
-                <Input value={data.fieldOfStudy} onChange={(e) => update({ fieldOfStudy: e.target.value })}
-                  placeholder="e.g. Computer Science, Nursing"
-                  className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-              </Field>
-              <Field label="Program level">
-                <SelectWrapper>
-                  <select value={data.programLevel} onChange={(e) => update({ programLevel: e.target.value })}
-                    className={cn(selectCls, !data.programLevel && 'text-slate-400')}>
-                    <option value="" disabled>Select level…</option>
-                    {programLevelOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
-                </SelectWrapper>
-              </Field>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <Field label="Program start">
-                  <Input type="month" value={data.programStartDate}
-                    onChange={(e) => update({ programStartDate: e.target.value })}
+                </SettingsRow>
+                <SettingsRow label="Field of study" value={data.fieldOfStudy || null} editing={ep}>
+                  <Input value={data.fieldOfStudy} onChange={(e) => update({ fieldOfStudy: e.target.value })}
+                    placeholder="e.g. Computer Science"
                     className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-                </Field>
-                <Field label="Program end (expected)">
-                  <Input type="month" value={data.programEndDate}
-                    onChange={(e) => update({ programEndDate: e.target.value })}
-                    className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-                </Field>
-                <Field label="Length (months)">
-                  <Input type="number" min={1} max={72} placeholder="e.g. 24"
-                    value={data.programLengthMonths} onChange={(e) => update({ programLengthMonths: e.target.value })}
-                    className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-                </Field>
-              </div>
-              <Field label="Studying full-time?">
-                <SelectWrapper>
-                  <select value={data.fullTimeStudy} onChange={(e) => update({ fullTimeStudy: e.target.value })}
-                    className={cn(selectCls, !data.fullTimeStudy && 'text-slate-400')}>
-                    <option value="" disabled>Select…</option>
-                    <option value="yes">Yes — full-time</option>
-                    <option value="no">No — part-time</option>
-                  </select>
-                </SelectWrapper>
-              </Field>
-              {data.fullTimeStudy === 'yes' && (
-                <Field label="Any part-time semester?">
+                </SettingsRow>
+                <SettingsRow label="Program level" value={dv(data.programLevel, programLevelOptions)} editing={ep}>
                   <SelectWrapper>
-                    <select value={data.hadPartTimeSemester}
-                      onChange={(e) => update({ hadPartTimeSemester: e.target.value })}
-                      className={cn(selectCls, !data.hadPartTimeSemester && 'text-slate-400')}>
-                      <option value="" disabled>Select…</option>
-                      <option value="no">No — all semesters were full-time</option>
-                      <option value="yes">Yes — at least one semester was part-time</option>
+                    <select value={data.programLevel} onChange={(e) => update({ programLevel: e.target.value })}
+                      className={cn(selectCls, !data.programLevel && 'text-slate-400')}>
+                      <option value="" disabled>Select level…</option>
+                      {programLevelOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
                   </SelectWrapper>
-                </Field>
-              )}
-            </>
-          )}
-        </Section>
+                </SettingsRow>
+                <SettingsRow label="Studying full-time?" value={yn(data.fullTimeStudy)} editing={ep}>
+                  <SelectWrapper>
+                    <select value={data.fullTimeStudy} onChange={(e) => update({ fullTimeStudy: e.target.value })}
+                      className={cn(selectCls, !data.fullTimeStudy && 'text-slate-400')}>
+                      <option value="" disabled>Select…</option>
+                      <option value="yes">Yes — full-time</option>
+                      <option value="no">No — part-time</option>
+                    </select>
+                  </SelectWrapper>
+                </SettingsRow>
+              </>
+            )}
+          </SettingsGroup>
 
-        {/* ── Work experience ───────────────────────────────────────────────── */}
-        <Section title="Work experience" desc="Used to calculate CRS, CEC eligibility, and FSW score.">
-          <Field label="TEER level">
-            <SelectWrapper>
-              <select value={data.teerLevel} onChange={(e) => update({ teerLevel: e.target.value })}
-                className={cn(selectCls, !data.teerLevel && 'text-slate-400')}>
-                <option value="" disabled>Select TEER level…</option>
-                {teerOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </SelectWrapper>
-          </Field>
-
-          <Field label="NOC code" note="5-digit code — optional">
-            <Input value={data.noc} onChange={(e) => update({ noc: e.target.value })}
-              placeholder="e.g. 21231"
-              className="max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-          </Field>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Foreign skilled work (years)" note="In last 10 years">
+          {/* Work */}
+          <SettingsGroup title="Work experience" flat>
+            <SettingsRow label="TEER level" value={dv(data.teerLevel, teerOptions)} editing={ep}>
+              <SelectWrapper>
+                <select value={data.teerLevel} onChange={(e) => update({ teerLevel: e.target.value })}
+                  className={cn(selectCls, !data.teerLevel && 'text-slate-400')}>
+                  <option value="" disabled>Select TEER level…</option>
+                  {teerOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </SelectWrapper>
+            </SettingsRow>
+            <SettingsRow label="NOC code" value={data.noc || null} editing={ep}>
+              <Input value={data.noc} onChange={(e) => update({ noc: e.target.value })}
+                placeholder="e.g. 21231"
+                className="w-full max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+            </SettingsRow>
+            <SettingsRow label="Foreign skilled work" note="last 10 yrs"
+              value={data.foreignWorkYears ? `${data.foreignWorkYears} years` : null} editing={ep}>
               <Input type="number" min={0} max={10} step={0.5} placeholder="e.g. 3"
                 value={data.foreignWorkYears} onChange={(e) => update({ foreignWorkYears: e.target.value })}
-                className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-            </Field>
-
+                className="w-full max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+            </SettingsRow>
             {(isInside || data.canadianWorkMonths) && (
-              <Field label="Canadian skilled work (months)" note="TEER 0–3 only">
+              <SettingsRow label="Canadian skilled work" note="TEER 0–3"
+                value={data.canadianWorkMonths ? `${data.canadianWorkMonths} months` : null} editing={ep}>
                 <Input type="number" min={0} max={120} placeholder="e.g. 12"
                   value={data.canadianWorkMonths} onChange={(e) => update({ canadianWorkMonths: e.target.value })}
-                  className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-              </Field>
+                  className="w-full max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+              </SettingsRow>
             )}
-          </div>
+            {isWorker && (
+              <>
+                <SettingsRow label="Hourly wage (CAD)" value={data.wage ? `$${data.wage}/hr` : null} editing={ep}>
+                  <Input value={data.wage} onChange={(e) => update({ wage: e.target.value })}
+                    placeholder="e.g. 28.50"
+                    className="w-full max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+                </SettingsRow>
+                <SettingsRow label="Hours per week"
+                  value={data.hoursPerWeek ? `${data.hoursPerWeek} hrs/week` : null} editing={ep}>
+                  <Input type="number" min={1} max={80} placeholder="e.g. 40"
+                    value={data.hoursPerWeek} onChange={(e) => update({ hoursPerWeek: e.target.value })}
+                    className="w-full max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+                </SettingsRow>
+                <SettingsRow label="Work start date" value={data.workStartDate || null} editing={ep}>
+                  <Input type="date" value={data.workStartDate}
+                    onChange={(e) => update({ workStartDate: e.target.value })}
+                    className="block w-full rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+                </SettingsRow>
+              </>
+            )}
+            <SettingsRow label="Canadian job offer" value={yn(data.hasJobOffer)} editing={ep}>
+              <SelectWrapper>
+                <select value={data.hasJobOffer} onChange={(e) => update({ hasJobOffer: e.target.value })}
+                  className={cn(selectCls, !data.hasJobOffer && 'text-slate-400')}>
+                  <option value="" disabled>Select…</option>
+                  <option value="yes">Yes — valid job offer</option>
+                  <option value="no">No job offer</option>
+                </select>
+              </SelectWrapper>
+            </SettingsRow>
+            <SettingsRow label="Provincial nomination" note="+600 CRS" value={yn(data.pnpNomination)} editing={ep}>
+              <SelectWrapper>
+                <select value={data.pnpNomination} onChange={(e) => update({ pnpNomination: e.target.value })}
+                  className={cn(selectCls, !data.pnpNomination && 'text-slate-400')}>
+                  <option value="" disabled>Select…</option>
+                  <option value="yes">Yes — I have a provincial nomination</option>
+                  <option value="no">No nomination yet</option>
+                </select>
+              </SelectWrapper>
+            </SettingsRow>
+          </SettingsGroup>
 
-          {/* Worker-specific fields */}
-          {isWorker && (
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Field label="Hourly wage (CAD)" note="Optional">
-                <Input value={data.wage} onChange={(e) => update({ wage: e.target.value })}
-                  placeholder="e.g. 28.50"
-                  className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-              </Field>
-              <Field label="Hours per week">
-                <Input type="number" min={1} max={80} placeholder="e.g. 40"
-                  value={data.hoursPerWeek} onChange={(e) => update({ hoursPerWeek: e.target.value })}
-                  className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-              </Field>
-              <Field label="Work start date">
-                <Input type="date" value={data.workStartDate}
-                  onChange={(e) => update({ workStartDate: e.target.value })}
-                  className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-              </Field>
-            </div>
-          )}
-
-          <Field label="Valid Canadian job offer">
-            <SelectWrapper>
-              <select value={data.hasJobOffer} onChange={(e) => update({ hasJobOffer: e.target.value })}
-                className={cn(selectCls, !data.hasJobOffer && 'text-slate-400')}>
-                <option value="" disabled>Select…</option>
-                <option value="yes">Yes — I have a valid job offer</option>
-                <option value="no">No job offer</option>
-              </select>
-            </SelectWrapper>
-            <p className="text-xs text-slate-400">
-              A job offer no longer adds CRS points as of March 25, 2025. It may still strengthen some PNP streams.
-            </p>
-          </Field>
-
-          <Field label="Provincial nomination (PNP)" note="+600 CRS if nominated">
-            <SelectWrapper>
-              <select value={data.pnpNomination} onChange={(e) => update({ pnpNomination: e.target.value })}
-                className={cn(selectCls, !data.pnpNomination && 'text-slate-400')}>
-                <option value="" disabled>Select…</option>
-                <option value="yes">Yes — I have a provincial nomination</option>
-                <option value="no">No nomination yet</option>
-              </select>
-            </SelectWrapper>
-          </Field>
-        </Section>
-
-        {/* ── Settlement funds (conditional) ───────────────────────────────── */}
-        {showSettlement && (
-          <Section title="Settlement funds"
-            desc="Federal Skilled Worker requires proof of available funds. CEC and most PNP streams do not.">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Family size" note="Including yourself">
+          {/* Settlement */}
+          {showSettlement && (
+            <SettingsGroup title="Settlement funds" flat>
+              <SettingsRow label="Family size" note="including yourself"
+                value={data.familySize ? `${data.familySize} people` : null} editing={ep}>
                 <Input type="number" min={1} max={20} placeholder="e.g. 2"
                   value={data.familySize} onChange={(e) => update({ familySize: e.target.value })}
-                  className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-                {data.familySize && (
-                  <p className="text-xs font-semibold text-[#D62828]">
-                    FSW minimum: ${requiredFunds.toLocaleString()} CAD for a family of {familySize}
-                  </p>
-                )}
-              </Field>
-              <Field label="Available funds (CAD)">
-                <Input type="number" min={0} placeholder="e.g. 25000"
-                  value={data.settlementFunds} onChange={(e) => update({ settlementFunds: e.target.value })}
-                  className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-                {fundsOk !== null && (
-                  <p className={cn('text-xs font-semibold', fundsOk ? 'text-green-700' : 'text-[#D62828]')}>
-                    {fundsOk
-                      ? `Meets the FSW minimum of $${requiredFunds.toLocaleString()}`
-                      : 'Below FSW minimum — blocks FSW but not CEC or PNP'}
-                  </p>
-                )}
-              </Field>
-            </div>
-          </Section>
-        )}
-
-        {/* ── Background / risk flags ───────────────────────────────────────── */}
-        <Section title="Background" desc="These do not affect your CRS score, but flag situations that may need legal review.">
-          <RiskField
-            label="Have you ever been refused a visa, permit, or entry to Canada or any other country?"
-            value={data.previousRefusals}
-            onChange={(v) => update({ previousRefusals: v })}
-            warningText="Refusals must be disclosed and can affect some PNP streams. A certified consultant can help address them properly."
-          />
-          <RiskField
-            label="Have you ever overstayed a permit or been out of status in Canada?"
-            value={data.lostStatus}
-            onChange={(v) => update({ lostStatus: v })}
-            level="critical"
-            warningText="An overstay or status gap can affect admissibility. You may need to restore status before applying. Speaking with a certified consultant is strongly recommended."
-          />
-          <RiskField
-            label="Do you have any criminal convictions, charges, or offences in any country?"
-            note="Includes DUI, assault, fraud, drug offences, and other criminal matters."
-            value={data.criminalityIssues}
-            onChange={(v) => update({ criminalityIssues: v })}
-            level="critical"
-            warningText="Criminal inadmissibility is a serious barrier. Depending on the offence, rehabilitation or a Temporary Resident Permit may be required. Legal advice is essential."
-          />
-          <RiskField
-            label="Have you ever been subject to a removal or deportation order?"
-            value={data.removalOrder}
-            onChange={(v) => update({ removalOrder: v })}
-            level="critical"
-            warningText="A removal order can result in a ban of 1 year, 2 years, or permanently. You likely need Authorization to Return to Canada (ARC). Consult a certified consultant or immigration lawyer."
-          />
-          <RiskField
-            label="Do you have any serious health conditions that may affect admissibility?"
-            note="Conditions that may place excessive demand on Canadian health or social services."
-            value={data.medicalInadmissibility}
-            onChange={(v) => update({ medicalInadmissibility: v })}
-            warningText="Medical inadmissibility is assessed by IRCC medical officers. Some conditions can be overcome with certain pathways. A certified consultant can advise."
-          />
-        </Section>
-
-        {/* ── PR & citizenship details (PR users only) ─────────────────────── */}
-        {isPR && (
-          <Section title="PR & citizenship details"
-            desc="These dates power your citizenship countdown, PR card reminder, and residency obligation tracker.">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Date you became a PR">
-                <Input type="date" value={data.prDate} onChange={(e) => update({ prDate: e.target.value })}
-                  className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-              </Field>
-              <Field label="PR card expiry">
-                <Input type="month" value={data.prCardExpiry} onChange={(e) => update({ prCardExpiry: e.target.value })}
-                  className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-              </Field>
-            </div>
-
-            <Field label="Status in Canada before becoming a PR">
-              <SelectWrapper>
-                <select value={data.prPreStatus} onChange={(e) => update({ prPreStatus: e.target.value })}
-                  className={cn(selectCls, !data.prPreStatus && 'text-slate-400')}>
-                  <option value="" disabled>Select…</option>
-                  {prPreStatusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              </SelectWrapper>
-              <p className="text-xs text-slate-400">
-                Temporary resident days before PR may count as half-days toward citizenship (up to 365 days credit).
-              </p>
-            </Field>
-
-            <Field label="Have you travelled outside Canada since becoming a PR?">
-              <SelectWrapper>
-                <select value={data.hasTraveledSincePR}
-                  onChange={(e) => update({
-                    hasTraveledSincePR: e.target.value,
-                    ...(e.target.value === 'no'
-                      ? { daysOutsideCanada5yr: '', accompanyingCitizenSpouseAbroad: '', workingAbroadForCanadianEmployer: '' }
-                      : {}),
-                  })}
-                  className={cn(selectCls, !data.hasTraveledSincePR && 'text-slate-400')}>
-                  <option value="" disabled>Select…</option>
-                  <option value="no">No — I have stayed in Canada</option>
-                  <option value="yes">Yes — I have had trips outside Canada</option>
-                </select>
-              </SelectWrapper>
-            </Field>
-
-            {data.hasTraveledSincePR === 'yes' && (
-              <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <Field label="Total days outside Canada in the last 5 years"
-                  note="PRs must be in Canada at least 730 of every 1,825 days">
-                  <Input type="number" min={0} max={1825} placeholder="e.g. 120"
-                    value={data.daysOutsideCanada5yr}
-                    onChange={(e) => update({ daysOutsideCanada5yr: e.target.value })}
-                    className="max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
-                  {data.daysOutsideCanada5yr && (() => {
-                    const outside = parseInt(data.daysOutsideCanada5yr) || 0
-                    const inside  = 1825 - outside
-                    const ok = inside >= 730
-                    return (
-                      <p className={cn('text-xs font-semibold', ok ? 'text-green-700' : 'text-red-600')}>
-                        {inside.toLocaleString()} days in Canada — {ok ? 'obligation met' : 'below the 730-day minimum'}
-                      </p>
-                    )
-                  })()}
-                </Field>
-
-                <Field label="Were you accompanying a Canadian citizen spouse or partner abroad?">
-                  <SelectWrapper>
-                    <select value={data.accompanyingCitizenSpouseAbroad}
-                      onChange={(e) => update({ accompanyingCitizenSpouseAbroad: e.target.value })}
-                      className={cn(selectCls, !data.accompanyingCitizenSpouseAbroad && 'text-slate-400')}>
-                      <option value="" disabled>Select…</option>
-                      <option value="no">No — this exemption does not apply</option>
-                      <option value="yes">Yes — I was abroad with my Canadian citizen spouse</option>
-                    </select>
-                  </SelectWrapper>
-                </Field>
-
-                <Field label="Were you working outside Canada for a Canadian business or government?">
-                  <SelectWrapper>
-                    <select value={data.workingAbroadForCanadianEmployer}
-                      onChange={(e) => update({ workingAbroadForCanadianEmployer: e.target.value })}
-                      className={cn(selectCls, !data.workingAbroadForCanadianEmployer && 'text-slate-400')}>
-                      <option value="" disabled>Select…</option>
-                      <option value="no">No — this exemption does not apply</option>
-                      <option value="yes">Yes — I worked abroad for a Canadian employer or government</option>
-                    </select>
-                  </SelectWrapper>
-                </Field>
-              </div>
-            )}
-
-            <Field label="Filed Canadian taxes for all required years?"
-              note="Required for citizenship application">
-              <SelectWrapper>
-                <select value={data.taxFilingComplete} onChange={(e) => update({ taxFilingComplete: e.target.value })}
-                  className={cn(selectCls, !data.taxFilingComplete && 'text-slate-400')}>
-                  <option value="" disabled>Select…</option>
-                  <option value="yes">Yes — filed for all required years</option>
-                  <option value="partial">Partially — some years filed</option>
-                  <option value="no">No — not yet filed</option>
-                </select>
-              </SelectWrapper>
-            </Field>
-
-            <Field label="Do you have proof of English or French language ability?"
-              note="Required for citizenship applicants aged 18–54">
-              <SelectWrapper>
-                <select value={data.citizenshipLangProof}
-                  onChange={(e) => update({ citizenshipLangProof: e.target.value })}
-                  className={cn(selectCls, !data.citizenshipLangProof && 'text-slate-400')}>
-                  <option value="" disabled>Select…</option>
-                  <option value="yes">Yes — I have an accepted test or proof</option>
-                  <option value="no">No — not yet</option>
-                </select>
-              </SelectWrapper>
-            </Field>
-
-            <Field label="Any criminal charges, removal order, probation, or past citizenship refusal?"
-              note="These may affect citizenship eligibility">
-              <SelectWrapper>
-                <select value={data.citizenshipProhibitions}
-                  onChange={(e) => update({ citizenshipProhibitions: e.target.value })}
-                  className={cn(selectCls, !data.citizenshipProhibitions && 'text-slate-400')}>
-                  <option value="" disabled>Select…</option>
-                  <option value="no">No — none of the above apply</option>
-                  <option value="yes">Yes — one or more apply</option>
-                </select>
-              </SelectWrapper>
-              {data.citizenshipProhibitions === 'yes' && (
-                <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-                  <p className="text-sm text-amber-800">
-                    These may affect citizenship eligibility. A certified consultant or immigration lawyer can review your specific situation.
-                  </p>
+                  className="w-full max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+              </SettingsRow>
+              <SettingsRow label="Available funds (CAD)"
+                value={data.settlementFunds ? `$${Number(data.settlementFunds).toLocaleString()}` : null}
+                editing={ep}>
+                <div className="flex flex-col gap-1.5">
+                  <Input type="number" min={0} placeholder="e.g. 25000"
+                    value={data.settlementFunds} onChange={(e) => update({ settlementFunds: e.target.value })}
+                    className="rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+                  {fundsOk !== null && (
+                    <p className={cn('text-xs font-semibold', fundsOk ? 'text-green-700' : 'text-[#D62828]')}>
+                      {fundsOk
+                        ? `Meets the FSW minimum of $${requiredFunds.toLocaleString()}`
+                        : `Below FSW minimum ($${requiredFunds.toLocaleString()}) — blocks FSW but not CEC or PNP`}
+                    </p>
+                  )}
                 </div>
+              </SettingsRow>
+            </SettingsGroup>
+          )}
+
+          {/* Background */}
+          <SettingsGroup title="Background checks" flat>
+            <RiskRow label="Any past visa or entry refusals?" value={data.previousRefusals} onChange={(v) => update({ previousRefusals: v })} editing={ep}
+              warningText="Refusals must be disclosed and can affect some PNP streams. A certified consultant can help." />
+            <RiskRow label="Ever overstayed or lost status in Canada?" value={data.lostStatus} onChange={(v) => update({ lostStatus: v })} editing={ep}
+              level="critical"
+              warningText="A status gap can affect admissibility. You may need to restore status before applying." />
+            <RiskRow label="Any criminal convictions or charges?" value={data.criminalityIssues} onChange={(v) => update({ criminalityIssues: v })} editing={ep}
+              level="critical"
+              warningText="Criminal inadmissibility is a serious barrier. Legal advice is essential." />
+            <RiskRow label="Ever subject to a removal or deportation order?" value={data.removalOrder} onChange={(v) => update({ removalOrder: v })} editing={ep}
+              level="critical"
+              warningText="A removal order can result in a multi-year ban. Consult a certified consultant or immigration lawyer." />
+            <RiskRow label="Any serious health conditions affecting admissibility?" value={data.medicalInadmissibility} onChange={(v) => update({ medicalInadmissibility: v })} editing={ep}
+              warningText="Medical inadmissibility is assessed by IRCC medical officers. A consultant can advise." />
+          </SettingsGroup>
+
+          {/* PR & citizenship */}
+          {isPR && (
+            <SettingsGroup title="PR & citizenship" flat>
+              <SettingsRow label="Date became a PR" value={data.prDate || null} editing={ep}>
+                <Input type="date" value={data.prDate} onChange={(e) => update({ prDate: e.target.value })}
+                  className="block w-full rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+              </SettingsRow>
+              <SettingsRow label="PR card expiry" value={data.prCardExpiry || null} editing={ep}>
+                <Input type="month" value={data.prCardExpiry} onChange={(e) => update({ prCardExpiry: e.target.value })}
+                  className="block w-full rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+              </SettingsRow>
+              <SettingsRow label="Status before becoming PR" value={dv(data.prPreStatus, prPreStatusOptions)} editing={ep}>
+                <SelectWrapper>
+                  <select value={data.prPreStatus} onChange={(e) => update({ prPreStatus: e.target.value })}
+                    className={cn(selectCls, !data.prPreStatus && 'text-slate-400')}>
+                    <option value="" disabled>Select…</option>
+                    {prPreStatusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </SelectWrapper>
+              </SettingsRow>
+              <SettingsRow label="Travelled outside Canada since PR?" value={yn(data.hasTraveledSincePR)} editing={ep}>
+                <SelectWrapper>
+                  <select value={data.hasTraveledSincePR}
+                    onChange={(e) => update({
+                      hasTraveledSincePR: e.target.value,
+                      ...(e.target.value === 'no'
+                        ? { daysOutsideCanada5yr: '', accompanyingCitizenSpouseAbroad: '', workingAbroadForCanadianEmployer: '' }
+                        : {}),
+                    })}
+                    className={cn(selectCls, !data.hasTraveledSincePR && 'text-slate-400')}>
+                    <option value="" disabled>Select…</option>
+                    <option value="no">No — stayed in Canada</option>
+                    <option value="yes">Yes — trips outside Canada</option>
+                  </select>
+                </SelectWrapper>
+              </SettingsRow>
+              {data.hasTraveledSincePR === 'yes' && (
+                <SettingsRow label="Days outside Canada (last 5 yrs)" note="min 730 days inside required"
+                  value={data.daysOutsideCanada5yr ? `${data.daysOutsideCanada5yr} days outside` : null}
+                  editing={ep}>
+                  <div className="flex flex-col gap-1.5">
+                    <Input type="number" min={0} max={1825} placeholder="e.g. 120"
+                      value={data.daysOutsideCanada5yr}
+                      onChange={(e) => update({ daysOutsideCanada5yr: e.target.value })}
+                      className="w-full max-w-xs rounded-xl border-slate-200 focus-visible:ring-[#D62828]" />
+                    {data.daysOutsideCanada5yr && (() => {
+                      const outside = parseInt(data.daysOutsideCanada5yr) || 0
+                      const inside  = 1825 - outside
+                      const ok = inside >= 730
+                      return (
+                        <p className={cn('text-xs font-semibold', ok ? 'text-green-700' : 'text-red-600')}>
+                          {inside.toLocaleString()} days in Canada — {ok ? 'obligation met' : 'below 730-day minimum'}
+                        </p>
+                      )
+                    })()}
+                  </div>
+                </SettingsRow>
               )}
-            </Field>
-          </Section>
+              <SettingsRow label="Filed taxes for required years?" value={data.taxFilingComplete === 'yes' ? 'Yes' : data.taxFilingComplete === 'partial' ? 'Partial' : data.taxFilingComplete === 'no' ? 'No' : null} editing={ep}>
+                <SelectWrapper>
+                  <select value={data.taxFilingComplete} onChange={(e) => update({ taxFilingComplete: e.target.value })}
+                    className={cn(selectCls, !data.taxFilingComplete && 'text-slate-400')}>
+                    <option value="" disabled>Select…</option>
+                    <option value="yes">Yes — all required years</option>
+                    <option value="partial">Partially — some years</option>
+                    <option value="no">No — not yet</option>
+                  </select>
+                </SelectWrapper>
+              </SettingsRow>
+              <SettingsRow label="Language proof for citizenship?" value={yn(data.citizenshipLangProof)} editing={ep}>
+                <SelectWrapper>
+                  <select value={data.citizenshipLangProof}
+                    onChange={(e) => update({ citizenshipLangProof: e.target.value })}
+                    className={cn(selectCls, !data.citizenshipLangProof && 'text-slate-400')}>
+                    <option value="" disabled>Select…</option>
+                    <option value="yes">Yes — accepted test or proof</option>
+                    <option value="no">No — not yet</option>
+                  </select>
+                </SelectWrapper>
+              </SettingsRow>
+              <SettingsRow label="Any citizenship prohibitions?" value={yn(data.citizenshipProhibitions)} editing={ep}>
+                <SelectWrapper>
+                  <select value={data.citizenshipProhibitions}
+                    onChange={(e) => update({ citizenshipProhibitions: e.target.value })}
+                    className={cn(selectCls, !data.citizenshipProhibitions && 'text-slate-400')}>
+                    <option value="" disabled>Select…</option>
+                    <option value="no">No — none apply</option>
+                    <option value="yes">Yes — one or more apply</option>
+                  </select>
+                </SelectWrapper>
+              </SettingsRow>
+              {data.citizenshipProhibitions === 'yes' && (
+                <SettingsNote>
+                  These may affect citizenship eligibility. A certified consultant or immigration lawyer can review your situation.
+                </SettingsNote>
+              )}
+            </SettingsGroup>
+          )}
+
+        </fieldset>
+
+        {/* Save / Cancel bar */}
+        {editingProfile && (
+          <div className="flex items-center gap-3 border-t border-slate-100 px-5 py-4">
+            <Button onClick={handleSaveProfile} disabled={savingProfile} size="sm"
+              className="gap-1.5 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-60">
+              {savingProfile && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {savingProfile ? 'Saving…' : 'Save changes'}
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleCancelProfile}
+              className="border-slate-200 text-slate-600">
+              Cancel
+            </Button>
+            {savedProfile && (
+              <span className="flex items-center gap-1 text-xs font-semibold text-green-600">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Saved
+              </span>
+            )}
+          </div>
         )}
 
-      </div>
+        </div>{/* end immigration profile card */}
 
-      {/* Save */}
-      <div className="mt-6 flex items-center gap-4">
-        <Button onClick={handleSave} disabled={saving}
-          className="gap-2 bg-[#D62828] text-white hover:bg-[#B91C1C] disabled:opacity-60">
-          {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-          {saving ? 'Saving…' : 'Save changes'}
-        </Button>
-        {saved && (
-          <span className="flex items-center gap-1.5 text-sm font-semibold text-green-600">
-            <CheckCircle2 className="h-4 w-4" /> Saved
-          </span>
-        )}
+
       </div>
     </div>
   )

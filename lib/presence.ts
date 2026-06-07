@@ -233,6 +233,37 @@ export function isCheckedInToday(data: PresenceData): boolean {
   return data.lastCheckIn === todayStr()
 }
 
+// Compute consecutive days in Canada right now, based on arrival date and travel log.
+// Does not depend on manual check-ins — counts every day since arrival that wasn't a travel day.
+// Returns 0 if no arrival date or if user is currently on a trip.
+export function computeStreak(data: PresenceData): number {
+  if (!data.arrivalDate) return 0
+  const today = todayStr()
+  if (data.arrivalDate > today) return 0
+
+  // If there is an ongoing (open-ended) trip, user is currently away
+  const ongoingTrip = data.travelLog.find((e) => e.departureDate && !e.returnDate)
+  if (ongoingTrip) return 0
+
+  let streak = 0
+  let current = today
+
+  while (current >= data.arrivalDate) {
+    const isAway = data.travelLog.some((entry) => {
+      if (!entry.departureDate) return false
+      const end = entry.returnDate || today
+      return current >= entry.departureDate && current < end
+    })
+    if (isAway) break
+    streak++
+    const d = new Date(current + 'T12:00:00')
+    d.setDate(d.getDate() - 1)
+    current = d.toISOString().slice(0, 10)
+  }
+
+  return streak
+}
+
 
 export function getPresenceGoal(goal: string): { days: number; label: string } | null {
   if (goal === 'citizenship') return { days: 1095, label: 'Citizenship — 1,095 days in Canada within 5 years as a PR' }

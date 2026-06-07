@@ -100,14 +100,6 @@ export default function ConsultantsPage() {
     if (saved) setNotes(saved)
   }, [])
 
-  function handleClaim(consultant: ConsultantListing) {
-    const letter = initial.trim() ? initial.trim()[0] : 'A'
-    const code = claimPromoCode(consultant.id, consultant.agency_code, letter)
-    setClaimed((prev) => ({ ...prev, [consultant.id]: code }))
-    setClaiming(null)
-    setInitial('')
-  }
-
   function handleNotesChange(val: string) {
     setNotes(val)
     localStorage.setItem(NOTES_KEY, val)

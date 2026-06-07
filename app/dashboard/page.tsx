@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import {
-  Flame,
+  CalendarDays,
   ArrowRight,
   AlertTriangle,
   CheckCircle2,
@@ -14,12 +14,12 @@ import {
 import Link from 'next/link'
 import { useLocale } from '@/lib/i18n'
 import { loadProfile, loadProfileFromSupabase, statusLabels, getPermitWarning, type IntakeData } from '@/lib/profile'
-import { loadPresence, checkIn, isCheckedInToday, type PresenceData } from '@/lib/presence'
+import { loadPresence, checkIn, isCheckedInToday, getDaysInCanada, type PresenceData } from '@/lib/presence'
 
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
 import { recordScoreSnapshot } from '@/lib/history'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
-import { getPersonalizedUpdates, getCuratedUpdates, importanceDot, formatDate, type NewsUpdate } from '@/lib/news'
+import { getUpdates, importanceDot, formatDate, type NewsUpdate } from '@/lib/news'
 import { loadTasks } from '@/lib/tasks'
 import { PlanGate } from '@/components/ui/PlanGate'
 import { usePlan, hasPlan } from '@/lib/subscription'
@@ -65,10 +65,8 @@ export default function DashboardPage() {
         const s = calculateScore(p)
         setScore(s)
         if (s.crs && s.crs.total > 0) recordScoreSnapshot(s.crs.total)
-        // Show curated news instantly, then silently replace with live DB data
-        setNews(getCuratedUpdates(p.status, p.goal).slice(0, 2))
-        getPersonalizedUpdates(p.status, p.goal).then(updates => setNews(updates.slice(0, 2)))
       }
+      getUpdates({ limit: 2 }).then((latest) => setNews(latest))
       setPresence(loadPresence())
       setLoaded(true)
     }
@@ -205,18 +203,18 @@ export default function DashboardPage() {
       {!isOutside && (
         <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${checkedInToday ? 'border-orange-100 bg-orange-50' : 'border-dashed border-orange-300 bg-orange-50'}`}>
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-100">
-            <Flame className={`h-5 w-5 ${checkedInToday ? 'text-orange-500' : 'text-orange-400'}`} aria-hidden="true" />
+            <CalendarDays className={`h-5 w-5 ${checkedInToday ? 'text-orange-500' : 'text-orange-400'}`} aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-orange-700">Canada streak</p>
+            <p className="text-xs font-semibold text-orange-700">Days in Canada</p>
             <p className="text-sm font-bold text-[#0B1F3A]">
-              {presence.streak} day{presence.streak !== 1 ? 's' : ''}
+              {getDaysInCanada(presence)} day{getDaysInCanada(presence) !== 1 ? 's' : ''}
               {checkedInToday && <span className="ml-2 text-xs font-semibold text-green-600">✓ Checked in</span>}
             </p>
           </div>
           {checkedInToday ? (
             <Link href="/dashboard/days" className="shrink-0 text-xs font-semibold text-slate-400 hover:text-[#0B1F3A]">
-              View tracker →
+              Details →
             </Link>
           ) : (
             <div className="flex shrink-0 items-center gap-2">
@@ -259,13 +257,13 @@ export default function DashboardPage() {
       )}
 
       {/* News */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
-        <div className="mb-4 flex items-center justify-between">
+      <div className="rounded-2xl border border-slate-200 bg-white px-5 py-2 pb-4">
+        <div className="mb-1 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Newspaper className="h-4 w-4 text-slate-400" aria-hidden="true" />
             <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Updates for you</p>
           </div>
-          <Link href="/dashboard/news" className="text-sm font-semibold text-[#D62828] hover:underline focus-visible:underline">
+          <Link href="/dashboard/news" className="text-xs font-semibold text-[#D62828] hover:underline focus-visible:underline py-3">
             View all →
           </Link>
         </div>

@@ -21,6 +21,7 @@ import {
   getTravelDays,
   getDaysInCanada,
   getDaysSinceArrival,
+  computeStreak,
   getPresenceGoal,
   syncPresenceToSupabase,
   loadPresenceFromSupabase,
@@ -111,6 +112,7 @@ export default function DaysPage() {
 
   // Core computed values — these drive PR / citizenship planning
   const daysInCanada = getDaysInCanada(presence)
+  const streak = computeStreak(presence)
   const daysSinceArrival = getDaysSinceArrival(presence)
   const travelDays = getTravelDays(presence.travelLog)
   const progress = goal ? Math.min((daysInCanada / goal.days) * 100, 100) : 0
@@ -134,10 +136,10 @@ export default function DaysPage() {
       <Card className="mb-6 rounded-2xl border-slate-200 bg-white">
         <CardContent className="p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Flame className={cn('h-4 w-4', presence.streak > 0 ? 'text-orange-500' : 'text-slate-300')} />
-            <p className="text-sm font-semibold text-[#0B1F3A]">Daily check-in streak</p>
-            {presence.streak > 0 && (
-              <span className="ml-auto text-2xl font-bold text-orange-500">{presence.streak} day{presence.streak !== 1 ? 's' : ''}</span>
+            <Flame className={cn('h-4 w-4', streak > 0 ? 'text-orange-500' : 'text-slate-300')} />
+            <p className="text-sm font-semibold text-[#0B1F3A]">Canada streak</p>
+            {streak > 0 && (
+              <span className="ml-auto text-2xl font-bold text-orange-500">{streak} day{streak !== 1 ? 's' : ''}</span>
             )}
           </div>
           {presence.longestStreak > 1 && (
