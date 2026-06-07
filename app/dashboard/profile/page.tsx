@@ -519,7 +519,7 @@ export default function ProfilePage() {
   const ep = editingProfile // shorthand
 
   return (
-    <div className="min-h-screen bg-surface-alt">
+    <div className="min-h-screen bg-surface">
       <div className="mx-auto w-full max-w-2xl space-y-5 px-4 py-6 pb-24 sm:px-6 sm:py-10">
 
         {/* Back link — desktop only */}
@@ -531,10 +531,8 @@ export default function ProfilePage() {
         {/* ── Profile header ──────────────────────────────────────────────── */}
         <div className="overflow-hidden rounded-2xl bg-surface-card shadow-sm">
           {/* Avatar + identity */}
-          <div className="flex flex-col items-center px-6 pb-6 pt-8">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-navly-navy text-2xl font-bold text-white shadow-md">
-              {data.fullName ? data.fullName.trim()[0].toUpperCase() : '?'}
-            </div>
+          <div className="flex flex-col items-center px-6 pb-6 pt-2">
+            
             <div className="mt-4 flex items-center gap-2">
               <p className="t-page-title">{data.fullName || 'Your name'}</p>
               <button onClick={() => setEditingAccount(true)} aria-label="Edit name"
@@ -620,7 +618,7 @@ export default function ProfilePage() {
               <Archive className="h-5 w-5 text-muted-text/70" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-heading">Document storage</p>
+              <p className="text-sm font-semibold text-heading">Document Storage</p>
               <p className="text-xs text-muted-text/70">Coming soon — permits, ECA letters, test results</p>
             </div>
             <ChevronRight className="h-4 w-4 shrink-0 text-muted-text/50" />
