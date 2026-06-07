@@ -29,6 +29,7 @@ import { PlanGate } from '@/components/ui/PlanGate'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
 import { matchPNPStreams, pnpStatusLabels, pnpStatusColors, type PNPStream } from '@/lib/pnp'
 import { useLocale } from '@/lib/i18n'
+import { PageTour } from '@/components/dashboard/PageTour'
 
 // ─── Status Roadmap ───────────────────────────────────────────────────────────
 
@@ -272,7 +273,7 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
       </div>
 
       {currentScore.improvements.length > 0 && (
-        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+        <div data-tour="pr-improvements" className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <ShieldAlert className="h-5 w-5 text-amber-600" aria-hidden="true" />
             <h3 className="t-eyebrow text-amber-800">Highest-impact next steps</h3>
@@ -583,6 +584,28 @@ export default function PRTrackerPage() {
         </div>
       )}
 
+      <PageTour
+        tourKey="navly_tour_pr"
+        steps={[
+          {
+            element: '[data-tour="crs-gauge"]',
+            popover: {
+              title: 'Your CRS score',
+              description: 'This gauge shows your estimated Comprehensive Ranking System score out of 600. The higher it is, the more competitive you are in the Express Entry pool.',
+              side: 'bottom', align: 'center',
+            },
+          },
+          {
+            element: '[data-tour="pr-improvements"]',
+            popover: {
+              title: 'How to improve',
+              description: 'These are the highest-impact actions you can take right now to increase your score — ranked by how many points each would add.',
+              side: 'top', align: 'start',
+            },
+          },
+        ]}
+      />
+
       {/* Risk flags */}
       {score && score.riskFlags.length > 0 && (
         <div className="mb-6 flex flex-col gap-3">
@@ -619,7 +642,7 @@ export default function PRTrackerPage() {
               </div>
             </div>
           )}
-          <div className="flex flex-col items-center rounded-2xl border border-subtle bg-surface-card p-6 shadow-sm">
+          <div data-tour="crs-gauge" className="flex flex-col items-center rounded-2xl border border-subtle bg-surface-card p-6 shadow-sm">
             <ProgressGauge
               value={score.crs?.total ?? 0}
               max={600}

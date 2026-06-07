@@ -21,6 +21,7 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LanguageToggle } from '@/components/ui/LanguageToggle'
 import { useLocale } from '@/lib/i18n'
 import { DocumentStorage } from '@/components/dashboard/DocumentStorage'
+import { PageTour } from '@/components/dashboard/PageTour'
 
 // ─── Options ─────────────────────────────────────────────────────────────────
 
@@ -515,6 +516,27 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-surface">
+      <PageTour
+        tourKey="navly_tour_profile"
+        steps={[
+          {
+            element: '[data-tour="profile-immigration"]',
+            popover: {
+              title: 'Immigration profile',
+              description: 'This is where your intake data lives. Keep it up to date — your CRS score, pathway matches, and task list all recalculate based on what\'s here.',
+              side: 'bottom', align: 'start',
+            },
+          },
+          {
+            element: '[data-tour="profile-documents"]',
+            popover: {
+              title: 'Documents',
+              description: 'Upload and store immigration-related files — offer letters, test results, ECA certificates. Securely stored and accessible any time.',
+              side: 'top', align: 'start',
+            },
+          },
+        ]}
+      />
       <div className="mx-auto w-full max-w-2xl space-y-5 px-4 py-6 pb-24 sm:px-6 sm:py-10">
 
         {/* Back link — desktop only */}
@@ -607,6 +629,7 @@ export default function ProfilePage() {
         </div>
 
         {/* ── Document archive ─────────────────────────────────────────── */}
+        <div data-tour="profile-documents">
         <SettingsGroup title="Documents">
           {userId ? (
             <DocumentStorage userId={userId} />
@@ -618,6 +641,7 @@ export default function ProfilePage() {
             </div>
           )}
         </SettingsGroup>
+        </div>
 
         {/* ── App settings ─────────────────────────────────────────────── */}
         <SettingsGroup title={t('profile.appSection')}>
@@ -630,7 +654,7 @@ export default function ProfilePage() {
         </SettingsGroup>
 
         {/* ── Immigration profile card ──────────────────────────────────── */}
-        <div className="overflow-hidden rounded-2xl bg-surface-card shadow-sm">
+        <div data-tour="profile-immigration" className="overflow-hidden rounded-2xl bg-surface-card shadow-sm">
 
         {/* Header row */}
         <div className="flex items-center justify-between px-5 py-4">

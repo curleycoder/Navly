@@ -33,15 +33,6 @@ export function DashboardTour() {
           },
         },
         {
-          element: '[data-tour="nav-tracker"]',
-          popover: {
-            title: 'PR Tracker',
-            description: 'See your full CRS breakdown by category, all pathway eligibility, and the exact improvements that would move your score. Open this any time from the bottom navigation.',
-            side: 'top',
-            align: 'center',
-          },
-        },
-        {
           element: '[data-tour="days"]',
           popover: {
             title: 'Canada Days Tracker',
@@ -51,28 +42,19 @@ export function DashboardTour() {
           },
         },
         {
-          element: '[data-tour="nav-tasks"]',
+          element: '[data-tour="tasks"]',
           popover: {
-            title: 'Your Tasks',
-            description: 'Navly builds a personalized checklist based on your profile — missing documents, score improvements, and key deadlines. Open Tasks any time from the bottom navigation.',
+            title: 'Your Next Task',
+            description: 'Navly builds a personalized checklist based on your profile. Work through these to stay on track.',
             side: 'top',
-            align: 'center',
-          },
-        },
-        {
-          element: '[data-tour="nav-ai"]',
-          popover: {
-            title: 'AI Assistant',
-            description: 'Ask anything about Canadian immigration — CRS scores, pathway options, PGWP rules, permit renewals, and more. Powered by AI and kept up to date with the latest IRCC rules.',
-            side: 'top',
-            align: 'center',
+            align: 'end',
           },
         },
         {
           element: '[data-tour="news"]',
           popover: {
             title: 'Immigration Updates',
-            description: 'We monitor IRCC announcements and policy changes that could affect your pathway. Check here regularly.',
+            description: 'We track IRCC announcements and policy changes that could affect your pathway. Check here regularly.',
             side: 'top',
             align: 'start',
           },
@@ -84,15 +66,6 @@ export function DashboardTour() {
             description: 'When you need professional advice, connect with a certified Canadian immigration consultant directly from here.',
             side: 'top',
             align: 'start',
-          },
-        },
-        {
-          element: '[data-tour="nav-profile"]',
-          popover: {
-            title: 'Your Profile & Documents',
-            description: 'Update your immigration profile, upload and manage your documents, and adjust app settings — all from your Profile page.',
-            side: 'top',
-            align: 'center',
           },
         },
       ],

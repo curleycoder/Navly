@@ -11,6 +11,7 @@ import { MarkdownMessage } from '@/components/ui/MarkdownMessage'
 import { usePlan, hasPlan } from '@/lib/subscription'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
 import { useLocale } from '@/lib/i18n'
+import { PageTour } from '@/components/dashboard/PageTour'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -258,6 +259,27 @@ export default function ChatPage() {
 
   return (
     <>
+    <PageTour
+      tourKey="navly_tour_chat"
+      steps={[
+        {
+          element: '[data-tour="chat-context"]',
+          popover: {
+            title: 'Your profile context',
+            description: 'The AI already knows your status, language scores, and work history. Every answer is tailored to your specific situation.',
+            side: 'bottom', align: 'start',
+          },
+        },
+        {
+          element: '[data-tour="chat-input"]',
+          popover: {
+            title: 'Ask anything',
+            description: 'Type any question about your immigration pathway — CRS scoring, permit renewals, PGWP eligibility, PNP options, and more. The AI is updated with the latest IRCC rules.',
+            side: 'top', align: 'start',
+          },
+        },
+      ]}
+    />
     <div className="flex h-full flex-col">
       {/* Header — desktop only */}
       <div className="hidden md:flex items-center justify-between border-b border-subtle bg-surface-card px-6 py-4">
@@ -278,7 +300,7 @@ export default function ChatPage() {
       </div>
 
       {/* Educational notice + What AI knows — persistent strip */}
-      <div className="border-b border-subtle/50 bg-surface-alt px-4 py-3 md:px-6">
+      <div data-tour="chat-context" className="border-b border-subtle/50 bg-surface-alt px-4 py-3 md:px-6">
         <div className="mb-2.5 rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-800">
           <span className="font-bold">{t('chat.educationalUse')}</span>{' '}
           {t('chat.educationalDesc')}
@@ -387,7 +409,7 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <div className="border-t border-subtle bg-surface-card px-4 py-3 md:px-6 md:py-4">
+      <div data-tour="chat-input" className="border-t border-subtle bg-surface-card px-4 py-3 md:px-6 md:py-4">
         <div className="mx-auto max-w-2xl">
           {!isPaid ? (
             <button

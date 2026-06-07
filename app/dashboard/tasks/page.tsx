@@ -14,6 +14,7 @@ import { useToast } from '@/lib/useToast'
 import { Toast } from '@/components/ui/Toast'
 import { TASK_GUIDES } from '@/lib/task-guides'
 import { useLocale } from '@/lib/i18n'
+import { PageTour } from '@/components/dashboard/PageTour'
 
 export default function TasksPage() {
   const { t } = useLocale()
@@ -91,6 +92,27 @@ export default function TasksPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-5 animate-fade-in">
+      <PageTour
+        tourKey="navly_tour_tasks"
+        steps={[
+          {
+            element: '[data-tour="tasks-progress"]',
+            popover: {
+              title: 'Your progress',
+              description: 'Track how many tasks you\'ve completed. Each task you check off moves you closer to PR readiness.',
+              side: 'bottom', align: 'start',
+            },
+          },
+          {
+            element: '[data-tour="tasks-add"]',
+            popover: {
+              title: 'Add custom tasks',
+              description: 'Add anything that\'s specific to your situation — a consultation appointment, a test booking, or a document to chase up.',
+              side: 'top', align: 'start',
+            },
+          },
+        ]}
+      />
       <div className="mb-2">
         <p className="hidden md:block t-eyebrow text-navly-red">{t('tasks.eyebrow')}</p>
         <h1 className="hidden md:block mt-1 t-page-title">{t('tasks.title')}</h1>
@@ -98,7 +120,7 @@ export default function TasksPage() {
       </div>
 
       {/* Progress */}
-      <Card className="mb-8 rounded-2xl border-subtle bg-surface-card">
+      <Card data-tour="tasks-progress" className="mb-8 rounded-2xl border-subtle bg-surface-card">
         <CardContent className="p-5">
           <div className="mb-3 flex items-center justify-between">
             <p className="t-section-title">
@@ -166,7 +188,7 @@ export default function TasksPage() {
       <Toast message={message} />
 
       {/* Add task Input */}
-      <div className="flex gap-3 bg-surface-alt p-2 rounded-2xl border border-subtle shadow-inner mt-4">
+      <div data-tour="tasks-add" className="flex gap-3 bg-surface-alt p-2 rounded-2xl border border-subtle shadow-inner mt-4">
         <Input
           placeholder="Add a custom task (e.g. 'Book English test', 'Update NOC description')…"
           value={newTitle}
