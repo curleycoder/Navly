@@ -18,6 +18,7 @@ import { TOP_COUNTRIES, ALL_COUNTRIES, CA_PROVINCES } from '@/lib/geo'
 import { supabase } from '@/lib/supabase/client'
 import { getRequiredFunds } from '@/lib/settlement-funds'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { LanguageToggle } from '@/components/ui/LanguageToggle'
 import { DocumentStorage } from '@/components/dashboard/DocumentStorage'
 
 // ─── Options ─────────────────────────────────────────────────────────────────
@@ -621,6 +622,13 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between px-4 py-3">
             <p className="t-section-title">Appearance</p>
             <ThemeToggle />
+          </div>
+          <div className="flex items-center justify-between border-t border-subtle/50 px-4 py-3">
+            <div>
+              <p className="t-section-title">Language</p>
+              <p className="t-caption mt-0.5">Canadian English · Canadian French</p>
+            </div>
+            <LanguageToggle />
           </div>
           <Link href="/terms" className="flex items-center justify-between px-4 py-4">
             <p className="text-sm font-semibold text-heading">Terms & Conditions</p>
