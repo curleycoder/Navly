@@ -2,6 +2,40 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* ── Driver.js tour overrides ─────────────────────────────────────────────── */
+.navly-tour-popover .driver-popover-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0B1F3A;
+}
+.navly-tour-popover .driver-popover-description {
+  font-size: 13px;
+  color: #6B7280;
+  line-height: 1.6;
+  margin-top: 6px;
+}
+.navly-tour-popover .driver-popover-next-btn {
+  background: #D62828;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+}
+.navly-tour-popover .driver-popover-next-btn:hover {
+  background: #b81f1f;
+}
+.navly-tour-popover .driver-popover-prev-btn {
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+}
+.navly-tour-popover .driver-popover-progress-text {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

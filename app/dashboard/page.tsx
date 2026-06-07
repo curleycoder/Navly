@@ -173,6 +173,7 @@ export default function DashboardPage() {
           <Link
             href="/dashboard/pr-tracker"
             aria-label="View PR tracker"
+            data-tour="score"
             className="group block overflow-hidden rounded-2xl bg-navly-navy p-5 shadow-md transition hover:shadow-lg focus-visible:ring-2 focus-visible:ring-navly-red focus-visible:ring-offset-2"
           >
             <div className="flex items-start justify-between gap-4">
@@ -222,7 +223,7 @@ export default function DashboardPage() {
 
             {/* Days in Canada */}
             {!isOutside && effectivePresence.arrivalDate && (
-              <div className={`flex flex-col rounded-2xl border bg-surface-card p-4 ${checkedInToday ? 'border-subtle' : 'border-orange-200'}`}>
+              <div data-tour="days" className={`flex flex-col rounded-2xl border bg-surface-card p-4 ${checkedInToday ? 'border-subtle' : 'border-orange-200'}`}>
                 <CalendarDays className={`h-4 w-4 ${checkedInToday ? 'text-heading' : 'text-orange-400'}`} aria-hidden="true" />
                 <p className="mt-3 t-stat">{daysInCanada}</p>
                 <p className="mt-1 t-caption">Days in Canada</p>
@@ -252,6 +253,7 @@ export default function DashboardPage() {
             {profile && (
               <Link
                 href="/dashboard/tasks"
+                data-tour="tasks"
                 className="group flex flex-col rounded-2xl border border-subtle bg-surface-card p-4 transition hover:border-subtle/80"
               >
                 <ListChecks className={`h-4 w-4 ${nextTask ? 'text-heading' : 'text-green-500'}`} aria-hidden="true" />
@@ -271,7 +273,7 @@ export default function DashboardPage() {
         )}
 
         {/* ── Latest news ──────────────────────────────────────────────── */}
-        <div className="overflow-hidden rounded-2xl border border-subtle bg-surface-card">
+        <div data-tour="news" className="overflow-hidden rounded-2xl border border-subtle bg-surface-card">
           <div className="flex items-center justify-between border-b border-subtle/60 px-5 py-3">
             <div className="flex items-center gap-2">
               <Newspaper className="h-4 w-4 text-muted-text/70" aria-hidden="true" />
@@ -301,6 +303,7 @@ export default function DashboardPage() {
         {/* ── Consultant CTA ───────────────────────────────────────────── */}
         <Link
           href="/dashboard/consultants"
+          data-tour="consultant"
           className="group flex items-center gap-4 rounded-2xl border border-subtle bg-surface-card p-5 transition hover:border-subtle/80 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-navly-navy focus-visible:ring-offset-2"
         >
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navly-navy/8">

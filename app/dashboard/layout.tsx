@@ -3,6 +3,7 @@ import { Sidebar } from '@/components/dashboard/Sidebar'
 import { MobileNav } from '@/components/dashboard/MobileNav'
 import { BottomNav } from '@/components/dashboard/BottomNav'
 import { AuthGuard } from '@/components/dashboard/AuthGuard'
+import { DashboardTour } from '@/components/dashboard/DashboardTour'
 
 // Dashboard pages are behind auth — prevent search engine indexing
 export const metadata: Metadata = {
@@ -26,6 +27,7 @@ export default function DashboardLayout({
         </div>
       </div>
       <BottomNav />
+      <DashboardTour />
     </AuthGuard>
   )
 }

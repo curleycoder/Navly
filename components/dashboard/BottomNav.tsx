@@ -6,11 +6,11 @@ import { TrendingUp, LayoutDashboard, MessageSquare, ListChecks, UserCircle } fr
 import { cn } from '@/lib/utils'
 
 const BOTTOM_TABS = [
-  { href: '/dashboard/tasks', label: 'Tasks', icon: ListChecks },
-  { href: '/dashboard/pr-tracker', label: 'Tracker', icon: TrendingUp },
-  { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
-  { href: '/dashboard/chat', label: 'AI', icon: MessageSquare },
-  { href: '/dashboard/profile', label: 'Profile', icon: UserCircle },
+  { href: '/dashboard/tasks', label: 'Tasks', icon: ListChecks, tourId: 'nav-tasks' },
+  { href: '/dashboard/pr-tracker', label: 'Tracker', icon: TrendingUp, tourId: 'nav-tracker' },
+  { href: '/dashboard', label: 'Home', icon: LayoutDashboard, tourId: undefined },
+  { href: '/dashboard/chat', label: 'AI', icon: MessageSquare, tourId: 'nav-ai' },
+  { href: '/dashboard/profile', label: 'Profile', icon: UserCircle, tourId: 'nav-profile' },
 ]
 
 export function BottomNav() {
@@ -21,7 +21,7 @@ export function BottomNav() {
       aria-label="Bottom navigation"
       className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-stretch border-t border-subtle bg-surface-card md:hidden"
     >
-      {BOTTOM_TABS.map(({ href, label, icon: Icon }) => {
+      {BOTTOM_TABS.map(({ href, label, icon: Icon, tourId }) => {
         const active = pathname === href
         return (
           <Link
@@ -29,6 +29,7 @@ export function BottomNav() {
             href={href}
             aria-label={label}
             aria-current={active ? 'page' : undefined}
+            {...(tourId ? { 'data-tour': tourId } : {})}
             className={cn(
               'relative flex flex-1 flex-col items-center justify-center gap-1 text-xs font-semibold transition-colors',
               active ? 'text-heading' : 'text-muted-text/70 hover:text-heading'
