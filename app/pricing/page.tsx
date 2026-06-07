@@ -29,7 +29,7 @@ const tiers = [
   },
   {
     id: 'report',
-    name: 'Persolized Report',
+    name: 'Personalized Report',
     price: '$29.99',
     period: 'one-time',
     desc: 'Understand exactly where you stand today.',

@@ -84,8 +84,12 @@ export default function DashboardPage() {
   const nextTask = tasks.find((t) => !t.done)
   const doneTasks = tasks.filter((t) => t.done).length
   const topPathway = score?.pathways.find((p) => p.status === 'eligible' || p.status === 'possible')
-  const checkedInToday = isCheckedInToday(presence)
-  const daysInCanada = getDaysInCanada(presence)
+  // Seed arrival date from profile if presence tracker hasn't been set up yet
+  const effectivePresence = presence.arrivalDate
+    ? presence
+    : { ...presence, arrivalDate: profile?.canadaArrivalDate ?? null }
+  const checkedInToday = isCheckedInToday(effectivePresence)
+  const daysInCanada = getDaysInCanada(effectivePresence)
   const progressPct = crs > 0 ? Math.max(3, Math.round((crs / 600) * 100)) : 3
 
   function handleHomeCheckIn() {
@@ -213,11 +217,11 @@ export default function DashboardPage() {
         )}
 
         {/* ── Quick stats grid ─────────────────────────────────────────── */}
-        {((!isOutside && presence.arrivalDate) || profile) && (
+        {((!isOutside && effectivePresence.arrivalDate) || profile) && (
           <div className="grid grid-cols-2 gap-3">
 
             {/* Days in Canada */}
-            {!isOutside && presence.arrivalDate && (
+            {!isOutside && effectivePresence.arrivalDate && (
               <div className={`flex flex-col rounded-2xl border bg-surface-card p-4 ${checkedInToday ? 'border-subtle' : 'border-orange-200'}`}>
                 <CalendarDays className={`h-4 w-4 ${checkedInToday ? 'text-heading' : 'text-orange-400'}`} aria-hidden="true" />
                 <p className="mt-3 t-stat">{daysInCanada}</p>

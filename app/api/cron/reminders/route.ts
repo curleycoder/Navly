@@ -17,22 +17,22 @@ function adminDb() {
 }
 
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY
+  const apiKey = process.env.BREVO_API_KEY
   if (!apiKey) {
-    console.log(`[reminders] (no RESEND_API_KEY) Would send to ${to}: ${subject}`)
+    console.log(`[reminders] (no BREVO_API_KEY) Would send to ${to}: ${subject}`)
     return
   }
-  await fetch('https://api.resend.com/emails', {
+  await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      'api-key': apiKey,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: process.env.RESEND_FROM_EMAIL ?? 'Navly <no-reply@navly.ca>',
-      to,
+      sender: { name: 'Navly', email: process.env.BREVO_FROM_EMAIL ?? 'no-reply@navly.ca' },
+      to: [{ email: to }],
       subject,
-      html,
+      htmlContent: html,
     }),
   })
 }
