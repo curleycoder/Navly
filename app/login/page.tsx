@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,6 +13,8 @@ import { loadProfile, loadProfileFromSupabase, saveProfileToSupabase } from '@/l
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirect') || '/dashboard'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -81,7 +83,7 @@ async function handleVerifyPhoneOtp() {
     }
   }
 
-  router.push('/dashboard')
+  window.location.href = redirectTo
 }
 
   async function handleLogin() {
@@ -114,7 +116,7 @@ async function handleVerifyPhoneOtp() {
       }
     }
 
-    router.push('/dashboard')
+    window.location.href = redirectTo
   }
 
   async function handleForgotPassword() {

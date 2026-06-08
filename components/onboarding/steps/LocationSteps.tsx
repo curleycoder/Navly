@@ -5,46 +5,47 @@ import { OptionCard } from '../shared'
 import type { IntakeData } from '@/lib/profile'
 
 export const insideStatusOptions = [
-  { value: 'student', label: 'International student', desc: 'Currently on a study permit' },
-  { value: 'work-permit', label: 'Worker', desc: 'On a work permit, PGWP, or employer-specific permit' },
-  { value: 'pr', label: 'Permanent resident', desc: 'Already have PR status' },
-  { value: 'visitor', label: 'Visitor', desc: 'On a visitor visa, eTA, or temporary resident permit' },
-  { value: 'other', label: 'Other status', desc: 'Refugee claimant, family permit, out of status, or other situation' },
+  { value: 'student', label: 'International student', desc: 'Study permit' },
+  { value: 'pgwp', label: 'Post-graduation worker (PGWP)', desc: 'Graduated from a Canadian school, now on PGWP' },
+  { value: 'work-permit', label: 'Employer-specific worker', desc: 'LMIA or closed work permit tied to one employer' },
+  { value: 'open-work-permit', label: 'Open work permit', desc: 'Spousal OWP, bridging OWP, or refugee work permit' },
+  { value: 'pr', label: 'Permanent resident', desc: 'Have PR status' },
+  { value: 'visitor', label: 'Visitor', desc: 'Visitor visa, eTA, or TRP' },
+  { value: 'other', label: 'Other / not sure', desc: 'Refugee claimant, out of status, or unclear situation' },
 ]
 
 const plannedEntryOptions = [
-  { value: 'study-permit', label: 'Study permit', desc: 'Come to Canada to study, then explore PR through PGWP and CEC' },
-  { value: 'work-permit', label: 'Work permit', desc: 'Come through a job offer, LMIA, or employer-specific permit' },
-  { value: 'express-entry', label: 'Express Entry (direct PR)', desc: 'Apply for PR directly from outside — Federal Skilled Worker or FST' },
-  { value: 'family', label: 'Family sponsorship', desc: 'Be sponsored by a Canadian citizen or permanent resident' },
+  { value: 'study-permit', label: 'Study permit', desc: 'Study in Canada, then PR through PGWP and CEC' },
+  { value: 'work-permit', label: 'Work permit', desc: 'Job offer, LMIA, or employer-specific permit' },
+  { value: 'express-entry', label: 'Express Entry (direct PR)', desc: 'Federal Skilled Worker or Federal Skilled Trades from outside Canada' },
+  { value: 'family', label: 'Family sponsorship', desc: 'Sponsored by a Canadian citizen or permanent resident' },
   { value: 'business', label: 'Business / investment', desc: 'Provincial entrepreneur or investor programs' },
-  { value: 'unsure', label: 'Not sure yet', desc: 'I want to compare all options before deciding' },
+  { value: 'unsure', label: 'Not sure yet', desc: 'Compare all options first' },
 ]
 
 const goalOptions = [
-  { value: 'pr', label: 'Become a permanent resident', desc: 'Canadian Experience Class, Express Entry, or Provincial Nominee Program' },
-  { value: 'work-permit', label: 'Get a work permit', desc: 'Work in Canada temporarily or build toward PR' },
-  { value: 'study-permit', label: 'Get a study permit', desc: 'Study in Canada, then explore PR through PGWP and CEC' },
-  { value: 'citizenship', label: 'Apply for citizenship', desc: 'Already a PR — want to become a Canadian citizen' },
-  { value: 'family', label: 'Sponsor or join family', desc: 'Be sponsored by or sponsor a Canadian citizen or permanent resident' },
-  { value: 'compare', label: 'Compare my options', desc: 'I want to understand all pathways available to me' },
+  { value: 'pr', label: 'Permanent residence', desc: 'CEC, Express Entry, or PNP' },
+  { value: 'work-permit', label: 'Work permit', desc: 'Temporary work authorization or path to PR' },
+  { value: 'study-permit', label: 'Study permit', desc: 'Study, then PGWP and CEC' },
+  { value: 'citizenship', label: 'Canadian citizenship', desc: 'Already a PR — tracking toward citizenship' },
+  { value: 'family', label: 'Sponsor or join family', desc: 'Family sponsorship pathway' },
+  { value: 'compare', label: 'Compare my options', desc: 'See all pathways available to me' },
 ]
 
 export function StepLocationSplit({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-heading">Are you currently in Canada?</h1>
-      <p className="mt-2 text-muted-text">This determines which pathways apply to you right now.</p>
+      <h1 className="text-3xl font-bold text-heading">Where are you right now?</h1>
       <div role="radiogroup" aria-label="Current location" className="mt-6 flex flex-col gap-3">
         <OptionCard
-          label="Yes, I am in Canada"
-          desc="Currently on a study permit, work permit, visitor visa, or other status"
+          label="Inside Canada"
+          desc="On a study permit, work permit, visitor visa, or other status"
           selected={value === 'inside'}
           onClick={() => onChange('inside')}
         />
         <OptionCard
-          label="No, I am outside Canada"
-          desc="Planning to come to Canada — I want to understand my options"
+          label="Outside Canada"
+          desc="Planning to come to Canada"
           selected={value === 'outside'}
           onClick={() => onChange('outside')}
         />
@@ -57,9 +58,7 @@ export function StepPlannedEntry({ value, onChange }: { value: string; onChange:
   return (
     <div>
       <h1 className="text-3xl font-bold text-heading">How are you planning to come to Canada?</h1>
-      <p className="mt-2 text-muted-text">
-        Your planned entry route shapes the entire pathway to permanent residence. Each route has different requirements and timelines.
-      </p>
+      <p className="mt-2 text-muted-text">Your entry route determines your pathway to PR.</p>
       <div role="radiogroup" aria-label="Planned entry route" className="mt-6 flex flex-col gap-3">
         {plannedEntryOptions.map((opt) => (
           <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={value === opt.value} onClick={() => onChange(opt.value)} />
@@ -73,7 +72,7 @@ export function StepInsideStatus({ value, onChange }: { value: string; onChange:
   return (
     <div>
       <h1 className="text-3xl font-bold text-heading">What is your current status in Canada?</h1>
-      <p className="mt-2 text-muted-text">Your current status determines which PR pathways are open to you and what questions we ask next.</p>
+      <p className="mt-2 text-muted-text">This determines which PR pathways are open to you.</p>
       <div role="radiogroup" aria-label="Current status in Canada" className="mt-6 flex flex-col gap-3">
         {insideStatusOptions.map((opt) => (
           <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={value === opt.value} onClick={() => onChange(opt.value)} />
@@ -92,7 +91,6 @@ export function StepGoal({ data, onChange }: {
   return (
     <div>
       <h1 className="text-3xl font-bold text-heading">What is your main goal?</h1>
-      <p className="mt-2 text-muted-text">This helps us show the most relevant pathways and requirements for your situation.</p>
 
       {isVisitorGoingForPR && (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">

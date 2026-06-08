@@ -237,7 +237,10 @@ export function IntakeFlow() {
           {currentStep === 'inside-status' && (
             <StepInsideStatus
               value={data.status}
-              onChange={(value) => update({ status: value })}
+              onChange={(value) => update({
+                status: value,
+                ...(value === 'pr' ? { goal: 'citizenship' } : {}),
+              })}
             />
           )}
 

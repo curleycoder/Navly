@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import {
   AlertTriangle,
   ArrowRight,
@@ -30,8 +29,6 @@ export function StepSignUp({
   defaultEmail = '',
   onComplete,
 }: StepSignUpProps) {
-  const router = useRouter()
-
   const [fullName, setFullName] = useState(defaultFullName)
   const [email, setEmail] = useState(defaultEmail)
   const [password, setPassword] = useState('')
@@ -40,6 +37,7 @@ export function StepSignUp({
   const [resetSent, setResetSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [alreadyExists, setAlreadyExists] = useState(false)
 
   async function handleForgotPassword() {
     if (!email.trim()) {
@@ -82,7 +80,7 @@ export function StepSignUp({
     setLoading(true)
     setError('')
 
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: trimmedEmail,
       password,
       options: {
@@ -101,7 +99,7 @@ export function StepSignUp({
         message.includes('already been registered') ||
         message.includes('user already registered')
       ) {
-        setError('An account with this email already exists. Please log in instead.')
+        setAlreadyExists(true)
         setLoading(false)
         return
       }
@@ -111,15 +109,36 @@ export function StepSignUp({
       return
     }
 
-    // Sign in immediately to establish a session (in case email confirmation is enabled)
-    await supabase.auth.signInWithPassword({ email: trimmedEmail, password })
+    // When email confirmation is disabled, Supabase returns identities: [] for a duplicate email
+    // instead of throwing an error — this is the silent duplicate signal.
+    if (signUpData?.user && signUpData.user.identities?.length === 0) {
+      setAlreadyExists(true)
+      setLoading(false)
+      return
+    }
+
+    // When email confirmation is disabled in Supabase, signUp returns a session directly.
+    if (signUpData?.session) {
+      onComplete({ fullName: trimmedName, email: trimmedEmail })
+      setLoading(false)
+      return
+    }
+
+    // Email confirmation is enabled — try signing in to check
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email: trimmedEmail, password })
+
+    if (signInError) {
+      // Supabase sent a confirmation email — user needs to verify before logging in
+      setError('Account created! Check your email to confirm your address, then log in.')
+      setLoading(false)
+      return
+    }
 
     onComplete({
       fullName: trimmedName,
       email: trimmedEmail,
     })
 
-    router.refresh()
     setLoading(false)
   }
 
@@ -139,6 +158,33 @@ export function StepSignUp({
             </Link>
           )}
         </p>
+      </div>
+    )
+  }
+
+  if (alreadyExists) {
+    return (
+      <div>
+        <h1 className="text-3xl font-bold text-heading">Account already exists</h1>
+        <p className="mt-2 text-muted-text">
+          An account with <span className="font-semibold text-heading">{email}</span> already exists.
+          Log in to access your profile and results.
+        </p>
+        <div className="mt-6 flex flex-col gap-3">
+          <Link
+            href={`/login?redirect=/dashboard`}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-navly-red px-4 py-3 text-sm font-semibold text-white hover:bg-navly-red/80"
+          >
+            Log in to my account <ArrowRight className="h-4 w-4" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => { setAlreadyExists(false); setEmail(''); setError('') }}
+            className="text-sm text-muted-text hover:text-heading underline"
+          >
+            Use a different email address
+          </button>
+        </div>
       </div>
     )
   }

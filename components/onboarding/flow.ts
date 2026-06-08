@@ -41,7 +41,7 @@ export function getSteps(data: IntakeData): StepId[] {
 
   if (isInside) {
     if (isPR) {
-      steps.push('inside-status', 'goal', 'province', 'personal', 'early-signup', 'pr-status')
+      steps.push('inside-status', 'province', 'personal', 'early-signup', 'pr-status')
 
       if (hasSpouse) {
         steps.push('spouse-language')

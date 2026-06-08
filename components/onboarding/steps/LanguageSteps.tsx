@@ -31,7 +31,7 @@ export function StepSpouseLanguage({ data, onChange }: {
   return (
     <div>
       <h1 className="text-3xl font-bold text-heading">Your spouse / partner's details</h1>
-      <p className="mt-2 text-muted-text">When your spouse accompanies you, their language, education, and Canadian experience add up to 40 bonus CRS points.</p>
+      <p className="mt-2 text-muted-text">Their language, education, and Canadian experience add up to 40 bonus CRS points.</p>
       <div className="mt-8 flex flex-col gap-8">
         <div className="flex flex-col gap-3">
           <Label className="text-sm font-semibold text-heading">
@@ -123,9 +123,7 @@ export function StepLanguage({ data, onChange }: {
   return (
     <div>
       <h1 className="text-3xl font-bold text-heading">Language test results</h1>
-      <p className="mt-2 text-muted-text">
-        Language is the highest-value CRS factor. Accepted tests: IELTS General Training, CELPIP-General, PTE Core (English) and TEF Canada, TCF Canada (French). Results must be less than 2 years old.
-      </p>
+      <p className="mt-2 text-muted-text">The single highest-value CRS factor. Accepted: IELTS General, CELPIP, PTE Core (English) · TEF Canada, TCF Canada (French). Must be under 2 years old.</p>
       <div className="mt-6 flex flex-col gap-8">
 
         {/* First official language */}

@@ -11,10 +11,8 @@ export function StepRisk({ data, onChange }: {
 }) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-heading">Any issues we should know about?</h1>
-      <p className="mt-2 text-muted-text">
-        These do not affect your CRS score, but they flag situations that may need professional legal review. Answer honestly — IRCC can access records independently.
-      </p>
+      <h1 className="text-3xl font-bold text-heading">Background questions</h1>
+      <p className="mt-2 text-muted-text">These flag situations that need legal review. Answer honestly — IRCC checks records independently.</p>
       <div className="mt-6 flex flex-col gap-6">
 
         <div className="flex flex-col gap-3">
@@ -22,8 +20,8 @@ export function StepRisk({ data, onChange }: {
             Have you ever been refused a visa, permit, or entry to Canada or any other country?
           </Label>
           {[
-            { value: 'no', label: 'No', desc: 'No refusals on record' },
-            { value: 'yes', label: 'Yes', desc: 'I have had at least one refusal' },
+            { value: 'no', label: 'No', desc: '' },
+            { value: 'yes', label: 'Yes', desc: 'At least one refusal' },
           ].map((opt) => (
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.previousRefusals === opt.value} onClick={() => onChange({ previousRefusals: opt.value })} />
           ))}
@@ -42,7 +40,7 @@ export function StepRisk({ data, onChange }: {
             Have you ever overstayed a permit or been out of status in Canada?
           </Label>
           {[
-            { value: 'no', label: 'No', desc: 'My status has always been maintained' },
+            { value: 'no', label: 'No', desc: '' },
             { value: 'yes', label: 'Yes', desc: 'I have overstayed or had a gap in status' },
           ].map((opt) => (
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.lostStatus === opt.value} onClick={() => onChange({ lostStatus: opt.value })} />
@@ -63,8 +61,8 @@ export function StepRisk({ data, onChange }: {
             <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Includes DUI, assault, fraud, drug offences, and other criminal matters.</span>
           </Label>
           {[
-            { value: 'no', label: 'No', desc: 'No criminal record' },
-            { value: 'yes', label: 'Yes', desc: 'I have a conviction, charge, or caution on record' },
+            { value: 'no', label: 'No', desc: '' },
+            { value: 'yes', label: 'Yes', desc: 'Conviction, charge, or caution on record' },
           ].map((opt) => (
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.criminalityIssues === opt.value} onClick={() => onChange({ criminalityIssues: opt.value })} />
           ))}
@@ -83,7 +81,7 @@ export function StepRisk({ data, onChange }: {
             Have you ever been subject to a removal or deportation order from Canada or any country?
           </Label>
           {[
-            { value: 'no', label: 'No', desc: 'No removal or deportation order' },
+            { value: 'no', label: 'No', desc: '' },
             { value: 'yes', label: 'Yes', desc: 'I have received a removal or deportation order' },
           ].map((opt) => (
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.removalOrder === opt.value} onClick={() => onChange({ removalOrder: opt.value })} />
@@ -104,8 +102,8 @@ export function StepRisk({ data, onChange }: {
             <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Conditions that may place excessive demand on Canadian health or social services.</span>
           </Label>
           {[
-            { value: 'no', label: 'No', desc: 'No known medical admissibility concerns' },
-            { value: 'yes', label: 'Yes / not sure', desc: 'I have a condition that may be relevant' },
+            { value: 'no', label: 'No', desc: '' },
+            { value: 'yes', label: 'Yes / not sure', desc: 'A condition that may be relevant' },
           ].map((opt) => (
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.medicalInadmissibility === opt.value} onClick={() => onChange({ medicalInadmissibility: opt.value })} />
           ))}

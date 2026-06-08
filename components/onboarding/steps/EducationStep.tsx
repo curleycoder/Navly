@@ -12,7 +12,7 @@ export function StepEducation({ data, onChange }: {
   return (
     <div>
       <h1 className="text-3xl font-bold text-heading">Education</h1>
-      <p className="mt-2 text-muted-text">Your highest completed credential. Foreign education needs an ECA for Express Entry.</p>
+      <p className="mt-2 text-muted-text">Foreign credentials need an ECA to be recognized in Express Entry.</p>
       <div className="mt-8 flex flex-col gap-8">
         <div className="flex flex-col gap-3">
           <Label className="text-sm font-semibold text-heading">Highest education completed</Label>

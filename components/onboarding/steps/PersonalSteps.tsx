@@ -21,7 +21,7 @@ export function StepPersonal({ data, onChange }: {
   return (
     <div>
       <h1 className="text-3xl font-bold text-heading">Personal details</h1>
-      <p className="mt-2 text-muted-text">Age, marital status, and family ties directly affect your CRS score and pathway options.</p>
+      <p className="mt-2 text-muted-text">These directly affect your CRS score and pathway options.</p>
       <div className="mt-4 flex flex-col gap-3">
 
         <div className="flex flex-col gap-1.5">
@@ -36,16 +36,6 @@ export function StepPersonal({ data, onChange }: {
           <CountrySelect id="origin" value={data.originCountry} onChange={(v) => onChange({ originCountry: v })} placeholder="Select your country of citizenship…" />
         </div>
 
-        {data.locationStatus === 'outside' && (
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="currentCountry" className="text-sm font-semibold text-heading">
-              Country you are currently in
-              <span className="ml-1.5 text-xs font-normal text-muted-text/70">Optional</span>
-            </Label>
-            <CountrySelect id="currentCountry" value={data.currentCountry} onChange={(v) => onChange({ currentCountry: v })} placeholder="Select your current country…" />
-          </div>
-        )}
-
         <div className="flex flex-col gap-2">
           <Label className="text-sm font-semibold text-heading">Marital status</Label>
           {maritalOptions.map((opt) => (
@@ -59,13 +49,13 @@ export function StepPersonal({ data, onChange }: {
           <div className="flex flex-col gap-3">
             <Label className="text-sm font-semibold text-heading">
               Will your spouse / partner come to Canada with you?
-              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Adds up to 40 bonus CRS points based on their language, education, and Canadian work experience.</span>
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Adds up to 40 CRS bonus points based on their language and education.</span>
             </Label>
             {[
-              { value: 'yes', label: 'Yes', desc: 'They will accompany me' },
-              { value: 'no', label: 'No', desc: 'Applying without them' },
+              { value: 'yes', label: 'Yes' },
+              { value: 'no', label: 'No' },
             ].map((opt) => (
-              <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.spouseComing === opt.value} onClick={() => onChange({ spouseComing: opt.value })} />
+              <OptionCard key={opt.value} label={opt.label} desc="" selected={data.spouseComing === opt.value} onClick={() => onChange({ spouseComing: opt.value })} />
             ))}
           </div>
         )}
@@ -95,9 +85,7 @@ export function StepCanadaDates({ data, onChange }: {
   return (
     <div>
       <h1 className="text-3xl font-bold text-heading">Your time in Canada</h1>
-      <p className="mt-2 text-muted-text">
-        Your arrival date is used to calculate your exact days in Canada for PR and citizenship planning. Your permit expiry is used to send you renewal reminders.
-      </p>
+      <p className="mt-2 text-muted-text">Used to calculate your days in Canada and track permit expiry.</p>
       <div className="mt-4 flex flex-col gap-3 overflow-hidden">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="province" className="text-sm font-semibold text-heading">
