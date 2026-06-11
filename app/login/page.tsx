@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react'
@@ -11,7 +11,7 @@ import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { supabase } from '@/lib/supabase/client'
 import { loadProfile, loadProfileFromSupabase, saveProfileToSupabase } from '@/lib/profile'
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/dashboard'
@@ -291,5 +291,13 @@ async function handleVerifyPhoneOtp() {
       </div>
 
     </main>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   )
 }
