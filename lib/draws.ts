@@ -6,23 +6,36 @@ export type EEDraw = {
 }
 
 // Draw category keys — used for tab filtering
-export type DrawCategory = 'All programs' | 'Canadian Experience Class' | 'Federal Skilled Worker' | 'Provincial Nominee Program'
+export type DrawCategory =
+  | 'All programs'
+  | 'Canadian Experience Class'
+  | 'Federal Skilled Worker'
+  | 'Provincial Nominee Program'
+  | 'French Language Proficiency'
 
 export const DRAW_CATEGORIES: DrawCategory[] = [
   'All programs',
   'Canadian Experience Class',
   'Federal Skilled Worker',
   'Provincial Nominee Program',
+  'French Language Proficiency',
 ]
 
 // ─── Staleness tracking ───────────────────────────────────────────────────────
 // Run scripts/add-draw.ts after each IRCC draw — it updates this date automatically.
 // IRCC source: canada.ca/.../express-entry/submit-profile/rounds-invitations.html
-export const DRAWS_LAST_UPDATED = '2026-04-23'
+export const DRAWS_LAST_UPDATED = '2026-05-28'
 
 // Update this array by running: npx ts-node scripts/add-draw.ts --type "..." --date "..." --cutoff N --invited N
 // Always prepend the newest draw — the first entry is treated as the latest.
 export const recentDraws: EEDraw[] = [
+  { date: 'May 28, 2026', type: 'French Language Proficiency',   cutoff: 409, invited: 4500 },
+  { date: 'May 27, 2026', type: 'Canadian Experience Class',     cutoff: 518, invited: 3000 },
+  { date: 'May 25, 2026', type: 'Provincial Nominee Program',    cutoff: 805, invited: 334  },
+  { date: 'May 11, 2026', type: 'Provincial Nominee Program',    cutoff: 798, invited: 380  },
+  { date: 'Apr 29, 2026', type: 'French Language Proficiency',   cutoff: 400, invited: 4000 },
+  { date: 'Apr 28, 2026', type: 'Canadian Experience Class',     cutoff: 514, invited: 2000 },
+  { date: 'Apr 27, 2026', type: 'Provincial Nominee Program',    cutoff: 795, invited: 473  },
   { date: 'Apr 23, 2026', type: 'All programs',                  cutoff: 491, invited: 4500 },
   { date: 'Apr 9, 2026',  type: 'All programs',                  cutoff: 488, invited: 4300 },
   { date: 'Mar 26, 2026', type: 'Canadian Experience Class',     cutoff: 504, invited: 2000 },

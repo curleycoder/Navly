@@ -38,7 +38,7 @@ function parseArgs(): { type: string; date: string; cutoff: number; invited?: nu
     process.exit(1)
   }
 
-  const validTypes = ['All programs', 'Canadian Experience Class', 'Federal Skilled Worker', 'Provincial Nominee Program']
+  const validTypes = ['All programs', 'Canadian Experience Class', 'Federal Skilled Worker', 'Provincial Nominee Program', 'French Language Proficiency']
   if (!validTypes.includes(type)) {
     console.error(`Invalid --type. Must be one of:\n  ${validTypes.join('\n  ')}`)
     process.exit(1)

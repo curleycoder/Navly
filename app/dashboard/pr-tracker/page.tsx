@@ -594,6 +594,7 @@ const CATEGORY_LABELS: Record<DrawCategory, string> = {
   'Canadian Experience Class': 'CEC',
   'Federal Skilled Worker': 'FSW',
   'Provincial Nominee Program': 'PNP',
+  'French Language Proficiency': 'French',
 }
 
 function EEDrawsCard({ crs }: { crs: number }) {
@@ -656,6 +657,12 @@ function EEDrawsCard({ crs }: { crs: number }) {
         {isPNP && (
           <div className="mb-4 rounded-xl bg-surface-alt px-4 py-3 text-sm text-muted-text">
             PNP draws use a combined CRS score (your base score + 600 nomination points). The cutoff shown is the minimum CRS before nomination. Receiving a provincial nomination effectively guarantees an ITA.
+          </div>
+        )}
+
+        {activeTab === 'French Language Proficiency' && (
+          <div className="mb-4 rounded-xl bg-surface-alt px-4 py-3 text-sm text-muted-text">
+            French Language Proficiency draws are open only to candidates with strong French scores (CLB/NCLC 7+ in all skills). The cutoff is much lower than All Programs draws because the pool is smaller and filtered. Your base CRS score still needs to meet the cutoff shown.
           </div>
         )}
 

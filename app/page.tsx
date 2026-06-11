@@ -151,6 +151,7 @@ const pricingPlans = [
     price: "$14.99/mo",
     desc: "We watch your immigration journey so you don't miss anything.",
     points: [
+      "Everything in Readiness Report, plus:",
       "Canada physical presence days tracker",
       "Permit expiry reminders",
       "Express Entry draw alerts",
@@ -232,7 +233,7 @@ export default async function Home() {
             </p>
 
             <p className="mt-2 text-xs font-semibold text-muted-text/70">
-              Last checked against public immigration updates: May 2026
+              Last checked against public immigration updates: June 2026
             </p>
           </div>
 
@@ -247,6 +248,23 @@ export default async function Home() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Social proof stat strip */}
+      <section className="border-b border-(--page-border) bg-(--page-alt) px-4 py-5 sm:px-6">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-10 gap-y-3 text-center">
+          {[
+            { stat: "4", label: "immigration statuses covered" },
+            { stat: "10+", label: "PR pathways tracked" },
+            { stat: "0", label: "documents required" },
+            { stat: "Free", label: "to start — no credit card" },
+          ].map(({ stat, label }) => (
+            <div key={label} className="flex items-baseline gap-1.5">
+              <span className="text-xl font-extrabold text-navly-red">{stat}</span>
+              <span className="text-sm text-(--page-body)">{label}</span>
+            </div>
+          ))}
         </div>
       </section>
 
