@@ -392,117 +392,192 @@ function OutsidePlanningCard({ profile }: { profile: IntakeData }) {
   )
 }
 
-// ─── PNP Streams Card ────────────────────────────────────────────────────────
+// ─── PNP stream row (shared between single-province and any-province views) ───
 
-function PNPStreamsCard({ streams }: { streams: PNPStream[] }) {
+function PNPStreamRow({ s }: { s: PNPStream }) {
+  const pct = s.score !== undefined && s.maxScore ? Math.round((s.score / s.maxScore) * 100) : null
+  return (
+    <div className="rounded-xl border border-subtle/50 bg-surface-alt p-4">
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <span className="font-semibold text-sm text-heading leading-snug">{s.streamName}</span>
+        <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-bold ${pnpStatusColors[s.status]}`}>
+          {pnpStatusLabels[s.status]}
+        </span>
+      </div>
+      <p className="text-sm text-muted-text">{s.reason}</p>
+
+      {/* AIP readiness checklist */}
+      {s.readinessItems && (
+        <div className="mt-3">
+          <p className="mb-2 text-xs font-bold text-muted-text">AIP Readiness</p>
+          <div className="flex flex-col gap-1.5">
+            {s.readinessItems.map((item: ReadinessItem, i: number) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className={`mt-0.5 shrink-0 text-sm font-bold ${item.met ? 'text-green-600' : item.warning ? 'text-amber-500' : 'text-red-500'}`}>
+                  {item.met ? '✓' : item.warning ? '!' : '✗'}
+                </span>
+                <div className="min-w-0">
+                  <span className={`text-sm ${item.met ? 'text-heading' : 'text-muted-text'}`}>{item.label}</span>
+                  {item.warning && (
+                    <p className="mt-0.5 text-xs text-amber-600">{item.warning}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          {s.readinessItems.every((item: ReadinessItem) => item.met && !item.warning) ? (
+            <p className="mt-2 text-xs font-semibold text-green-700">All gates confirmed — eligible to apply.</p>
+          ) : s.readinessItems.every((item: ReadinessItem) => item.met) ? (
+            <p className="mt-2 text-xs font-semibold text-amber-700">Gates met but some items need verification before applying.</p>
+          ) : (
+            <p className="mt-2 text-xs text-muted-text/70">Any ✗ item blocks the application.</p>
+          )}
+        </div>
+      )}
+
+      {/* Provincial score / connection strength */}
+      {!s.readinessItems && s.score !== undefined && s.maxScore && pct !== null && (
+        <div className="mt-3">
+          {s.maxScore === 5 ? (
+            <>
+              <div className="mb-1.5 flex items-center justify-between text-xs">
+                <span className="font-semibold text-muted-text">{s.scoreLabel ?? 'Connection strength'}</span>
+                <span className="font-bold text-heading">{s.score} / {s.maxScore}</span>
+              </div>
+              <div className="flex gap-1">
+                {Array.from({ length: s.maxScore }).map((_, i) => (
+                  <span key={i} className={`text-base leading-none ${i < s.score! ? 'text-amber-400' : 'text-muted-text/25'}`}>★</span>
+                ))}
+              </div>
+              <p className="mt-1 text-xs text-muted-text/60">
+                No public points grid — this reflects your provincial ties (job offer, work, study, relatives). Not an official score.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="mb-1 flex items-center justify-between text-xs">
+                <span className="font-semibold text-muted-text">{s.scoreLabel ?? 'Est. provincial score'}</span>
+                <span className="font-bold text-heading">{s.score} / {s.maxScore}</span>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-subtle">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${pct >= 60 ? 'bg-green-500' : pct >= 40 ? 'bg-amber-400' : 'bg-muted-text/40'}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <p className="mt-1 text-xs text-muted-text/60">
+                {s.maxScore === 200
+                  ? 'BC Skills Immigration 200-pt grid — typical draw cut-off: 60–100 pts'
+                  : 'SK SINP 100-pt grid — typical draw cut-off: 60–75 pts'}
+              </p>
+            </>
+          )}
+        </div>
+      )}
+
+      {s.missingItems.length > 0 && (
+        <ul className="mt-2 flex flex-col gap-1.5">
+          {s.missingItems.map((item, i) => (
+            <li key={i} className="flex items-start gap-2 text-sm text-muted-text">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-text/50" aria-hidden="true" />
+              {item}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+// ─── PNP Streams Card ─────────────────────────────────────────────────────────
+
+function PNPStreamsCard({ streams, isAnyProvince }: { streams: PNPStream[]; isAnyProvince?: boolean }) {
+  const [showNotYet, setShowNotYet] = useState(false)
   if (streams.length === 0) return null
+
+  if (isAnyProvince) {
+    // Group by province; show eligible/possible first, collapse not-yet
+    const byProvince = streams.reduce<Record<string, PNPStream[]>>((acc, s) => {
+      const key = s.province
+      acc[key] = acc[key] ?? []
+      acc[key].push(s)
+      return acc
+    }, {})
+
+    const active = streams.filter(s => s.status === 'eligible' || s.status === 'possible')
+    const notYet = streams.filter(s => s.status === 'not-yet')
+    const activeProvinces = [...new Set(active.map(s => s.province))]
+    const notYetProvinces = [...new Set(notYet.map(s => s.province))].filter(p => !activeProvinces.includes(p))
+
+    return (
+      <Card className="mb-8 rounded-2xl border-subtle bg-surface-card">
+        <CardContent className="p-5">
+          <div className="mb-1 flex items-center gap-2">
+            <Award className="h-4 w-4 text-heading" />
+            <p className="t-section-title">PNP Streams — All Provinces</p>
+          </div>
+          <p className="mb-4 text-xs text-muted-text">Select a specific province in your profile for a more targeted match. Showing provinces where at least one stream is possible.</p>
+
+          {activeProvinces.length === 0 && (
+            <p className="text-sm text-muted-text">No streams appear likely yet. Complete your work, language, and job offer details to unlock matches.</p>
+          )}
+
+          <div className="flex flex-col gap-5">
+            {activeProvinces.map(province => (
+              <div key={province}>
+                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-text">{province}</p>
+                <div className="flex flex-col gap-3">
+                  {(byProvince[province] ?? [])
+                    .filter(s => s.status === 'eligible' || s.status === 'possible')
+                    .map(s => <PNPStreamRow key={s.id} s={s} />)}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {notYetProvinces.length > 0 && (
+            <div className="mt-4">
+              <button
+                onClick={() => setShowNotYet(v => !v)}
+                className="text-xs font-semibold text-muted-text hover:text-heading"
+              >
+                {showNotYet ? 'Hide' : `Show ${notYetProvinces.length} province${notYetProvinces.length > 1 ? 's' : ''} where you don't yet qualify`}
+              </button>
+              {showNotYet && (
+                <div className="mt-3 flex flex-col gap-5">
+                  {notYetProvinces.map(province => (
+                    <div key={province}>
+                      <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-text">{province}</p>
+                      <div className="flex flex-col gap-3">
+                        {(byProvince[province] ?? []).map(s => <PNPStreamRow key={s.id} s={s} />)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <p className="mt-4 text-xs text-muted-text/70">
+            Provincial scores are estimates for planning only. Requirements and cut-offs change. Always verify at the official provincial website.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Single-province view
   const province = streams[0].province
   const program = streams[0].programName
-
   return (
     <Card className="mb-8 rounded-2xl border-subtle bg-surface-card">
       <CardContent className="p-5">
         <div className="mb-4 flex items-center gap-2">
           <Award className="h-4 w-4 text-heading" />
-          <p className="t-section-title">
-            {program} — {province}
-          </p>
+          <p className="t-section-title">{program} — {province}</p>
         </div>
         <div className="flex flex-col gap-3">
-          {streams.map((s) => {
-            const pct = s.score !== undefined && s.maxScore ? Math.round((s.score / s.maxScore) * 100) : null
-            return (
-              <div key={s.id} className="rounded-xl border border-subtle/50 bg-surface-alt p-4">
-                <div className="mb-2 flex items-start justify-between gap-3">
-                  <span className="font-semibold text-sm text-heading leading-snug">{s.streamName}</span>
-                  <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-bold ${pnpStatusColors[s.status]}`}>
-                    {pnpStatusLabels[s.status]}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-text">{s.reason}</p>
-
-                {/* AIP readiness checklist */}
-                {s.readinessItems && (
-                  <div className="mt-3">
-                    <p className="mb-2 text-xs font-bold text-muted-text">AIP Readiness</p>
-                    <div className="flex flex-col gap-1.5">
-                      {s.readinessItems.map((item: ReadinessItem, i: number) => (
-                        <div key={i} className="flex items-start gap-2">
-                          <span className={`mt-0.5 shrink-0 text-sm font-bold ${item.met ? 'text-green-600' : 'text-red-500'}`}>
-                            {item.met ? '✓' : '✗'}
-                          </span>
-                          <div className="min-w-0">
-                            <span className={`text-sm ${item.met ? 'text-heading' : 'text-muted-text'}`}>{item.label}</span>
-                            {item.warning && (
-                              <p className="mt-0.5 text-xs text-amber-600">{item.warning}</p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {s.readinessItems.every((item: ReadinessItem) => item.met) ? (
-                      <p className="mt-2 text-xs font-semibold text-green-700">All gates met — eligible to apply once you confirm employer designation.</p>
-                    ) : (
-                      <p className="mt-2 text-xs text-muted-text/70">Any ✗ item blocks the application.</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Provincial score / connection strength */}
-                {!s.readinessItems && s.score !== undefined && s.maxScore && pct !== null && (
-                  <div className="mt-3">
-                    {s.maxScore === 5 ? (
-                      // Star indicator for AB (no official points grid)
-                      <>
-                        <div className="mb-1.5 flex items-center justify-between text-xs">
-                          <span className="font-semibold text-muted-text">{s.scoreLabel ?? 'Connection strength'}</span>
-                          <span className="font-bold text-heading">{s.score} / {s.maxScore}</span>
-                        </div>
-                        <div className="flex gap-1">
-                          {Array.from({ length: s.maxScore }).map((_, i) => (
-                            <span key={i} className={`text-base leading-none ${i < s.score! ? 'text-amber-400' : 'text-muted-text/25'}`}>★</span>
-                          ))}
-                        </div>
-                        <p className="mt-1 text-xs text-muted-text/60">
-                          AAIP has no public points grid — this reflects your AB ties (job offer, work, study, relatives). Not an official score.
-                        </p>
-                      </>
-                    ) : (
-                      // Progress bar for BC / SK official grids
-                      <>
-                        <div className="mb-1 flex items-center justify-between text-xs">
-                          <span className="font-semibold text-muted-text">{s.scoreLabel ?? 'Est. provincial score'}</span>
-                          <span className="font-bold text-heading">{s.score} / {s.maxScore}</span>
-                        </div>
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-subtle">
-                          <div
-                            className={`h-full rounded-full transition-all duration-700 ${pct >= 60 ? 'bg-green-500' : pct >= 40 ? 'bg-amber-400' : 'bg-muted-text/40'}`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                        <p className="mt-1 text-xs text-muted-text/60">
-                          {s.maxScore === 200
-                            ? 'BC Skills Immigration 200-pt grid — typical draw cut-off: 60–100 pts'
-                            : 'SK SINP 100-pt grid — typical draw cut-off: 60–75 pts'}
-                        </p>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {s.missingItems.length > 0 && (
-                  <ul className="mt-2 flex flex-col gap-1.5">
-                    {s.missingItems.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-muted-text">
-                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-text/50" aria-hidden="true" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )
-          })}
+          {streams.map(s => <PNPStreamRow key={s.id} s={s} />)}
         </div>
         <p className="mt-4 text-xs text-muted-text/70">
           Provincial scores are estimates for planning only. Requirements and cut-offs change. Always verify at the official provincial website.
@@ -511,7 +586,6 @@ function PNPStreamsCard({ streams }: { streams: PNPStream[] }) {
     </Card>
   )
 }
-
 
 // ─── EE Draws Card ────────────────────────────────────────────────────────────
 
@@ -835,7 +909,7 @@ export default function PRTrackerPage() {
         }
       >
         {profile && score && <ScoreTracker profile={profile} score={score} />}
-        {pnpStreams.length > 0 && <PNPStreamsCard streams={pnpStreams} />}
+        {pnpStreams.length > 0 && <PNPStreamsCard streams={pnpStreams} isAnyProvince={profile?.intendedProvince === 'Any'} />}
       </PlanGate>
 
       {/* EE draws — free for all users */}

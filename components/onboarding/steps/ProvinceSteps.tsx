@@ -7,6 +7,72 @@ import { CA_PROVINCES } from '@/lib/geo'
 import { OptionCard, ChevronDownIcon, selectClass } from '../shared'
 import type { IntakeData } from '@/lib/profile'
 
+// ─── Quebec waitlist notice ────────────────────────────────────────────────────
+
+function QuebecWaitlistNotice() {
+  const [email, setEmail] = useState('')
+  const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setState('loading')
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, interest: 'QC' }),
+      })
+      setState(res.ok ? 'done' : 'error')
+    } catch {
+      setState('error')
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+      <p className="font-semibold text-amber-900">Quebec uses a separate immigration system</p>
+      <p className="mt-2 text-sm leading-6 text-amber-800">
+        Quebec has its own selection system (Arrima / PSTQ). Express Entry and most federal PNP pathways do not apply if you plan to live in Quebec. You must first obtain a Quebec Selection Certificate (CSQ) through the provincial system, then apply federally for PR.
+      </p>
+      <p className="mt-2 text-sm leading-6 text-amber-800">
+        Navly currently covers federal Express Entry and other provincial programs.{' '}
+        For Quebec immigration, visit{' '}
+        <a href="https://www.immigration.quebec.gouv.ca" target="_blank" rel="noopener noreferrer" className="underline font-medium">
+          immigration.quebec.gouv.ca
+        </a>.
+      </p>
+
+      <div className="mt-4 border-t border-amber-200 pt-4">
+        {state === 'done' ? (
+          <p className="text-sm font-semibold text-amber-900">Got it — we will notify you when Navly adds Quebec support.</p>
+        ) : (
+          <>
+            <p className="text-sm font-medium text-amber-900">Want us to notify you when Navly adds Quebec support?</p>
+            <form onSubmit={submit} className="mt-2 flex gap-2">
+              <input
+                type="email"
+                required
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="min-w-0 flex-1 rounded-xl border border-amber-300 bg-white px-3 py-2 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+              />
+              <button
+                type="submit"
+                disabled={state === 'loading'}
+                className="shrink-0 rounded-xl bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800 disabled:opacity-60"
+              >
+                {state === 'loading' ? '…' : 'Notify me'}
+              </button>
+            </form>
+            {state === 'error' && <p className="mt-1 text-xs text-red-600">Something went wrong — try again.</p>}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const manitobaRelativeOptions = [
   { value: 'parent', label: 'Parent', desc: 'Mother or father who is a Canadian citizen or PR living in Manitoba' },
   { value: 'child', label: 'Son or daughter', desc: 'Adult child who is a Canadian citizen or PR living in Manitoba' },
@@ -149,10 +215,7 @@ export function StepProvince({ data, onChange }: {
         )}
 
         {(data.intendedProvince === 'QC' || (isInside && data.province === 'QC' && !wantsToMove)) && (
-          <div className="rounded-2xl border border-navly-navy/15 bg-navly-navy/5 p-4">
-            <p className="text-sm font-semibold text-heading">Note on Quebec</p>
-            <p className="mt-1 text-sm leading-6 text-muted-text">Quebec has its own selection system (Arrima / PSTQ). Express Entry and most PNP pathways do not apply. You must obtain a Quebec Selection Certificate (CSQ) first.</p>
-          </div>
+          <QuebecWaitlistNotice />
         )}
       </div>
     </div>

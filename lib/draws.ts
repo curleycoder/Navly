@@ -15,7 +15,12 @@ export const DRAW_CATEGORIES: DrawCategory[] = [
   'Provincial Nominee Program',
 ]
 
-// Update this array as new draws are published at canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/ministerial-instructions/express-entry-rounds.html
+// ─── Staleness tracking ───────────────────────────────────────────────────────
+// Run scripts/add-draw.ts after each IRCC draw — it updates this date automatically.
+// IRCC source: canada.ca/.../express-entry/submit-profile/rounds-invitations.html
+export const DRAWS_LAST_UPDATED = '2026-04-23'
+
+// Update this array by running: npx ts-node scripts/add-draw.ts --type "..." --date "..." --cutoff N --invited N
 // Always prepend the newest draw — the first entry is treated as the latest.
 export const recentDraws: EEDraw[] = [
   { date: 'Apr 23, 2026', type: 'All programs',                  cutoff: 491, invited: 4500 },

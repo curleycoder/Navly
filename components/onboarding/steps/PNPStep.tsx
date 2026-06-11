@@ -22,10 +22,12 @@ function ProvinceSelect({ id, value, onChange, placeholder = 'Select a province 
   )
 }
 
+const ATLANTIC_PROVINCES = new Set(['NS', 'NB', 'PE', 'NL'])
+
 export function StepPNP({ data, onChange }: {
   data: Pick<IntakeData,
     | 'intendedProvince' | 'locationStatus' | 'status' | 'province'
-    | 'hasJobOffer' | 'noc' | 'teerLevel' | 'wage' | 'isPermanentNonSeasonal'
+    | 'hasJobOffer' | 'hasDesignatedEmployerOffer' | 'noc' | 'teerLevel' | 'wage' | 'isPermanentNonSeasonal'
     | 'canadianEducation' | 'frenchTestType'
     | 'pnpJobOfferProvince' | 'pnpEducationProvince' | 'pnpRelativesProvince'
     | 'employerSupportsPNP' | 'workExpInTargetProvince' | 'studiedInTargetProvince'
@@ -36,6 +38,7 @@ export function StepPNP({ data, onChange }: {
   const targetLabel = CA_PROVINCES.find(p => p.value === data.intendedProvince)?.label
     ?? (data.intendedProvince === 'Any' ? 'your target province' : data.intendedProvince)
 
+  const isAtlantic = ATLANTIC_PROVINCES.has((data.intendedProvince || '').toUpperCase().slice(0, 2))
   const isInside = data.locationStatus === 'inside'
   const isWorker = isInside && data.status === 'work-permit'
   const hasCanadianEd = data.canadianEducation === 'yes'
@@ -97,6 +100,27 @@ export function StepPNP({ data, onChange }: {
               <OptionCard key={opt.value} label={opt.label} desc={opt.desc}
                 selected={data.employerSupportsPNP === opt.value}
                 onClick={() => onChange({ employerSupportsPNP: opt.value })} />
+            ))}
+          </div>
+        )}
+
+        {/* AIP designated employer — only relevant for Atlantic provinces */}
+        {data.hasJobOffer === 'yes' && isAtlantic && (
+          <div className="flex flex-col gap-3">
+            <Label className="text-sm font-semibold text-heading">
+              Is your job offer from an AIP-designated employer?
+              <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">
+                The Atlantic Immigration Program only accepts offers from employers specifically designated by the government. A regular job offer is not enough.
+              </span>
+            </Label>
+            {[
+              { value: 'yes', label: 'Yes — the employer is AIP-designated', desc: '' },
+              { value: 'unsure', label: "I'm not sure", desc: 'You can verify at canada.ca/aip-employers' },
+              { value: 'no', label: 'No — not an AIP-designated employer', desc: 'This blocks the AIP pathway' },
+            ].map((opt) => (
+              <OptionCard key={opt.value} label={opt.label} desc={opt.desc}
+                selected={data.hasDesignatedEmployerOffer === opt.value}
+                onClick={() => onChange({ hasDesignatedEmployerOffer: opt.value })} />
             ))}
           </div>
         )}

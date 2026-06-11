@@ -66,6 +66,7 @@ export type IntakeData = {
   foreignWorkYears: string
   canadianWorkMonths: string
   hasJobOffer: string
+  hasDesignatedEmployerOffer: string // 'yes' | 'no' | 'unsure' | '' — AIP-specific: is the offer from a gov-designated organization?
 
   // Settlement funds
   familySize: string       // numeric string
@@ -254,6 +255,7 @@ export const EMPTY_PROFILE: IntakeData = {
   foreignWorkYears: '',
   canadianWorkMonths: '',
   hasJobOffer: '',
+  hasDesignatedEmployerOffer: '',
   familySize: '',
   settlementFunds: '',
   canadianSibling: '',

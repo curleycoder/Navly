@@ -563,6 +563,28 @@ const ATLANTIC_NAMES: Record<string, string> = {
 
 function buildAtlanticReadiness(profile: IntakeData, clb: number): ReadinessItem[] {
   const hasOffer = profile.hasJobOffer === 'yes'
+  const designated = profile.hasDesignatedEmployerOffer  // 'yes' | 'no' | 'unsure' | ''
+
+  // Determine designation state:
+  // - confirmed yes → green (met, no warning)
+  // - unsure or not answered (but has offer) → amber (met=true, warning shown)
+  // - confirmed no → red (met=false, blocks)
+  // - no offer at all → red (met=false)
+  let designationMet = false
+  let designationWarning: string | undefined
+  if (!hasOffer) {
+    designationMet = false
+  } else if (designated === 'yes') {
+    designationMet = true
+  } else if (designated === 'no') {
+    designationMet = false
+    designationWarning = 'AIP requires an offer from a government-designated employer. A regular offer does not qualify.'
+  } else {
+    // 'unsure' or not yet answered — flag amber
+    designationMet = true
+    designationWarning = "Can't confirm — verify the employer is AIP-designated at canada.ca/aip-employers before applying."
+  }
+
   const hasEducation = profile.educationLevel !== '' &&
     profile.educationLevel !== 'none' &&
     profile.educationLevel !== 'less-than-secondary'
@@ -570,10 +592,8 @@ function buildAtlanticReadiness(profile: IntakeData, clb: number): ReadinessItem
   return [
     {
       label: 'Designated employer offer',
-      met: hasOffer,
-      warning: hasOffer
-        ? 'Your offer must be from an AIP-designated organization — verify at canada.ca/aip-employers before applying.'
-        : undefined,
+      met: designationMet,
+      warning: designationWarning,
     },
     {
       label: 'Language — CLB 4+',
@@ -649,11 +669,27 @@ function atlanticStreams(profile: IntakeData): PNPStream[] {
 /**
  * Returns PNP stream matches for the user's intended province.
  * Returns an empty array if no province is set or if the province is QC (separate system).
+ * When intendedProvince === 'Any', returns streams for all supported provinces so the
+ * dashboard can group and filter them by status.
  */
 export function matchPNPStreams(profile: IntakeData): PNPStream[] {
-  const prov = (profile.intendedProvince || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2)
+  const raw = (profile.intendedProvince || '').trim()
+  if (!raw || raw === 'QC') return []
 
-  if (!prov || prov === 'QC') return []
+  if (raw === 'Any') {
+    return [
+      ...bcStreams(profile),
+      ...onStreams(profile),
+      ...abStreams(profile),
+      ...skStreams(profile),
+      ...mbStreams(profile),
+      // Use NS as the representative Atlantic province for the "any" overview
+      // (full AIP matching requires a specific province selection)
+      ...atlanticStreams({ ...profile, intendedProvince: 'NS' }),
+    ]
+  }
+
+  const prov = raw.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2)
 
   if (prov === 'BC') return bcStreams(profile)
   if (prov === 'ON') return onStreams(profile)
