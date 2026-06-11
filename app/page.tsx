@@ -12,19 +12,11 @@ import {
   Plane,
   BadgeCheck,
   AlertTriangle,
-  Newspaper,
   XCircle,
   ExternalLink,
 } from "lucide-react";
 import { Navbar } from "@/components/ui/Navbar";
 import { NavlyLogo } from "@/components/ui/NavlyLogo";
-import {
-  getUpdates,
-  categoryLabels,
-  categoryColors,
-  importanceDot,
-  formatDate,
-} from "@/lib/news";
 import { recentDraws } from "@/lib/draws";
 import { FAQAccordion } from "@/components/ui/FAQAccordion";
 import { createClient } from "@/lib/supabase/server";
@@ -87,7 +79,7 @@ const howSteps = [
   },
   {
     title: "Track and improve",
-    desc: "Monitor your progress, update your profile, follow official changes, and prepare smarter.",
+    desc: "Monitor your progress, update your profile as things change, and act on clear next steps.",
   },
 ];
 
@@ -110,15 +102,15 @@ const pricingPlans = [
       "FSW 67-point grid check",
       "Basic pathway overview",
       "Gap summary — what's missing",
-      "Find a certified consultant",
+      "Find a certified consultant (discount code included)",
     ],
     href: "/onboarding",
     featured: false,
     cta: "Start Free →",
   },
   {
-    name: "Readiness Report",
-    price: "$29",
+    name: "Personalized Report",
+    price: "$29.99",
     desc: "Understand exactly where you stand today.",
     points: [
       "Full CRS + FSW score breakdown",
@@ -136,11 +128,11 @@ const pricingPlans = [
     price: "$14.99/mo",
     desc: "We watch your immigration journey so you don't miss anything.",
     points: [
-      "Everything in Readiness Report, plus:",
       "Canada physical presence days tracker",
       "Permit expiry reminders",
       "Express Entry draw alerts",
       "Monthly CRS recalculation",
+      "Profile update reminders",
       "AI immigration assistant",
     ],
     href: "/pricing",
@@ -158,8 +150,6 @@ const DRAW_TYPE_SHORT: Record<string, string> = {
 }
 
 export default async function Home() {
-  const updates = await getUpdates({ limit: 3 });
-
   // Fetch one sponsored consultant for the homepage ad slot
   let featuredConsultant: ConsultantListing | null = null
   try {
@@ -199,7 +189,7 @@ export default async function Home() {
               <span className="text-navly-red">made clear.</span>
             </h1>
 
-            <p className="mt-5 max-w-xl text-base leading-7 text-white/60">
+            <p className="mt-5 max-w-xl text-base leading-7 text-white/70">
               Answer a few questions and see your estimated PR pathway, score gaps,
               missing requirements, and next steps — without uploading documents.
             </p>
@@ -235,7 +225,7 @@ export default async function Home() {
               )}
             </div>
 
-            <p className="mt-4 max-w-xl text-xs leading-5 text-white/35">
+            <p className="mt-4 max-w-xl text-xs leading-5 text-white/75">
               Not affiliated with IRCC or the Government of Canada. Always verify on canada.ca or with a licensed professional. Last updated: June 2026.
             </p>
           </div>
@@ -256,12 +246,12 @@ export default async function Home() {
 
       {/* EE Draw Ticker */}
       <section className="border-b border-(--page-border) bg-(--page-alt) px-4 py-2.5 sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 overflow-x-auto no-scrollbar">
-          <div className="flex items-center gap-2 shrink-0">
+        <div className="relative mx-auto flex max-w-7xl items-center justify-between overflow-x-auto no-scrollbar md:justify-center md:gap-4">
+          <div className="flex shrink-0 items-center gap-2">
             <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
             <span className="text-xs font-bold uppercase tracking-wider text-(--page-body)">Latest EE Draws</span>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="mx-3 flex shrink-0 items-center gap-2 md:mx-0">
             {recentDraws.slice(0, 3).map((draw, i) => (
               <div key={i} className="flex items-center gap-1.5 rounded-full border border-(--page-border) bg-(--page-card) px-3 py-1 text-xs whitespace-nowrap">
                 <span className="font-bold text-(--page-heading)">{draw.cutoff}</span>
@@ -419,76 +409,6 @@ export default async function Home() {
         </section>
       )}
 
-      {/* Official Updates */}
-      <section className="bg-(--page-bg) px-4 py-8 sm:px-6 md:py-14">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-navly-red">
-                Official Updates
-              </p>
-              <h2 className="mt-2 text-2xl font-bold tracking-tight text-(--page-heading) sm:text-3xl md:text-4xl">
-                Latest immigration updates.
-              </h2>
-              <p className="mt-2 max-w-2xl text-(--page-body)">
-                Navly tracks official immigration updates and helps users focus
-                on what may affect their profile.
-              </p>
-            </div>
-            <Link
-              href="/onboarding"
-              className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-navly-red hover:underline"
-            >
-              Get updates relevant to me <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-
-          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 md:pb-0">
-            {updates.map((u) => (
-              <article
-                key={u.id}
-                className="flex w-[82vw] shrink-0 snap-start flex-col rounded-2xl border border-(--page-border) bg-(--page-card) p-5 shadow-sm md:w-auto"
-              >
-                <div className="mb-3 flex items-center gap-2">
-                  <span
-                    className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${categoryColors[u.category]}`}
-                  >
-                    {categoryLabels[u.category]}
-                  </span>
-                  <span
-                    className={`ml-auto h-2 w-2 rounded-full ${importanceDot[u.importance]}`}
-                  />
-                </div>
-                <p className="flex-1 text-sm font-bold leading-snug text-(--page-heading)">
-                  {u.title}
-                </p>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="text-xs text-(--page-body)">{formatDate(u.publishedAt)}</span>
-                  <a
-                    href={u.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-semibold text-navly-red hover:underline"
-                  >
-                    {u.sourceName} →
-                  </a>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          <div className="mt-6 rounded-2xl border border-(--page-border) bg-(--page-alt) p-4">
-            <div className="flex gap-3">
-              <Newspaper className="mt-0.5 h-5 w-5 shrink-0 text-(--page-heading)" />
-              <p className="text-sm leading-6 text-(--page-body)">
-                Updates are provided for educational planning only. Always check
-                official government pages before making immigration decisions.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* What Navly Does Not Do — always dark navy */}
       <section className="bg-navly-navy px-4 py-8 text-white sm:px-6 md:py-14">
         <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-center">
@@ -640,7 +560,7 @@ export default async function Home() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <NavlyLogo size="sm" variant="light" />
-              <p className="mt-1.5 max-w-sm text-xs leading-5 text-white/40">
+              <p className="mt-1.5 max-w-sm text-xs leading-5 text-white/80">
                 Educational planning tool — not a law firm or government service.
               </p>
             </div>
@@ -654,7 +574,7 @@ export default async function Home() {
             </nav>
           </div>
 
-          <div className="mt-4 border-t border-white/10 pt-4 text-center text-xs text-white/35">
+          <div className="mt-4 border-t border-white/10 pt-4 text-center text-xs text-white/65">
             <p>© {new Date().getFullYear()} Navly. All rights reserved. General educational information only — not legal advice.</p>
           </div>
         </div>
