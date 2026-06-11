@@ -527,14 +527,6 @@ export default function ProfilePage() {
               side: 'bottom', align: 'start',
             },
           },
-          {
-            element: '[data-tour="profile-documents"]',
-            popover: {
-              title: 'Documents',
-              description: 'Upload and store immigration-related files — offer letters, test results, ECA certificates. Securely stored and accessible any time.',
-              side: 'top', align: 'start',
-            },
-          },
         ]}
       />
       <div className="mx-auto w-full max-w-2xl space-y-5 px-4 py-6 pb-24 sm:px-6 sm:py-10">
@@ -626,21 +618,6 @@ export default function ProfilePage() {
               )}
             </div>
           )}
-        </div>
-
-        {/* ── Document archive ─────────────────────────────────────────── */}
-        <div data-tour="profile-documents">
-        <SettingsGroup title="Documents">
-          {userId ? (
-            <DocumentStorage userId={userId} />
-          ) : (
-            <div className="px-4 py-8 text-center">
-              <Archive className="mx-auto mb-2 h-7 w-7 text-muted-text/30" />
-              <p className="t-section-title">Account required</p>
-              <p className="t-caption mt-1">Create a free account to store and access your documents.</p>
-            </div>
-          )}
-        </SettingsGroup>
         </div>
 
         {/* ── App settings ─────────────────────────────────────────────── */}
