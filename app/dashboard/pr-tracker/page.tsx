@@ -796,29 +796,6 @@ export default function PRTrackerPage() {
 
       {isOutside && profile && <OutsidePlanningCard profile={profile} />}
 
-      {/* ── Score boosters — above gauge, always visible ── */}
-      {profile && score && score.hasEnoughData && score.improvements.length > 0 && (
-        <div data-tour="pr-improvements" className="mb-6 rounded-2xl border border-navly-navy/15 bg-navly-navy p-5 shadow-md">
-          <p className="mb-1 text-xs font-bold uppercase tracking-wider text-white/60">How to move your score</p>
-          <div className="flex flex-col gap-3">
-            {score.improvements.slice(0, 3).map((imp, i) => (
-              <div key={i} className="flex items-start gap-4 rounded-xl bg-white/8 px-4 py-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-navly-red text-xs font-bold text-white">
-                  {i + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold text-sm text-white leading-snug">{imp.label}</span>
-                    <span className="rounded-full bg-green-400/20 px-2 py-0.5 text-xs font-bold text-green-300">{imp.impact}</span>
-                  </div>
-                  <p className="mt-1 text-xs leading-relaxed text-white/60">{imp.action}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* ── CRS gauge — always visible, never gated ── */}
       {profile && score && (
         <div className="mb-6 flex flex-col gap-4">
@@ -915,6 +892,27 @@ export default function PRTrackerPage() {
           </div>
         }
       >
+        {profile && score && score.hasEnoughData && score.improvements.length > 0 && (
+          <div data-tour="pr-improvements" className="mb-6 rounded-2xl border border-navly-navy/15 bg-navly-navy p-5 shadow-md">
+            <p className="mb-1 text-xs font-bold uppercase tracking-wider text-white/60">How to move your score</p>
+            <div className="flex flex-col gap-3">
+              {score.improvements.slice(0, 3).map((imp, i) => (
+                <div key={i} className="flex items-start gap-4 rounded-xl bg-white/8 px-4 py-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-navly-red text-xs font-bold text-white">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-semibold text-sm text-white leading-snug">{imp.label}</span>
+                      <span className="rounded-full bg-green-400/20 px-2 py-0.5 text-xs font-bold text-green-300">{imp.impact}</span>
+                    </div>
+                    <p className="mt-1 text-xs leading-relaxed text-white/60">{imp.action}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {profile && score && <ScoreTracker profile={profile} score={score} />}
         {pnpStreams.length > 0 && <PNPStreamsCard streams={pnpStreams} isAnyProvince={profile?.intendedProvince === 'Any'} />}
       </PlanGate>

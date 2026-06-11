@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   Newspaper,
   XCircle,
+  ExternalLink,
 } from "lucide-react";
 import { Navbar } from "@/components/ui/Navbar";
 import { NavlyLogo } from "@/components/ui/NavlyLogo";
@@ -26,6 +27,10 @@ import {
   importanceDot,
   formatDate,
 } from "@/lib/news";
+import { recentDraws } from "@/lib/draws";
+import { FAQAccordion } from "@/components/ui/FAQAccordion";
+import { createClient } from "@/lib/supabase/server";
+import type { ConsultantListing } from "@/lib/consultants";
 
 const trustItems = [
   {
@@ -164,8 +169,32 @@ const pricingPlans = [
   },
 ];
 
+const DRAW_TYPE_SHORT: Record<string, string> = {
+  'All programs': 'All Programs',
+  'Canadian Experience Class': 'CEC',
+  'Federal Skilled Worker': 'FSW',
+  'Provincial Nominee Program': 'PNP',
+  'French Language Proficiency': 'French',
+}
+
 export default async function Home() {
   const updates = await getUpdates({ limit: 3 });
+
+  // Fetch one sponsored consultant for the homepage ad slot
+  let featuredConsultant: ConsultantListing | null = null
+  try {
+    const db = await createClient()
+    const { data } = await db
+      .from('consultants')
+      .select('id, name, business_name, city, province, languages, services, booking_link, avatar_url, certification_type, agency_code, license_number, contact_email, sponsored, verified, active')
+      .eq('active', true)
+      .eq('sponsored', true)
+      .limit(1)
+      .maybeSingle()
+    featuredConsultant = data as ConsultantListing | null
+  } catch {
+    // silently skip if unavailable
+  }
 
   return (
     <main className="min-h-screen bg-(--page-bg) pt-20 text-(--page-heading)">
@@ -212,7 +241,7 @@ export default async function Home() {
             </div>
 
             {/* Trust chips */}
-            <div className="mt-8 flex gap-2">
+            <div className="mt-8 flex flex-wrap gap-2">
               {["No passport number", "No SIN", "No documents required"].map(
                 (item) => (
                   <div
@@ -246,6 +275,32 @@ export default async function Home() {
                   className="h-[500px] w-full object-cover"
                 />
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* EE Draw Ticker */}
+      <section className="border-b border-(--page-border) bg-(--page-alt) px-4 py-3 sm:px-6">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-xs font-bold uppercase tracking-wider text-(--page-body)">Latest EE Draws</span>
+              </div>
+              <Link href="/dashboard/pr-tracker" className="text-xs pt-3 font-semibold text-navly-red hover:underline">
+                All draws →
+              </Link>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {recentDraws.slice(0, 3).map((draw, i) => (
+                <div key={i} className="flex items-center gap-1.5 rounded-full border border-(--page-border) bg-(--page-card) px-3 py-1 text-xs">
+                  <span className="font-bold text-(--page-heading)">{draw.cutoff}</span>
+                  <span className="text-(--page-body)">{DRAW_TYPE_SHORT[draw.type] ?? draw.type}</span>
+                  <span className="text-muted-text/60">{draw.date}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -400,6 +455,68 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Featured Consultant Ad */}
+      {featuredConsultant && (
+        <section className="border-b border-(--page-border) bg-(--page-bg) px-4 py-10 sm:px-6">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-4 flex items-center gap-3">
+              <p className="text-xs font-bold uppercase tracking-widest text-(--page-body)/60">Featured Consultant</p>
+              <span className="rounded-full bg-navly-red/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-navly-red">Sponsored</span>
+            </div>
+            <div className="flex flex-col gap-5 rounded-2xl border border-(--page-border) bg-(--page-card) p-6 shadow-sm sm:flex-row sm:items-center">
+              {featuredConsultant.avatar_url ? (
+                <img
+                  src={featuredConsultant.avatar_url}
+                  alt={featuredConsultant.name}
+                  className="h-16 w-16 shrink-0 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-navly-navy text-xl font-bold text-white">
+                  {featuredConsultant.name.charAt(0)}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-bold text-(--page-heading)">{featuredConsultant.name}</p>
+                  {featuredConsultant.verified && (
+                    <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                      <CheckCircle2 className="h-3 w-3" /> Verified
+                    </span>
+                  )}
+                </div>
+                {featuredConsultant.business_name && (
+                  <p className="text-sm text-(--page-body)">{featuredConsultant.business_name}</p>
+                )}
+                <p className="mt-1 text-xs text-muted-text">
+                  {featuredConsultant.city}, {featuredConsultant.province}
+                  {featuredConsultant.languages?.length > 0 && ` · ${featuredConsultant.languages.join(', ')}`}
+                </p>
+                {featuredConsultant.services?.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {featuredConsultant.services.slice(0, 4).map((s) => (
+                      <span key={s} className="rounded-full border border-(--page-border) px-2 py-0.5 text-xs text-(--page-body)">{s}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {featuredConsultant.booking_link && (
+                <a
+                  href={featuredConsultant.booking_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-navly-navy px-5 py-2.5 text-sm font-bold text-white transition hover:bg-navly-navy/80 sm:w-auto"
+                >
+                  Book a consultation <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              )}
+            </div>
+            <p className="mt-3 text-xs text-muted-text/60">
+              Independent professional. Navly does not provide immigration consulting services and is not responsible for services offered by listed consultants.
+            </p>
+          </div>
+        </section>
+      )}
+
       {/* Official Updates */}
       <section className="bg-(--page-bg) px-4 py-10 sm:px-6 md:py-14">
         <div className="mx-auto max-w-7xl">
@@ -480,19 +597,19 @@ export default async function Home() {
             <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
               Clear planning. No fake promises.
             </h2>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-muted-text/50">
+            <p className="mt-4 max-w-xl text-sm leading-7 text-white">
               Immigration decisions are serious. Navly is designed to organize
               your information, track deadlines, and explain general pathways —
               not to replace professional legal advice.
             </p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-            <h3 className="font-bold text-white">Navly does not:</h3>
+            <h3 className="font-bold text-xl text-white">Navly does not:</h3>
             <div className="mt-5 grid gap-3">
               {notDoItems.map((item) => (
                 <div key={item} className="flex gap-3">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-navly-red" />
-                  <p className="text-sm text-muted-text/50">{item}</p>
+                  <p className="text-sm text-white">{item}</p>
                 </div>
               ))}
             </div>
@@ -540,7 +657,7 @@ export default async function Home() {
                   {plan.price}
                 </p>
 
-                <p className={`mt-2 text-sm leading-6 ${plan.featured ? "text-muted-text/50" : "text-(--page-body)"}`}>
+                <p className={`mt-2 text-sm leading-6 ${plan.featured ? "text-white" : "text-(--page-body)"}`}>
                   {plan.desc}
                 </p>
 
@@ -550,7 +667,7 @@ export default async function Home() {
                       <CheckCircle2
                         className={`mt-0.5 h-4 w-4 shrink-0 ${plan.featured ? "text-navly-red" : "text-navly-red"}`}
                       />
-                      <p className={`text-sm ${plan.featured ? "text-muted-text/50" : "text-(--page-body)"}`}>
+                      <p className={`text-sm ${plan.featured ? "text-white" : "text-(--page-body)"}`}>
                         {point}
                       </p>
                     </div>
@@ -585,11 +702,11 @@ export default async function Home() {
       {/* Final CTA — always red */}
       <section className="bg-navly-red px-4 py-12 sm:px-6 md:py-16">
         <div className="mx-auto max-w-3xl text-center">
-          <CheckCircle2 className="mx-auto mb-4 h-10 w-10 text-white/80" />
+          <CheckCircle2 className="mx-auto mb-4 h-10 w-10 text-white" />
           <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl">
             Know what to work on before you spend money.
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-white/85">
+          <p className="mx-auto font-bold mt-4 max-w-xl text-base leading-7 text-white/90">
             Start with a free pathway check. See your status, gaps, and next
             steps in one organized dashboard.
           </p>
@@ -599,6 +716,27 @@ export default async function Home() {
           >
             Check My PR Pathway <ArrowRight className="h-4 w-4" />
           </Link>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-(--page-bg) px-4 py-10 sm:px-6 md:py-14">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-10 md:grid-cols-[1fr_2fr] md:gap-16">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-navly-red">FAQ</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-(--page-heading) sm:text-3xl">
+                Common questions.
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-(--page-body)">
+                Have a question not covered here? Email us at{' '}
+                <a href="mailto:support@navly.ca" className="font-semibold text-navly-red hover:underline">
+                  support@navly.ca
+                </a>
+              </p>
+            </div>
+            <FAQAccordion />
+          </div>
         </div>
       </section>
 
