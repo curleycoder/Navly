@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { NavlyLogo } from "@/components/ui/NavlyLogo";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -61,8 +60,6 @@ export function Navbar() {
           >
             Check My PR Pathway <ArrowRight className="h-4 w-4" />
           </Link>
-
-          <ThemeToggle />
 
           <button
             type="button"
