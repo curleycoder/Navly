@@ -459,7 +459,7 @@ export default function ChatPage() {
       </div>
     </div>
     {showUpgradeModal && (
-      <UpgradeModal plan="tracker" onClose={() => setShowUpgradeModal(false)} />
+      <UpgradeModal onClose={() => setShowUpgradeModal(false)} />
     )}
     </>
   )

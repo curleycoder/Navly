@@ -931,7 +931,7 @@ export default function PRTrackerPage() {
       </div>
     </div>
     {showUpgradeModal && (
-      <UpgradeModal plan="tracker" onClose={() => setShowUpgradeModal(false)} />
+      <UpgradeModal onClose={() => setShowUpgradeModal(false)} />
     )}
     </>
   )
