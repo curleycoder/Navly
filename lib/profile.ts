@@ -20,7 +20,9 @@ export type IntakeData = {
   targetArrivalTimeline: string // for outside users: 'within-3-months' | '3-6-months' | '6-12-months' | '1-2-years' | 'not-sure'
 
   // Phase 2 — PR profile
-  age: string
+  age: string        // kept for backwards compat; prefer birthYear+birthMonth when set
+  birthYear: string  // 'YYYY' — used to compute age dynamically (auto-updates on birthday)
+  birthMonth: string // '1'–'12'
   maritalStatus: string
   spouseComing: string  // 'yes' | 'no' | ''
 
@@ -219,6 +221,8 @@ export const EMPTY_PROFILE: IntakeData = {
   visaExpiryDate: '',
   targetArrivalTimeline: '',
   age: '',
+  birthYear: '',
+  birthMonth: '',
   maritalStatus: '',
   spouseComing: '',
   spouseLangTestType: '',

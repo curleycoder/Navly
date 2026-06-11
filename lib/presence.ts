@@ -127,14 +127,21 @@ export function checkIn(): PresenceData {
 
 // Returns the list of unconfirmed days between last acknowledged date and yesterday,
 // capped at 30 to avoid overwhelming the user after a long absence.
+// Never returns dates before the user's arrival date — arrival date is the earliest
+// possible day in Canada and pre-arrival prompts would be meaningless.
 export function getMissedDays(data: PresenceData): string[] {
   const baseline = data.lastAcknowledgedDate ?? data.lastCheckIn
   if (!baseline) return []
   const yesterday = yesterdayStr()
   if (baseline >= yesterday) return []
 
-  const missed: string[] = []
+  // Start the day after the last acknowledged date, but never before arrival
   let current = addOneDay(baseline)
+  if (data.arrivalDate && current < data.arrivalDate) {
+    current = data.arrivalDate
+  }
+
+  const missed: string[] = []
   while (current <= yesterday && missed.length < 30) {
     missed.push(current)
     current = addOneDay(current)

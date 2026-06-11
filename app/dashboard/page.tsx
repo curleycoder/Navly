@@ -10,23 +10,21 @@ import {
   Sparkles,
   ChevronRight,
   TrendingUp,
-  Newspaper,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useLocale } from '@/lib/i18n'
 import { loadProfile, loadProfileFromSupabase, statusLabels, getPermitWarning, type IntakeData } from '@/lib/profile'
 import { loadPresence, checkIn, isCheckedInToday, getDaysInCanada, type PresenceData } from '@/lib/presence'
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
-import { recordScoreSnapshot } from '@/lib/history'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
-import { getUpdates, importanceDot, formatDate, type NewsUpdate } from '@/lib/news'
 import { loadTasks } from '@/lib/tasks'
 import { PlanGate } from '@/components/ui/PlanGate'
 import { usePlan, hasPlan } from '@/lib/subscription'
+import { getLatestCutoff } from '@/lib/draws'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const LATEST_CUTOFF = 491
+const LATEST_CUTOFF = getLatestCutoff().cutoff
 
 function getStrength(crs: number, hasData: boolean) {
   if (!hasData) return { label: 'Incomplete', text: 'text-muted-text/70', pill: 'bg-subtle text-muted-text' }
@@ -50,7 +48,6 @@ export default function DashboardPage() {
     totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null,
     lastAcknowledgedDate: null, arrivalDate: null, travelLog: [],
   })
-  const [news, setNews] = useState<NewsUpdate[]>([])
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -65,9 +62,7 @@ export default function DashboardPage() {
       if (p) {
         const s = calculateScore(p)
         setScore(s)
-        if (s.crs && s.crs.total > 0) recordScoreSnapshot(s.crs.total)
       }
-      getUpdates({ limit: 2 }).then((latest) => setNews(latest))
       setPresence(loadPresence())
       setLoaded(true)
     }
@@ -204,7 +199,7 @@ export default function DashboardPage() {
             <div className="mt-5">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs font-bold text-white/60">0</span>
-                <span className="text-xs font-bold text-white/60">Target 491+</span>
+                <span className="text-xs font-bold text-white/60">Target {LATEST_CUTOFF}+</span>
                 <span className="text-xs font-bold text-white/60">600</span>
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-card/10" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
@@ -273,34 +268,6 @@ export default function DashboardPage() {
 
           </div>
         )}
-
-        {/* ── Latest news ──────────────────────────────────────────────── */}
-        <div data-tour="news" className="overflow-hidden rounded-2xl border border-subtle bg-surface-card">
-          <div className="flex items-center justify-between border-b border-subtle/60 px-5 py-3">
-            <div className="flex items-center gap-2">
-              <Newspaper className="h-4 w-4 text-muted-text/70" aria-hidden="true" />
-              <p className="t-section-title">{t('dashboard.latestUpdates')}</p>
-            </div>
-            <Link href="/dashboard/news" className="text-xs pt-3 font-semibold text-navly-red hover:underline">
-              {t('dashboard.viewAll')}
-            </Link>
-          </div>
-          {news.length > 0 ? (
-            <ul className="divide-y divide-subtle/60">
-              {news.map((u) => (
-                <li key={u.id} className="flex items-start gap-3 px-5 py-3">
-                  <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${importanceDot[u.importance]}`} aria-hidden="true" />
-                  <div className="min-w-0">
-                    <p className="t-section-title leading-snug line-clamp-2">{u.title}</p>
-                    <p className="mt-0.5 t-caption">{formatDate(u.publishedAt)}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="px-5 py-4 text-sm text-muted-text/70">{t('dashboard.noUpdatesYet')}</p>
-          )}
-        </div>
 
         {/* ── Consultant CTA ───────────────────────────────────────────── */}
         <Link

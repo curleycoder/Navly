@@ -304,41 +304,38 @@ function skillTransferabilityPts(
   const advEdu = ['bachelors','two-credentials','masters','professional','doctoral'].includes(educationLevel)
   const anyPost = ['1-year','2-year','bachelors','two-credentials','masters','professional','doctoral'].includes(educationLevel)
 
-  let total = 0
-
-  // Education + Language (max 50)
+  // Education + Language
   let el = 0
   if (advEdu && hasCLB9) el = 50
   else if (advEdu && hasCLB7) el = 25
   else if (anyPost && hasCLB9) el = 25
   else if (anyPost && hasCLB7) el = 13
-  total += Math.min(el, 50)
 
-  // Education + Canadian experience (max 50)
+  // Education + Canadian experience
   let ec = 0
   if (advEdu && canYears >= 2) ec = 50
   else if (advEdu && canYears >= 1) ec = 25
   else if (anyPost && canYears >= 2) ec = 25
   else if (anyPost && canYears >= 1) ec = 13
-  total += Math.min(ec, 50)
 
-  // Foreign work + Language (max 50)
+  // Foreign work + Language
   let fl = 0
   if (foreignWorkYears >= 3 && hasCLB9) fl = 50
   else if (foreignWorkYears >= 3 && hasCLB7) fl = 25
   else if (foreignWorkYears >= 1 && hasCLB9) fl = 25
   else if (foreignWorkYears >= 1 && hasCLB7) fl = 13
-  total += Math.min(fl, 50)
 
-  // Foreign work + Canadian experience (max 50)
+  // Foreign work + Canadian experience
   let fc = 0
   if (foreignWorkYears >= 3 && canYears >= 2) fc = 50
   else if (foreignWorkYears >= 3 && canYears >= 1) fc = 25
   else if (foreignWorkYears >= 1 && canYears >= 2) fc = 25
   else if (foreignWorkYears >= 1 && canYears >= 1) fc = 13
-  total += Math.min(fc, 50)
 
-  return Math.min(total, 100)
+  // IRCC: education section max 50, foreign work section max 50, combined total max 100
+  const educationSection = Math.min(el + ec, 50)
+  const foreignWorkSection = Math.min(fl + fc, 50)
+  return Math.min(educationSection + foreignWorkSection, 100)
 }
 
 // ─── CRS — Second Official Language (French) ─────────────────────────────────
@@ -537,6 +534,8 @@ function assessFSW(
 }
 
 // ─── PGWP Assessment — 2026 ───────────────────────────────────────────────────
+// IRCC PGWP rules change without notice. Update this date whenever you verify the rules.
+const PGWP_DATA_VERIFIED = 'June 2026'
 
 function assessPGWP(profile: IntakeData): PathwayStatus | null {
   if (profile.status !== 'student') return null
@@ -550,11 +549,13 @@ function assessPGWP(profile: IntakeData): PathwayStatus | null {
   // Field-of-study check only required for some programs (2026 frozen list)
   const fieldOk = profile.fieldOfStudyRequired !== 'yes' || profile.cipCodeEligible === 'yes'
 
+  const verifiedNote = `PGWP rules last verified: ${PGWP_DATA_VERIFIED}. Always confirm current requirements at canada.ca before applying.`
+
   if (basicProgramOk && languageOk && fieldOk) {
     return {
       id: 'pgwp', name: 'PGWP → CEC pathway',
       status: 'possible',
-      reason: 'You may meet the basic PGWP screening factors. After graduating and getting a PGWP, complete 1 year of authorized skilled Canadian work to screen for CEC.',
+      reason: `You may meet the basic PGWP screening factors. After graduating and getting a PGWP, complete 1 year of authorized skilled Canadian work to screen for CEC. ${verifiedNote}`,
     }
   }
 
@@ -562,7 +563,7 @@ function assessPGWP(profile: IntakeData): PathwayStatus | null {
     return {
       id: 'pgwp', name: 'Post-Graduation Work Permit',
       status: 'not-yet',
-      reason: 'Programs under 8 months generally do not qualify for a PGWP.',
+      reason: `Programs under 8 months generally do not qualify for a PGWP. ${verifiedNote}`,
     }
   }
 
@@ -570,7 +571,7 @@ function assessPGWP(profile: IntakeData): PathwayStatus | null {
     return {
       id: 'pgwp', name: 'Post-Graduation Work Permit',
       status: 'not-yet',
-      reason: 'PGWP requires graduation from a designated learning institution (DLI) in an eligible program. Not every DLI program qualifies.',
+      reason: `PGWP requires graduation from a designated learning institution (DLI) in an eligible program. Not every DLI program qualifies. ${verifiedNote}`,
     }
   }
 
@@ -578,7 +579,7 @@ function assessPGWP(profile: IntakeData): PathwayStatus | null {
     return {
       id: 'pgwp', name: 'Post-Graduation Work Permit',
       status: 'not-yet',
-      reason: 'Most PGWP applicants who applied for a study permit after November 1, 2024 must provide proof of English or French language results.',
+      reason: `Most PGWP applicants who applied for a study permit after November 1, 2024 must provide proof of English or French language results. ${verifiedNote}`,
     }
   }
 
@@ -586,7 +587,7 @@ function assessPGWP(profile: IntakeData): PathwayStatus | null {
     return {
       id: 'pgwp', name: 'Post-Graduation Work Permit',
       status: 'not-yet',
-      reason: 'Your program may need to match an eligible field of study (CIP code). For 2026, IRCC froze the eligible field-of-study list.',
+      reason: `Your program may need to match an eligible field of study (CIP code). For 2026, IRCC froze the eligible field-of-study list. ${verifiedNote}`,
     }
   }
 
@@ -598,8 +599,8 @@ function assessPGWP(profile: IntakeData): PathwayStatus | null {
     id: 'pgwp', name: 'Post-Graduation Work Permit',
     status: 'possible',
     reason: monthsToGrad !== null && monthsToGrad <= 6
-      ? `Graduation in ~${monthsToGrad} month${monthsToGrad !== 1 ? 's' : ''}. Apply for your PGWP before your study permit expires. Check DLI, program eligibility, language, and field-of-study requirements.`
-      : 'PGWP eligibility depends on DLI, program eligibility, program length, language proof, and field of study if required. Verify before applying.',
+      ? `Graduation in ~${monthsToGrad} month${monthsToGrad !== 1 ? 's' : ''}. Apply for your PGWP before your study permit expires. Check DLI, program eligibility, language, and field-of-study requirements. ${verifiedNote}`
+      : `PGWP eligibility depends on DLI, program eligibility, program length, language proof, and field of study if required. ${verifiedNote}`,
   }
 }
 
@@ -665,6 +666,73 @@ function assessMaintainedStatus(profile: IntakeData): PathwayStatus | null {
     id: 'maintained-status', name: 'Maintained status',
     status: 'possible',
     reason: 'If you applied to extend or change your temporary status before it expired, you may remain in Canada while IRCC decides. Work or study rights depend on your previous permit conditions and the type of application you submitted.',
+  }
+}
+
+// ─── Rural Community Immigration Class ───────────────────────────────────────
+// Permanent program launched March 2024; replaced RNIP for participating communities.
+// Requirements: job offer from designated employer, 1yr TEER 0-3 experience,
+// CLB 4 (TEER 2-3), CLB 5 (TEER 1), CLB 6 (TEER 0), high school diploma minimum.
+
+function assessRCIC(profile: IntakeData, clb: CLBScores | null, canMonths: number): PathwayStatus {
+  const teer = profile.teerLevel
+  const hasJobOffer = profile.hasJobOffer === 'yes'
+  const foreignYears = parseFloat(profile.foreignWorkYears) || 0
+  const totalWorkYears = foreignYears + (canMonths / 12)
+  const hasWorkExp = totalWorkYears >= 1 && teer && ['0', '1', '2', '3'].includes(teer)
+  const hasEducation = profile.educationLevel && profile.educationLevel !== 'none' && profile.educationLevel !== ''
+  const notQuebec = profile.intendedProvince !== 'QC'
+
+  // CLB minimums: TEER 0 → 6, TEER 1 → 5, TEER 2-3 → 4
+  const minCLBRequired = teer === '0' ? 6 : teer === '1' ? 5 : 4
+  const minCLB = clb ? Math.min(clb.r, clb.w, clb.l, clb.s) : 0
+  const meetsLanguage = clb !== null && minCLB >= minCLBRequired
+
+  if (!notQuebec) {
+    return {
+      id: 'rcic', name: 'Rural Community Immigration Class',
+      status: 'not-applicable',
+      reason: 'RCIC communities are outside Quebec. Quebec has its own rural immigration streams.',
+    }
+  }
+
+  if (!hasJobOffer) {
+    return {
+      id: 'rcic', name: 'Rural Community Immigration Class',
+      status: 'not-yet',
+      reason: 'RCIC requires a full-time permanent job offer from a designated employer in a participating rural community. Without one, you cannot apply.',
+    }
+  }
+
+  if (!hasWorkExp) {
+    return {
+      id: 'rcic', name: 'Rural Community Immigration Class',
+      status: 'not-yet',
+      reason: `RCIC requires at least 1 year of skilled work experience (TEER 0–3) in the last 3 years. ${teer && ['4','5'].includes(teer) ? 'TEER 4–5 occupations do not qualify.' : 'Accumulate the required experience before applying.'}`,
+    }
+  }
+
+  if (!meetsLanguage) {
+    const needed = minCLBRequired
+    return {
+      id: 'rcic', name: 'Rural Community Immigration Class',
+      status: 'not-yet',
+      reason: `Your TEER ${teer} occupation requires CLB ${needed} in all 4 language skills for RCIC. ${clb ? `Your current minimum is CLB ${minCLB}.` : 'Take a recognised language test first.'}`,
+    }
+  }
+
+  if (!hasEducation) {
+    return {
+      id: 'rcic', name: 'Rural Community Immigration Class',
+      status: 'not-yet',
+      reason: 'RCIC requires at minimum a Canadian high school diploma or foreign equivalent. Complete your education or obtain an ECA.',
+    }
+  }
+
+  return {
+    id: 'rcic', name: 'Rural Community Immigration Class',
+    status: 'eligible',
+    reason: 'You appear to meet the core RCIC requirements: job offer, work experience, language, and education. Confirm the community is on the official IRCC participating-communities list and that your employer is designated before applying.',
   }
 }
 
@@ -745,13 +813,31 @@ function buildRiskFlags(profile: IntakeData): RiskFlag[] {
   return flags
 }
 
+// ─── Age — computed from birthYear+birthMonth when available ──────────────────
+// Falls back to the manually entered age string for profiles that predate this field.
+// This ensures age updates automatically when a birthday passes rather than staying
+// frozen at whatever number the user typed during onboarding.
+
+export function computeAge(profile: IntakeData): number {
+  const year = parseInt(profile.birthYear)
+  const month = parseInt(profile.birthMonth) // 1-based (January = 1)
+  if (year >= 1920 && year <= 2010 && month >= 1 && month <= 12) {
+    const today = new Date()
+    let age = today.getFullYear() - year
+    // If the birth month is still ahead this calendar year, subtract 1
+    if (today.getMonth() + 1 < month) age--
+    return Math.max(0, age)
+  }
+  return parseInt(profile.age) || 0
+}
+
 // ─── Main Score Calculator ────────────────────────────────────────────────────
 
 export function calculateScore(profile: IntakeData): ScoreResult {
   const missing: string[] = []
 
-  const age = parseInt(profile.age)
-  if (isNaN(age) || age < 18) missing.push('Age')
+  const age = computeAge(profile)
+  if (!age || age < 18) missing.push('Age')
 
   const spouseComing =
     (profile.maritalStatus === 'married' || profile.maritalStatus === 'common-law') &&
@@ -849,6 +935,9 @@ export function calculateScore(profile: IntakeData): ScoreResult {
       ? `Check ${profile.intendedProvince} PNP streams for your NOC${profile.noc ? ` (${profile.noc})` : ''} and work profile. PNP rules change frequently — verify at the provincial website.`
       : 'PNP eligibility depends on target province, occupation, work history, education, and status. A job offer may strengthen some PNP streams.',
   })
+
+  // Rural Community Immigration Class (permanent program since March 2024)
+  pathways.push(assessRCIC(profile, clb, canMonths))
 
   // Student pathways
   const pgwpResult = assessPGWP(profile)

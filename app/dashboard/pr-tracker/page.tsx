@@ -10,7 +10,6 @@ import {
   GraduationCap,
   Briefcase,
   Award,
-  ShieldAlert,
   Plane,
   CheckCircle2,
   BarChart3,
@@ -19,17 +18,16 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { loadProfile, loadProfileFromSupabase, saveProfile, type IntakeData } from '@/lib/profile'
 import { calculateScore, type ScoreResult, type RiskFlag } from '@/lib/scoring'
-import { recordScoreSnapshot } from '@/lib/history'
 import { ProgressGauge } from '@/components/dashboard/ProgressGauge'
 import { RequirementCard } from '@/components/dashboard/RequirementCard'
 import { ActionableScoreSheet, type CategoryKey } from '@/components/dashboard/ActionableScoreSheet'
-import { ScoreTimelineChart } from '@/components/dashboard/ScoreTimelineChart'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import { PlanGate } from '@/components/ui/PlanGate'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
-import { matchPNPStreams, pnpStatusLabels, pnpStatusColors, type PNPStream } from '@/lib/pnp'
+import { matchPNPStreams, pnpStatusLabels, pnpStatusColors, type PNPStream, type ReadinessItem } from '@/lib/pnp'
 import { useLocale } from '@/lib/i18n'
 import { PageTour } from '@/components/dashboard/PageTour'
+import { getLatestCutoff, getLatestByType, getDrawsByType, type DrawCategory, DRAW_CATEGORIES } from '@/lib/draws'
 
 // ─── Status Roadmap ───────────────────────────────────────────────────────────
 
@@ -115,7 +113,6 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
   }, [profile])
 
   const currentScore = calculateScore(simulatedProfile)
-  const crs = currentScore.crs || { total: 0, age: 0, education: 0, firstLanguage: 0, canadianExperience: 0, skillTransferability: 0, additional: 0 }
 
   // Language card — universal
   const langDetails = currentScore.clb ? [
@@ -139,7 +136,6 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
 
   const handleSave = () => {
     saveProfile(simulatedProfile)
-    if (crs && crs.total > 0) recordScoreSnapshot(crs.total)
     window.location.reload()
   }
 
@@ -271,26 +267,6 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
           progress={card4.progress}
         />
       </div>
-
-      {currentScore.improvements.length > 0 && (
-        <div data-tour="pr-improvements" className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
-          <div className="mb-4 flex items-center gap-2">
-            <ShieldAlert className="h-5 w-5 text-amber-600" aria-hidden="true" />
-            <h3 className="t-eyebrow text-amber-800">Highest-impact next steps</h3>
-          </div>
-          <div className="flex flex-col gap-3">
-            {currentScore.improvements.slice(0, 2).map((imp, i) => (
-              <div key={i} className="flex flex-col rounded-2xl border border-amber-100 bg-surface-card p-5 shadow-sm">
-                <div className="mb-2 flex items-start justify-between gap-3">
-                  <span className="font-bold leading-snug text-heading">{imp.label}</span>
-                  <span className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-bold text-green-700">{imp.impact}</span>
-                </div>
-                <p className="text-sm leading-relaxed text-muted-text">{imp.action}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <ActionableScoreSheet
         category={activeCategory}
@@ -433,30 +409,103 @@ function PNPStreamsCard({ streams }: { streams: PNPStream[] }) {
           </p>
         </div>
         <div className="flex flex-col gap-3">
-          {streams.map((s) => (
-            <div key={s.id} className="rounded-xl border border-subtle/50 bg-surface-alt p-4">
-              <div className="mb-2 flex items-start justify-between gap-3">
-                <span className="font-semibold text-sm text-heading leading-snug">{s.streamName}</span>
-                <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-bold ${pnpStatusColors[s.status]}`}>
-                  {pnpStatusLabels[s.status]}
-                </span>
+          {streams.map((s) => {
+            const pct = s.score !== undefined && s.maxScore ? Math.round((s.score / s.maxScore) * 100) : null
+            return (
+              <div key={s.id} className="rounded-xl border border-subtle/50 bg-surface-alt p-4">
+                <div className="mb-2 flex items-start justify-between gap-3">
+                  <span className="font-semibold text-sm text-heading leading-snug">{s.streamName}</span>
+                  <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-bold ${pnpStatusColors[s.status]}`}>
+                    {pnpStatusLabels[s.status]}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-text">{s.reason}</p>
+
+                {/* AIP readiness checklist */}
+                {s.readinessItems && (
+                  <div className="mt-3">
+                    <p className="mb-2 text-xs font-bold text-muted-text">AIP Readiness</p>
+                    <div className="flex flex-col gap-1.5">
+                      {s.readinessItems.map((item: ReadinessItem, i: number) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <span className={`mt-0.5 shrink-0 text-sm font-bold ${item.met ? 'text-green-600' : 'text-red-500'}`}>
+                            {item.met ? '✓' : '✗'}
+                          </span>
+                          <div className="min-w-0">
+                            <span className={`text-sm ${item.met ? 'text-heading' : 'text-muted-text'}`}>{item.label}</span>
+                            {item.warning && (
+                              <p className="mt-0.5 text-xs text-amber-600">{item.warning}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {s.readinessItems.every((item: ReadinessItem) => item.met) ? (
+                      <p className="mt-2 text-xs font-semibold text-green-700">All gates met — eligible to apply once you confirm employer designation.</p>
+                    ) : (
+                      <p className="mt-2 text-xs text-muted-text/70">Any ✗ item blocks the application.</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Provincial score / connection strength */}
+                {!s.readinessItems && s.score !== undefined && s.maxScore && pct !== null && (
+                  <div className="mt-3">
+                    {s.maxScore === 5 ? (
+                      // Star indicator for AB (no official points grid)
+                      <>
+                        <div className="mb-1.5 flex items-center justify-between text-xs">
+                          <span className="font-semibold text-muted-text">{s.scoreLabel ?? 'Connection strength'}</span>
+                          <span className="font-bold text-heading">{s.score} / {s.maxScore}</span>
+                        </div>
+                        <div className="flex gap-1">
+                          {Array.from({ length: s.maxScore }).map((_, i) => (
+                            <span key={i} className={`text-base leading-none ${i < s.score! ? 'text-amber-400' : 'text-muted-text/25'}`}>★</span>
+                          ))}
+                        </div>
+                        <p className="mt-1 text-xs text-muted-text/60">
+                          AAIP has no public points grid — this reflects your AB ties (job offer, work, study, relatives). Not an official score.
+                        </p>
+                      </>
+                    ) : (
+                      // Progress bar for BC / SK official grids
+                      <>
+                        <div className="mb-1 flex items-center justify-between text-xs">
+                          <span className="font-semibold text-muted-text">{s.scoreLabel ?? 'Est. provincial score'}</span>
+                          <span className="font-bold text-heading">{s.score} / {s.maxScore}</span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-subtle">
+                          <div
+                            className={`h-full rounded-full transition-all duration-700 ${pct >= 60 ? 'bg-green-500' : pct >= 40 ? 'bg-amber-400' : 'bg-muted-text/40'}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <p className="mt-1 text-xs text-muted-text/60">
+                          {s.maxScore === 200
+                            ? 'BC Skills Immigration 200-pt grid — typical draw cut-off: 60–100 pts'
+                            : 'SK SINP 100-pt grid — typical draw cut-off: 60–75 pts'}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {s.missingItems.length > 0 && (
+                  <ul className="mt-2 flex flex-col gap-1.5">
+                    {s.missingItems.map((item, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-muted-text">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-text/50" aria-hidden="true" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-              <p className="text-sm text-muted-text">{s.reason}</p>
-              {s.missingItems.length > 0 && (
-                <ul className="mt-2 flex flex-col gap-1.5">
-                  {s.missingItems.map((item, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-muted-text">
-                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-text/50" aria-hidden="true" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
         <p className="mt-4 text-xs text-muted-text/70">
-          PNP stream requirements change frequently. Always verify eligibility at the official provincial website before applying.
+          Provincial scores are estimates for planning only. Requirements and cut-offs change. Always verify at the official provincial website.
         </p>
       </CardContent>
     </Card>
@@ -466,23 +515,24 @@ function PNPStreamsCard({ streams }: { streams: PNPStream[] }) {
 
 // ─── EE Draws Card ────────────────────────────────────────────────────────────
 
-type EEDraw = { date: string; type: string; cutoff: number; invited?: number }
+const CATEGORY_LABELS: Record<DrawCategory, string> = {
+  'All programs': 'All',
+  'Canadian Experience Class': 'CEC',
+  'Federal Skilled Worker': 'FSW',
+  'Provincial Nominee Program': 'PNP',
+}
 
 function EEDrawsCard({ crs }: { crs: number }) {
-  const [draws, setDraws] = useState<EEDraw[]>([])
+  const [activeTab, setActiveTab] = useState<DrawCategory>('All programs')
 
-  useEffect(() => {
-    fetch('/api/draws')
-      .then((r) => r.json())
-      .then((data: EEDraw[]) => setDraws(data))
-      .catch(() => {})
-  }, [])
+  const draws = getDrawsByType(activeTab)
+  const latest = getLatestByType(activeTab)
+  const isPNP = activeTab === 'Provincial Nominee Program'
 
-  if (draws.length === 0) return null
-
-  const latest = draws[0]
-  const isCompetitive = crs > 0 && crs >= latest.cutoff
-  const gap = crs > 0 ? latest.cutoff - crs : null
+  // For PNP the cutoff is in CRS-equivalent points after nomination (+600), so raw comparison is not meaningful
+  const showScoreInsight = !isPNP && crs > 0 && latest !== null
+  const gap = showScoreInsight ? latest!.cutoff - crs : null
+  const isCompetitive = gap !== null && gap <= 0
 
   return (
     <Card className="mb-8 rounded-2xl border-subtle bg-surface-card">
@@ -490,33 +540,77 @@ function EEDrawsCard({ crs }: { crs: number }) {
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-heading" />
-            <p className="t-section-title">Recent Express Entry Draws</p>
+            <p className="t-section-title">Express Entry Draw History</p>
           </div>
           <span className="text-xs text-muted-text/70">Source: IRCC</span>
         </div>
 
-        <div className="mb-4 flex flex-col gap-2 overflow-x-auto">
-          {draws.map((d) => (
-            <div key={d.date} className="flex min-w-0 items-center justify-between rounded-xl bg-surface-alt px-4 py-3 text-sm">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="font-semibold text-heading whitespace-nowrap">{d.date}</span>
-                <span className="truncate text-muted-text">{d.type}</span>
-              </div>
-              <span className="ml-3 shrink-0 font-bold text-heading">{d.cutoff} CRS</span>
-            </div>
-          ))}
+        {/* Category tabs */}
+        <div className="mb-4 flex gap-1.5 overflow-x-auto pb-0.5">
+          {DRAW_CATEGORIES.map((cat) => {
+            const latestForCat = getLatestByType(cat)
+            return (
+              <button
+                key={cat}
+                onClick={() => setActiveTab(cat)}
+                className={`flex shrink-0 flex-col items-start rounded-xl border px-3 py-2 text-left transition ${
+                  activeTab === cat
+                    ? 'border-navly-navy bg-navly-navy text-white'
+                    : 'border-subtle bg-surface-alt text-muted-text hover:border-navly-navy/30 hover:text-heading'
+                }`}
+              >
+                <span className="text-xs font-bold">{CATEGORY_LABELS[cat]}</span>
+                {latestForCat && (
+                  <span className={`text-xs mt-0.5 font-semibold ${activeTab === cat ? 'text-white/80' : 'text-muted-text/70'}`}>
+                    {cat === 'Provincial Nominee Program' ? `${latestForCat.cutoff} pts` : `${latestForCat.cutoff}`}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
 
-        {crs > 0 && (
-          <div className={`rounded-xl px-4 py-3 text-sm ${isCompetitive ? 'bg-green-50 text-green-800' : 'bg-amber-50 text-amber-800'}`}>
+        {/* Score insight — the key feature */}
+        {showScoreInsight && (
+          <div className={`mb-4 rounded-xl px-4 py-3 text-sm font-semibold ${isCompetitive ? 'bg-green-50 text-green-800' : 'bg-amber-50 text-amber-800'}`}>
             {isCompetitive
-              ? `Your estimated score of ${crs} CRS is above the latest cutoff of ${latest.cutoff}. You may be competitive in the current pool.`
-              : `Your estimated score of ${crs} CRS is ${gap} points below the latest cutoff of ${latest.cutoff}. Focus on the improvements below.`}
+              ? `Your score of ${crs} is ${Math.abs(gap!)} point${Math.abs(gap!) !== 1 ? 's' : ''} above the last ${CATEGORY_LABELS[activeTab]} cutoff of ${latest!.cutoff} — you may be competitive now.`
+              : `Your score of ${crs} is ${gap} point${gap !== 1 ? 's' : ''} below the last ${CATEGORY_LABELS[activeTab]} cutoff of ${latest!.cutoff} (${latest!.date}).`}
           </div>
         )}
 
+        {isPNP && (
+          <div className="mb-4 rounded-xl bg-surface-alt px-4 py-3 text-sm text-muted-text">
+            PNP draws use a combined CRS score (your base score + 600 nomination points). The cutoff shown is the minimum CRS before nomination. Receiving a provincial nomination effectively guarantees an ITA.
+          </div>
+        )}
+
+        {/* Draw list */}
+        <div className="flex flex-col gap-2">
+          {draws.slice(0, 6).map((d) => {
+            const rowGap = !isPNP && crs > 0 ? crs - d.cutoff : null
+            const rowAbove = rowGap !== null && rowGap >= 0
+            return (
+              <div key={d.date} className="flex min-w-0 items-center justify-between rounded-xl bg-surface-alt px-4 py-3 text-sm">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-semibold text-heading whitespace-nowrap">{d.date}</span>
+                  {d.invited && <span className="hidden sm:inline text-muted-text/60 text-xs">{d.invited.toLocaleString()} invited</span>}
+                </div>
+                <div className="ml-3 flex shrink-0 items-center gap-2">
+                  <span className="font-bold text-heading">{d.cutoff}</span>
+                  {rowGap !== null && (
+                    <span className={`text-xs font-semibold ${rowAbove ? 'text-green-600' : 'text-muted-text/60'}`}>
+                      {rowAbove ? `+${rowGap}` : rowGap}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
         <p className="mt-3 text-xs text-muted-text/70">
-          Draw data is for reference only. Actual cutoffs vary by round type and pool size. Verify at canada.ca.
+          Draw data is for planning only. Cutoffs vary by round type and pool composition. Verify at canada.ca.
         </p>
       </CardContent>
     </Card>
@@ -530,7 +624,6 @@ export default function PRTrackerPage() {
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
   const [pnpStreams, setPnpStreams] = useState<PNPStream[]>([])
-  const [cutoff, setCutoff] = useState<number | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
@@ -552,14 +645,11 @@ export default function PRTrackerPage() {
       setLoaded(true)
     }
     init()
-    fetch('/api/draws')
-      .then(r => r.json())
-      .then((data: { cutoff: number }[]) => { if (data[0]?.cutoff) setCutoff(data[0].cutoff) })
-      .catch(() => {})
   }, [])
 
   if (!loaded) return <DashboardSkeleton />
 
+  const cutoff = getLatestCutoff().cutoff
   const isOutside = profile?.locationStatus === 'outside'
   const isQuebec = profile?.intendedProvince === 'QC'
 
@@ -568,7 +658,7 @@ export default function PRTrackerPage() {
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
       {/* Header */}
       <div className="mb-6">
-        <Link href="/dashboard" className="mb-3 hidden md:inline-flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-muted-text hover:text-heading focus-visible:text-heading">
+        <Link href="/dashboard" className="mb-3 hidden md:inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-muted-text hover:text-heading focus-visible:text-heading">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" /> {t('prTracker.backToOverview')}
         </Link>
         <p className="hidden md:block t-eyebrow text-navly-red">{t('prTracker.eyebrow')}</p>
@@ -625,6 +715,29 @@ export default function PRTrackerPage() {
 
       {isOutside && profile && <OutsidePlanningCard profile={profile} />}
 
+      {/* ── Score boosters — above gauge, always visible ── */}
+      {profile && score && score.hasEnoughData && score.improvements.length > 0 && (
+        <div data-tour="pr-improvements" className="mb-6 rounded-2xl border border-navly-navy/15 bg-navly-navy p-5 shadow-md">
+          <p className="mb-1 text-xs font-bold uppercase tracking-wider text-white/60">How to move your score</p>
+          <div className="flex flex-col gap-3">
+            {score.improvements.slice(0, 3).map((imp, i) => (
+              <div key={i} className="flex items-start gap-4 rounded-xl bg-white/8 px-4 py-3">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-navly-red text-xs font-bold text-white">
+                  {i + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold text-sm text-white leading-snug">{imp.label}</span>
+                    <span className="rounded-full bg-green-400/20 px-2 py-0.5 text-xs font-bold text-green-300">{imp.impact}</span>
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-white/60">{imp.action}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── CRS gauge — always visible, never gated ── */}
       {profile && score && (
         <div className="mb-6 flex flex-col gap-4">
@@ -636,7 +749,7 @@ export default function PRTrackerPage() {
                 <p className="mt-1 text-sm text-muted-text">
                   {t('prTracker.missingLabel')} <span className="font-medium text-navly-red">{score.missingFields.join(', ')}</span>
                 </p>
-                <Link href="/onboarding" className="mt-3 inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-navly-red hover:underline">
+                <Link href="/onboarding" className="mt-3 inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-navly-red hover:underline">
                   {t('prTracker.updateProfile')} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
               </div>
@@ -655,15 +768,13 @@ export default function PRTrackerPage() {
                   <span className="t-stat">{score.crs?.total ?? 0}</span>
                   <span className="mt-1 t-eyebrow text-muted-text">{t('prTracker.yourCRS')}</span>
                 </div>
-                {cutoff !== null && (
-                  <>
-                    <div className="h-10 w-px bg-subtle" />
-                    <div className="flex flex-col items-center text-center">
-                      <span className="t-stat">{cutoff}</span>
-                      <span className="mt-1 t-eyebrow text-muted-text">{t('prTracker.lastDraw')}</span>
-                    </div>
-                  </>
-                )}
+                <>
+                  <div className="h-10 w-px bg-subtle" />
+                  <div className="flex flex-col items-center text-center">
+                    <span className="t-stat">{cutoff}</span>
+                    <span className="mt-1 t-eyebrow text-muted-text">{t('prTracker.lastDraw')}</span>
+                  </div>
+                </>
                 {profile.status !== 'student' && profile.status !== 'pr' && score.fsw && score.fsw.score > 0 && (
                   <>
                     <div className="h-10 w-px bg-subtle" />
@@ -674,7 +785,7 @@ export default function PRTrackerPage() {
                   </>
                 )}
               </div>
-              {cutoff !== null && score.crs && score.crs.total > 0 && (() => {
+              {score.crs && score.crs.total > 0 && (() => {
                 const gap = cutoff - score.crs.total
                 const above = gap <= 0
                 return (
@@ -686,7 +797,6 @@ export default function PRTrackerPage() {
                 )
               })()}
             </div>
-            <ScoreTimelineChart />
           </div>
         </div>
       )}

@@ -9,7 +9,8 @@ export function getValidationHint(stepId: StepId, data: IntakeData): string {
     case 'goal': return 'Select your main immigration goal to continue.'
     case 'personal': {
       const age = parseInt(data.age)
-      if (!data.age || isNaN(age) || age < 18 || age > 99) return 'Enter your age (must be 18–99).'
+      if (!data.birthYear || !data.birthMonth) return 'Enter your birth year and month.'
+      if (isNaN(age) || age < 18 || age > 99) return 'Your birth date gives an age outside the valid range (18–99).'
       if (!data.originCountry) return 'Select your country of citizenship.'
       if (!data.maritalStatus) return 'Select your marital status.'
       if ((data.maritalStatus === 'married' || data.maritalStatus === 'common-law') && !data.spouseComing) return 'Indicate whether your spouse is coming to Canada.'
@@ -90,6 +91,7 @@ export function canContinue(stepId: StepId, data: IntakeData): boolean {
     case 'goal': return !!data.goal
     case 'personal': {
       const age = parseInt(data.age)
+      if (!data.birthYear || !data.birthMonth) return false
       if (isNaN(age) || age < 18 || age > 99) return false
       if (!data.originCountry) return false
       if (!data.maritalStatus) return false

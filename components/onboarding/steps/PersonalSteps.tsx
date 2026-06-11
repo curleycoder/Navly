@@ -13,11 +13,34 @@ const maritalOptions = [
   { value: 'common-law', label: 'Common-law', desc: 'Living with partner 12+ months' },
 ]
 
+const MONTHS = [
+  'January','February','March','April','May','June',
+  'July','August','September','October','November','December',
+]
+
+function derivedAge(birthYear: string, birthMonth: string): number | null {
+  const year = parseInt(birthYear)
+  const month = parseInt(birthMonth)
+  if (!year || !month || year < 1920 || year > 2010 || month < 1 || month > 12) return null
+  const today = new Date()
+  let age = today.getFullYear() - year
+  if (today.getMonth() + 1 < month) age--
+  return age >= 18 && age <= 99 ? age : null
+}
+
 export function StepPersonal({ data, onChange }: {
-  data: Pick<IntakeData, 'age' | 'originCountry' | 'currentCountry' | 'maritalStatus' | 'spouseComing' | 'canadianSibling' | 'locationStatus'>
+  data: Pick<IntakeData, 'age' | 'birthYear' | 'birthMonth' | 'originCountry' | 'currentCountry' | 'maritalStatus' | 'spouseComing' | 'canadianSibling' | 'locationStatus'>
   onChange: (fields: Partial<IntakeData>) => void
 }) {
   const hasPartner = data.maritalStatus === 'married' || data.maritalStatus === 'common-law'
+  const computedAge = derivedAge(data.birthYear, data.birthMonth)
+
+  function handleBirthField(fields: { birthYear?: string; birthMonth?: string }) {
+    const next = { ...data, ...fields }
+    const age = derivedAge(next.birthYear, next.birthMonth)
+    onChange({ ...fields, age: age !== null ? String(age) : '' })
+  }
+
   return (
     <div>
       <h1 className="text-3xl font-bold text-heading">Personal details</h1>
@@ -25,10 +48,29 @@ export function StepPersonal({ data, onChange }: {
       <div className="mt-4 flex flex-col gap-3">
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="age" className="text-sm font-semibold text-heading">Your age</Label>
-          <Input id="age" type="number" min={18} max={80} placeholder="e.g. 29" value={data.age}
-            onChange={(e) => onChange({ age: e.target.value })}
-            className="max-w-xs rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red" />
+          <Label className="text-sm font-semibold text-heading">Year of birth</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number" min={1924} max={2006} placeholder="e.g. 1994"
+              value={data.birthYear}
+              onChange={(e) => handleBirthField({ birthYear: e.target.value })}
+              className="max-w-30 rounded-xl border-subtle bg-surface-card px-4 py-3 text-heading placeholder:text-muted-text/70 focus-visible:ring-navly-red"
+            />
+            <select
+              value={data.birthMonth}
+              onChange={(e) => handleBirthField({ birthMonth: e.target.value })}
+              className="rounded-xl border border-subtle bg-surface-card px-3 py-3 text-sm text-heading focus-visible:ring-navly-red"
+            >
+              <option value="">Month</option>
+              {MONTHS.map((m, i) => (
+                <option key={i + 1} value={String(i + 1)}>{m}</option>
+              ))}
+            </select>
+            {computedAge !== null && (
+              <span className="text-sm text-muted-text">= age {computedAge}</span>
+            )}
+          </div>
+          <p className="text-xs text-muted-text/70">Your age updates automatically each year — no need to edit your profile on your birthday.</p>
         </div>
 
         <div className="flex flex-col gap-1.5">

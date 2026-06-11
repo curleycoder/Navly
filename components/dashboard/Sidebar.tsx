@@ -11,14 +11,12 @@ import {
   UserCircle,
   Users,
   LogOut,
-  Newspaper,
   TrendingUp,
 } from 'lucide-react'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { cn } from '@/lib/utils'
 import { loadProfile } from '@/lib/profile'
 import { supabase } from '@/lib/supabase/client'
-import { countUnread, type NewsUpdate } from '@/lib/news'
 import { useLocale } from '@/lib/i18n'
 
 const NAV_HREFS = [
@@ -26,7 +24,6 @@ const NAV_HREFS = [
   { href: '/dashboard/pr-tracker', key: 'prTracker' as const, icon: TrendingUp, outsideOk: true },
   { href: '/dashboard/days', key: 'daysInCanada' as const, icon: Flame, outsideOk: false },
   { href: '/dashboard/tasks', key: 'tasks' as const, icon: ListChecks, outsideOk: true },
-  { href: '/dashboard/news', key: 'immigrationNews' as const, icon: Newspaper, outsideOk: true },
   { href: '/dashboard/chat', key: 'aiAssistant' as const, icon: MessageSquare, outsideOk: true },
   { href: '/dashboard/consultants', key: 'consultant' as const, icon: Users, outsideOk: true },
 ]
@@ -38,18 +35,9 @@ export function Sidebar() {
   const pathname = usePathname()
   const { t } = useLocale()
   const [isOutside, setIsOutside] = useState(false)
-  const [newsUnread, setNewsUnread] = useState(0)
-
   useEffect(() => {
     const profile = loadProfile()
     setIsOutside(profile?.locationStatus === 'outside')
-  }, [])
-
-  useEffect(() => {
-    fetch('/api/news')
-      .then((r) => r.json())
-      .then((items: NewsUpdate[]) => setNewsUnread(countUnread(items)))
-      .catch(() => {})
   }, [])
 
   const visibleItems = NAV_HREFS.filter((item) => !isOutside || item.outsideOk)
@@ -65,7 +53,6 @@ export function Sidebar() {
       <nav aria-label="Main navigation" className="flex flex-1 flex-col gap-1 p-3">
         {visibleItems.map(({ href, key, icon: Icon }) => {
           const active = pathname === href
-          const isNews = href === '/dashboard/news'
           return (
             <Link
               key={href}
@@ -80,11 +67,6 @@ export function Sidebar() {
             >
               <Icon aria-hidden="true" className="h-4 w-4 shrink-0" />
               {t(`nav.${key}`)}
-              {isNews && newsUnread > 0 && !active && (
-                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-navly-red px-1.5 text-[10px] font-bold text-white">
-                  {newsUnread > 9 ? '9+' : newsUnread}
-                </span>
-              )}
             </Link>
           )
         })}

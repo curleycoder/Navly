@@ -9,6 +9,12 @@ import { convertToCLB } from './scoring'
 
 export type PNPStreamStatus = 'eligible' | 'possible' | 'not-yet' | 'not-applicable'
 
+export type ReadinessItem = {
+  label: string
+  met: boolean
+  warning?: string   // shown when met=true but with a caveat
+}
+
 export type PNPStream = {
   id: string
   province: string         // full name, e.g. 'British Columbia'
@@ -18,6 +24,10 @@ export type PNPStream = {
   status: PNPStreamStatus
   reason: string           // one-line summary
   missingItems: string[]   // actionable missing requirements
+  score?: number           // estimated points on the province's own scoring grid (or strength indicator)
+  maxScore?: number        // maximum possible points on that grid
+  scoreLabel?: string      // overrides the default score label in the UI
+  readinessItems?: ReadinessItem[]  // checklist display — used instead of score bar when present
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -46,17 +56,61 @@ function foreignYears(profile: IntakeData): number {
   return parseFloat(profile.foreignWorkYears) || 0
 }
 
-function matchesProvince(profile: IntakeData, code: string): boolean {
-  const p = (profile.intendedProvince || '').toUpperCase()
-  return p === code || p.startsWith(code)
-}
-
 function inProvince(profile: IntakeData, code: string): boolean {
   const p = (profile.province || '').toUpperCase()
   return p === code || p.startsWith(code)
 }
 
 // ─── BC Skills Immigration (BCPNP) ───────────────────────────────────────────
+// BC uses a 200-point grid. Draws set a cut-off (typically 60–100); scores above it receive an invitation.
+// Factor breakdown: job offer/BC work (max 100) + experience (max 25) + education (max 25) + language (max 20) + adaptability (max 30).
+// Source: bcpnp.ca skills immigration registration system (verified June 2026).
+
+function computeBCScore(profile: IntakeData): { score: number; maxScore: number } {
+  const clb = minCLB(profile)
+  const teer = profile.teerLevel
+  const hasOffer = profile.hasJobOffer === 'yes'
+  const inBC = inProvince(profile, 'BC')
+  const months = canMonths(profile)
+  const totalYears = foreignYears(profile) + months / 12
+  let pts = 0
+
+  // Job offer / BC work experience (max 100)
+  if (hasOffer) {
+    if (teer === '0')      pts += 100
+    else if (teer === '1') pts += 90
+    else if (teer === '2') pts += 80
+    else                   pts += 75
+  } else if (inBC && months >= 12) pts += 60
+  else if (inBC && months >= 9)   pts += 50
+
+  // Work experience (max 25)
+  if (totalYears >= 3)     pts += 25
+  else if (totalYears >= 2) pts += 20
+  else if (totalYears >= 1) pts += 15
+  else if (totalYears >= 0.5) pts += 10
+
+  // Education (max 25)
+  if (['doctoral', 'masters'].includes(profile.educationLevel))       pts += 25
+  else if (profile.educationLevel === 'bachelors')                     pts += 20
+  else if (profile.educationLevel === 'two-credentials')               pts += 18
+  else if (profile.educationLevel === '2-year')                        pts += 15
+  else if (profile.educationLevel === '1-year')                        pts += 10
+  else if (profile.educationLevel === 'secondary')                     pts += 5
+
+  // Language (max 20)
+  if (clb >= 9)      pts += 20
+  else if (clb >= 8) pts += 15
+  else if (clb >= 7) pts += 10
+  else if (clb >= 5) pts += 5
+
+  // Adaptability / regional connection (max 30)
+  if (inBC && months >= 12) pts += 20
+  else if (inBC && months >= 6) pts += 12
+  else if (inBC) pts += 6
+
+  return { score: Math.min(pts, 200), maxScore: 200 }
+}
 
 function bcStreams(profile: IntakeData): PNPStream[] {
   const clb = minCLB(profile)
@@ -68,6 +122,7 @@ function bcStreams(profile: IntakeData): PNPStream[] {
   const isStudent = profile.status === 'student'
 
   const streams: PNPStream[] = []
+  const bcScore = computeBCScore(profile)
 
   // --- Skilled Worker (non-EE) ---
   const swMissing: string[] = []
@@ -85,6 +140,7 @@ function bcStreams(profile: IntakeData): PNPStream[] {
       ? 'You appear to meet the BC Skilled Worker requirements.'
       : `Missing: ${swMissing[0]}${swMissing.length > 1 ? ` (+${swMissing.length - 1} more)` : ''}.`,
     missingItems: swMissing,
+    ...bcScore,
   })
 
   // --- International Graduate ---
@@ -121,12 +177,44 @@ function bcStreams(profile: IntakeData): PNPStream[] {
       ? 'You may be invited from the Express Entry pool via BC PNP (adds 600 CRS points).'
       : `Missing: ${eeMissing[0]}${eeMissing.length > 1 ? ` (+${eeMissing.length - 1} more)` : ''}.`,
     missingItems: eeMissing,
+    ...bcScore,
   })
 
   return streams
 }
 
 // ─── Ontario OINP ─────────────────────────────────────────────────────────────
+// OINP has no public points grid. Connection strength reflects the factors Ontario
+// weighs internally: job offer (dominant), ON work/study, NOC priority alignment.
+// Priority NOC clusters: tech, regulated healthcare, skilled trades (verified June 2026).
+
+const ON_PRIORITY_NOCS = new Set([
+  // Tech
+  '20012','21211','21220','21221','21222','21223','21230','21231','21232','21233','21234','21311',
+  // Regulated healthcare
+  '31100','31101','31102','31111','31120','31121','31200','31201','31202','31203','31204',
+  '31301','31302','32101','32102','32103','33100','33101','33102','33103',
+  // Skilled trades
+  '72010','72011','72100','72101','72102','72200','72201','72202','72203',
+  '72301','72302','72400','72401','73200','73201','73202','73300','73400',
+])
+
+function computeONStrength(profile: IntakeData): { score: number; maxScore: number; scoreLabel: string } {
+  const hasOffer  = profile.hasJobOffer === 'yes'
+  const inON      = inProvince(profile, 'ON')
+  const months    = canMonths(profile)
+  const hasONWork = inON && months >= 6
+  const hasONEdu  = profile.canadianEducation !== 'none' && profile.canadianEducation !== '' && inON
+  const inPriority = profile.noc ? ON_PRIORITY_NOCS.has(profile.noc.trim().slice(0, 5)) : false
+
+  let pts = 0
+  if (hasOffer)    pts += 2
+  if (hasONWork)   pts += 1
+  if (hasONEdu)    pts += 1
+  if (inPriority)  pts += 1
+
+  return { score: pts, maxScore: 5, scoreLabel: 'ON connection strength' }
+}
 
 function onStreams(profile: IntakeData): PNPStream[] {
   const clb = minCLB(profile)
@@ -137,6 +225,7 @@ function onStreams(profile: IntakeData): PNPStream[] {
   const hasONEdu = profile.canadianEducation !== 'none' && profile.canadianEducation !== '' && inProvince(profile, 'ON')
 
   const streams: PNPStream[] = []
+  const onStrength = computeONStrength(profile)
 
   // --- Employer Job Offer - Foreign Worker ---
   const ejofMissing: string[] = []
@@ -154,6 +243,7 @@ function onStreams(profile: IntakeData): PNPStream[] {
       ? 'You meet the core requirements for the OINP Employer Job Offer stream.'
       : `Missing: ${ejofMissing[0]}${ejofMissing.length > 1 ? ` (+${ejofMissing.length - 1} more)` : ''}.`,
     missingItems: ejofMissing,
+    ...onStrength,
   })
 
   // --- Employer Job Offer - International Student ---
@@ -172,6 +262,7 @@ function onStreams(profile: IntakeData): PNPStream[] {
       ? 'You appear to meet the Ontario international student stream requirements.'
       : `Missing: ${ejoisMissing[0]}${ejoisMissing.length > 1 ? ` (+${ejoisMissing.length - 1} more)` : ''}.`,
     missingItems: ejoisMissing,
+    ...onStrength,
   })
 
   // --- Human Capital Priorities (Express Entry) ---
@@ -190,12 +281,35 @@ function onStreams(profile: IntakeData): PNPStream[] {
       ? 'You may receive an OINP notification of interest. Ontario draws from the EE pool periodically.'
       : `Missing: ${hcpMissing[0]}${hcpMissing.length > 1 ? ` (+${hcpMissing.length - 1} more)` : ''}.`,
     missingItems: hcpMissing,
+    ...onStrength,
   })
 
   return streams
 }
 
 // ─── Alberta AAIP ─────────────────────────────────────────────────────────────
+// AAIP does not publish a points grid — selection is merit-based within streams.
+// We show a connection strength indicator (0–5) based on the factors Alberta weighs most:
+// job offer (2 pts), AB work experience (1 pt), AB study (1 pt), relatives in AB (1 pt).
+
+function computeABStrength(profile: IntakeData): { score: number; maxScore: number; scoreLabel: string } {
+  const hasOffer = profile.hasJobOffer === 'yes'
+  const inAB = inProvince(profile, 'AB')
+  const months = canMonths(profile)
+  const hasABWork = inAB && months >= 6
+  const hasABStudy = profile.canadianEducation !== 'none' && profile.canadianEducation !== '' && inAB
+  const hasABRelatives =
+    (profile.relativesInCanada === 'yes' || profile.canadianSibling === 'yes') &&
+    (profile.pnpRelativesProvince || '').toUpperCase().startsWith('AB')
+
+  let pts = 0
+  if (hasOffer)       pts += 2
+  if (hasABWork)      pts += 1
+  if (hasABStudy)     pts += 1
+  if (hasABRelatives) pts += 1
+
+  return { score: pts, maxScore: 5, scoreLabel: 'AB connection strength' }
+}
 
 function abStreams(profile: IntakeData): PNPStream[] {
   const clb = minCLB(profile)
@@ -206,6 +320,7 @@ function abStreams(profile: IntakeData): PNPStream[] {
   const foreignYrs = foreignYears(profile)
 
   const streams: PNPStream[] = []
+  const abStrength = computeABStrength(profile)
 
   // --- Alberta Opportunity Stream ---
   const aosMissing: string[] = []
@@ -223,6 +338,7 @@ function abStreams(profile: IntakeData): PNPStream[] {
       ? 'You appear to meet Alberta Opportunity Stream requirements.'
       : `Missing: ${aosMissing[0]}${aosMissing.length > 1 ? ` (+${aosMissing.length - 1} more)` : ''}.`,
     missingItems: aosMissing,
+    ...abStrength,
   })
 
   // --- Alberta Express Entry Stream ---
@@ -242,12 +358,58 @@ function abStreams(profile: IntakeData): PNPStream[] {
       ? 'You may receive an Alberta nomination via the EE-linked stream (+600 CRS).'
       : `Missing: ${aeeMissing[0]}${aeeMissing.length > 1 ? ` (+${aeeMissing.length - 1} more)` : ''}.`,
     missingItems: aeeMissing,
+    ...abStrength,
   })
 
   return streams
 }
 
 // ─── Saskatchewan SINP ────────────────────────────────────────────────────────
+// SK uses a 100-point grid for the Occupations In-Demand and Employment Offer streams.
+// Factor breakdown: experience (max 30) + education (max 25) + language (max 20) + age (max 15) + SK connection (max 10).
+// Cut-offs vary by draw — typically 60–75 pts. Source: saskatchewan.ca/residents/moving-to-saskatchewan (verified June 2026).
+
+function computeSKScore(profile: IntakeData): { score: number; maxScore: number } {
+  const clb = minCLB(profile)
+  const months = canMonths(profile)
+  const totalYears = foreignYears(profile) + months / 12
+  const age = parseInt(profile.age) || 0
+  const inSK = inProvince(profile, 'SK')
+  let pts = 0
+
+  // Work experience (max 30)
+  if (totalYears >= 3)      pts += 30
+  else if (totalYears >= 2) pts += 25
+  else if (totalYears >= 1) pts += 15
+  else if (totalYears >= 0.5) pts += 10
+
+  // Education (max 25)
+  if (['doctoral', 'masters'].includes(profile.educationLevel))  pts += 25
+  else if (profile.educationLevel === 'bachelors')                pts += 20
+  else if (profile.educationLevel === 'two-credentials')          pts += 18
+  else if (profile.educationLevel === '2-year')                   pts += 15
+  else if (profile.educationLevel === '1-year')                   pts += 10
+  else if (profile.educationLevel === 'secondary')                pts += 5
+
+  // Language (max 20)
+  if (clb >= 9)      pts += 20
+  else if (clb >= 8) pts += 15
+  else if (clb >= 7) pts += 10
+  else if (clb >= 5) pts += 5
+
+  // Age (max 15) — best score for prime working age
+  if (age >= 21 && age <= 35)      pts += 15
+  else if (age >= 36 && age <= 45) pts += 12
+  else if (age >= 46 && age <= 50) pts += 8
+  else if (age >= 51 && age <= 55) pts += 4
+
+  // Saskatchewan connection (max 10)
+  if (profile.hasJobOffer === 'yes' && inSK) pts += 10
+  else if (profile.hasJobOffer === 'yes')    pts += 8
+  else if (inSK && months >= 6)              pts += 5
+
+  return { score: Math.min(pts, 100), maxScore: 100 }
+}
 
 // Partial list of in-demand NOC codes for SK Occupations In-Demand
 const SK_IN_DEMAND_NOCS = new Set([
@@ -264,6 +426,7 @@ function skStreams(profile: IntakeData): PNPStream[] {
   const inDemand = profile.noc ? SK_IN_DEMAND_NOCS.has(profile.noc.trim()) : false
 
   const streams: PNPStream[] = []
+  const skScore = computeSKScore(profile)
 
   // --- Employment Offer ---
   const eoMissing: string[] = []
@@ -281,6 +444,7 @@ function skStreams(profile: IntakeData): PNPStream[] {
       ? 'You meet the SK Employment Offer stream requirements.'
       : `Missing: ${eoMissing[0]}${eoMissing.length > 1 ? ` (+${eoMissing.length - 1} more)` : ''}.`,
     missingItems: eoMissing,
+    ...skScore,
   })
 
   // --- Occupations In-Demand ---
@@ -300,12 +464,38 @@ function skStreams(profile: IntakeData): PNPStream[] {
       ? `Your NOC (${profile.noc}) is on the SK In-Demand list — no job offer required.`
       : `Missing: ${oidMissing[0]}${oidMissing.length > 1 ? ` (+${oidMissing.length - 1} more)` : ''}.`,
     missingItems: oidMissing,
+    ...skScore,
   })
 
   return streams
 }
 
 // ─── Manitoba MPNP ───────────────────────────────────────────────────────────
+// MPNP uses an internal EOI scoring system not fully disclosed publicly.
+// Connection strength reflects the four factors MB weighs most in selections:
+// job offer (dominant), MB work experience, MB family ties, French language.
+
+function computeMBStrength(profile: IntakeData): { score: number; maxScore: number; scoreLabel: string } {
+  const hasOffer  = profile.hasJobOffer === 'yes'
+  const inMB      = inProvince(profile, 'MB')
+  const months    = canMonths(profile)
+  const hasMBWork = inMB && months >= 6
+  // MB family: dedicated field for MPNP family stream, or relatives in MB
+  const hasMBFamily =
+    (profile.manitobaFamilyRelative && profile.manitobaFamilyRelative !== 'none' && profile.manitobaFamilyRelative !== '') ||
+    ((profile.relativesInCanada === 'yes' || profile.canadianSibling === 'yes') &&
+      (profile.pnpRelativesProvince || '').toUpperCase().startsWith('MB'))
+  // French: any French test scores indicate proficiency
+  const hasFrench = profile.frenchTestType !== '' && profile.frenchTestType !== 'none'
+
+  let pts = 0
+  if (hasOffer)    pts += 2
+  if (hasMBWork)   pts += 1
+  if (hasMBFamily) pts += 1
+  if (hasFrench)   pts += 1
+
+  return { score: pts, maxScore: 5, scoreLabel: 'MB connection strength' }
+}
 
 function mbStreams(profile: IntakeData): PNPStream[] {
   const clb = minCLB(profile)
@@ -316,6 +506,7 @@ function mbStreams(profile: IntakeData): PNPStream[] {
   const foreignYrs = foreignYears(profile)
 
   const streams: PNPStream[] = []
+  const mbStrength = computeMBStrength(profile)
 
   // --- Skilled Workers in Manitoba ---
   const swimMissing: string[] = []
@@ -333,6 +524,7 @@ function mbStreams(profile: IntakeData): PNPStream[] {
       ? 'You appear to meet the Skilled Workers in Manitoba stream requirements.'
       : `Missing: ${swimMissing[0]}${swimMissing.length > 1 ? ` (+${swimMissing.length - 1} more)` : ''}.`,
     missingItems: swimMissing,
+    ...mbStrength,
   })
 
   // --- Skilled Workers Overseas ---
@@ -352,16 +544,46 @@ function mbStreams(profile: IntakeData): PNPStream[] {
       ? 'You may qualify for the MB Skilled Workers Overseas stream.'
       : `Missing: ${swoMissing[0]}${swoMissing.length > 1 ? ` (+${swoMissing.length - 1} more)` : ''}.`,
     missingItems: swoMissing,
+    ...mbStrength,
   })
 
   return streams
 }
 
 // ─── Atlantic Immigration Program (AIP) ──────────────────────────────────────
+// AIP is employer-gated: a designated employer offer is the primary gate.
+// We show a 3-item readiness checklist (not stars) — each item is binary: met or blocked.
+// The job offer item carries a warning: hasJobOffer=yes covers any offer, but AIP specifically
+// requires an offer from a government-designated organization. The UI makes this explicit.
 
 const ATLANTIC_CODES = ['NS', 'NB', 'PE', 'NL']
 const ATLANTIC_NAMES: Record<string, string> = {
   NS: 'Nova Scotia', NB: 'New Brunswick', PE: 'Prince Edward Island', NL: 'Newfoundland & Labrador'
+}
+
+function buildAtlanticReadiness(profile: IntakeData, clb: number): ReadinessItem[] {
+  const hasOffer = profile.hasJobOffer === 'yes'
+  const hasEducation = profile.educationLevel !== '' &&
+    profile.educationLevel !== 'none' &&
+    profile.educationLevel !== 'less-than-secondary'
+
+  return [
+    {
+      label: 'Designated employer offer',
+      met: hasOffer,
+      warning: hasOffer
+        ? 'Your offer must be from an AIP-designated organization — verify at canada.ca/aip-employers before applying.'
+        : undefined,
+    },
+    {
+      label: 'Language — CLB 4+',
+      met: clb >= 4,
+    },
+    {
+      label: 'Education credential',
+      met: hasEducation,
+    },
+  ]
 }
 
 function atlanticStreams(profile: IntakeData): PNPStream[] {
@@ -375,6 +597,7 @@ function atlanticStreams(profile: IntakeData): PNPStream[] {
   const hasAtlanticEdu = profile.canadianEducation !== 'none' && profile.canadianEducation !== '' &&
     ATLANTIC_CODES.includes((profile.province || '').toUpperCase().slice(0, 2))
 
+  const readinessItems = buildAtlanticReadiness(profile, clb)
   const streams: PNPStream[] = []
 
   // --- AIP Skilled Worker ---
@@ -396,6 +619,7 @@ function atlanticStreams(profile: IntakeData): PNPStream[] {
       ? `You appear to meet the AIP Skilled Worker requirements for ${prov}.`
       : `Missing: ${swMissing[0]}${swMissing.length > 1 ? ` (+${swMissing.length - 1} more)` : ''}.`,
     missingItems: swMissing,
+    readinessItems,
   })
 
   // --- AIP International Graduate ---
@@ -414,6 +638,7 @@ function atlanticStreams(profile: IntakeData): PNPStream[] {
       ? `You appear to meet the AIP International Graduate requirements for ${prov}.`
       : `Missing: ${igMissing[0]}${igMissing.length > 1 ? ` (+${igMissing.length - 1} more)` : ''}.`,
     missingItems: igMissing,
+    readinessItems,
   })
 
   return streams

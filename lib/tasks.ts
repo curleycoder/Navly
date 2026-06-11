@@ -1,7 +1,7 @@
 import type { IntakeData } from './profile'
 import type { ScoreResult } from './scoring'
 
-export type TaskCategory = "First Steps" | "Settlement & Living" | "Immigration" | "Legal" | "Taxes & Finance";
+export type TaskCategory = "Settlement & Living" | "Immigration" | "Legal" | "Taxes & Finance";
 
 export type Task = {
   id: string
@@ -15,39 +15,6 @@ export type Task = {
 const KEY = 'navly_tasks'
 
 const DEFAULT_TASKS: Task[] = [
-  // First Steps
-  {
-    id: 'task-sin',
-    title: 'Apply for a Social Insurance Number (SIN)',
-    category: 'First Steps',
-    details: 'Your SIN is a 9-digit number required to work in Canada or access government programs. Apply online at canada.ca, by mail, or in person at a Service Canada office — same-day processing in person. Bring your original passport and your work/study permit or PR card. You need your SIN before your first payday.',
-    done: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'task-bank',
-    title: 'Open a Canadian Bank Account',
-    category: 'First Steps',
-    details: 'A local account is needed to receive salary, pay rent, and start building Canadian credit history. The Big Five (RBC, TD, Scotiabank, BMO, CIBC) all offer Newcomer packages with no monthly fees for 1–2 years. Bring your passport, SIN, and immigration document. Opening an account immediately starts your credit file — critical for future apartment applications and loans.',
-    done: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'task-phone',
-    title: 'Get a Canadian Phone Number',
-    category: 'First Steps',
-    details: 'A local number is essential for job hunting, two-factor authentication, and signing leases. Premium carriers: Bell, Rogers, Telus. Budget options: their subsidiaries Virgin Plus, Fido, Koodo, or smaller providers like Public Mobile and Lucky Mobile. Start on a monthly plan — you can lock in a better rate once you have 6+ months of credit history.',
-    done: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'task-health',
-    title: 'Register for Provincial Health Insurance',
-    category: 'First Steps',
-    details: 'Each province has its own plan: OHIP (Ontario), MSP (BC), AHCIP (Alberta — no wait period), RAMQ (Quebec). Most provinces have a 3-month waiting period after you arrive or change status. Get private interim health coverage for the gap — check Manulife, Sun Life, or Blue Cross. Apply as soon as you arrive; bring your immigration document and proof of local address.',
-    done: false,
-    createdAt: new Date().toISOString(),
-  },
   // Settlement & Living
   {
     id: 'task-housing',
@@ -178,9 +145,9 @@ export function generateTasks(profile: IntakeData, score: ScoreResult): Task[] {
     if (profile.hasJobOffer !== 'yes' && teer && ['1', '2', '3'].includes(teer)) {
       tasks.push(task(
         'job-offer',
-        'Explore options for a valid Canadian job offer',
+        'Explore options for a Canadian job offer (PNP strength)',
         'Immigration',
-        'A valid job offer from a Canadian employer adds 50–200 CRS points. It must be for a permanent, full-time, non-seasonal role. Most qualifying offers are LMIA-backed (employer proves no Canadian was available) or LMIA-exempt under an international agreement. Talk to your employer about whether they are willing to support a formal offer for IRCC.',
+        'A job offer no longer adds CRS points (removed March 25, 2025), but it can still strengthen eligibility for specific Provincial Nominee Program streams. A qualifying offer must be permanent, full-time, and non-seasonal. Talk to your employer about whether they support PNP-linked offers in your target province.',
       ))
     }
 
