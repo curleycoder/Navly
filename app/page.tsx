@@ -7,8 +7,6 @@ import {
   CalendarCheck,
   Target,
   ShieldCheck,
-  LockKeyhole,
-  Map,
   GraduationCap,
   BriefcaseBusiness,
   Plane,
@@ -31,24 +29,6 @@ import { recentDraws } from "@/lib/draws";
 import { FAQAccordion } from "@/components/ui/FAQAccordion";
 import { createClient } from "@/lib/supabase/server";
 import type { ConsultantListing } from "@/lib/consultants";
-
-const trustItems = [
-  {
-    title: "Built around your status",
-    desc: "Navly adjusts questions for students, workers, visitors, and permanent residents.",
-    icon: ShieldCheck,
-  },
-  {
-    title: "Tracks real deadlines",
-    desc: "Track permit expiry, PR card expiry, citizenship days, and key reminders.",
-    icon: CalendarCheck,
-  },
-  {
-    title: "Clear next steps",
-    desc: "See missing requirements, score gaps, and practical actions to work on next.",
-    icon: Target,
-  },
-];
 
 const userTypes = [
   {
@@ -201,7 +181,7 @@ export default async function Home() {
       <Navbar />
 
       {/* Hero — intentionally always dark navy */}
-      <section className="relative overflow-hidden bg-navly-navy px-4 py-12 sm:px-6 md:py-20">
+      <section className="relative overflow-hidden bg-navly-navy px-4 py-8 sm:px-6 md:py-20">
         <div className="absolute inset-0 opacity-25">
           <div className="absolute left-[-10%] top-[-20%] h-72 w-72 rounded-full bg-navly-red/30 blur-3xl" />
           <div className="absolute bottom-[-20%] right-[-10%] h-96 w-96 rounded-full bg-white/10 blur-3xl" />
@@ -219,7 +199,7 @@ export default async function Home() {
               <span className="text-navly-red">made clear.</span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-base leading-8 text-muted-text/50">
+            <p className="mt-5 max-w-xl text-base leading-7 text-white/60">
               Answer a few questions and see your estimated PR pathway, score gaps,
               missing requirements, and next steps — without uploading documents.
             </p>
@@ -255,14 +235,8 @@ export default async function Home() {
               )}
             </div>
 
-            <p className="mt-6 max-w-xl text-xs leading-5 text-muted-text">
-              Navly is not affiliated with IRCC, the Government of Canada, or any
-              immigration authority. Always verify official requirements on canada.ca
-              or with a licensed professional.
-            </p>
-
-            <p className="mt-2 text-xs font-semibold text-muted-text/70">
-              Last checked against public immigration updates: June 2026
+            <p className="mt-4 max-w-xl text-xs leading-5 text-white/35">
+              Not affiliated with IRCC or the Government of Canada. Always verify on canada.ca or with a licensed professional. Last updated: June 2026.
             </p>
           </div>
 
@@ -281,111 +255,29 @@ export default async function Home() {
       </section>
 
       {/* EE Draw Ticker */}
-      <section className="border-b border-(--page-border) bg-(--page-alt) px-4 py-3 sm:px-6">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-xs font-bold uppercase tracking-wider text-(--page-body)">Latest EE Draws</span>
-              </div>
-              <Link href="/dashboard/pr-tracker" className="text-xs pt-3 font-semibold text-navly-red hover:underline">
-                All draws →
-              </Link>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {recentDraws.slice(0, 3).map((draw, i) => (
-                <div key={i} className="flex items-center gap-1.5 rounded-full border border-(--page-border) bg-(--page-card) px-3 py-1 text-xs">
-                  <span className="font-bold text-(--page-heading)">{draw.cutoff}</span>
-                  <span className="text-(--page-body)">{DRAW_TYPE_SHORT[draw.type] ?? draw.type}</span>
-                  <span className="text-muted-text/60">{draw.date}</span>
-                </div>
-              ))}
-            </div>
+      <section className="border-b border-(--page-border) bg-(--page-alt) px-4 py-2.5 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-xs font-bold uppercase tracking-wider text-(--page-body)">Latest EE Draws</span>
           </div>
-        </div>
-      </section>
-
-      {/* Social proof stat strip */}
-      <section className="border-b border-(--page-border) bg-(--page-alt) px-4 py-5 sm:px-6">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-10 gap-y-3 text-center">
-          {[
-            { stat: "4", label: "immigration statuses covered" },
-            { stat: "10+", label: "PR pathways tracked" },
-            { stat: "0", label: "documents required" },
-            { stat: "Free", label: "to start — no credit card" },
-          ].map(({ stat, label }) => (
-            <div key={label} className="flex items-baseline gap-1.5">
-              <span className="text-xl font-extrabold text-navly-red">{stat}</span>
-              <span className="text-sm text-(--page-body)">{label}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Trust Strip */}
-      <section className="border-b border-(--page-border) bg-(--page-bg) px-4 py-8 sm:px-6">
-        <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-3">
-          {trustItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={item.title}
-                className="flex gap-4 rounded-2xl border border-(--page-border) bg-(--page-card) p-5 shadow-sm"
-              >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navly-navy">
-                  <Icon className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-(--page-heading)">{item.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-(--page-body)">{item.desc}</p>
-                </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {recentDraws.slice(0, 3).map((draw, i) => (
+              <div key={i} className="flex items-center gap-1.5 rounded-full border border-(--page-border) bg-(--page-card) px-3 py-1 text-xs whitespace-nowrap">
+                <span className="font-bold text-(--page-heading)">{draw.cutoff}</span>
+                <span className="text-(--page-body)">{DRAW_TYPE_SHORT[draw.type] ?? draw.type}</span>
+                <span className="text-(--page-body)/60">{draw.date}</span>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Who Navly Helps */}
-      <section className="bg-(--page-alt) px-4 py-10 sm:px-6 md:py-14">
+      {/* Who & Features — merged */}
+      <section id="features" className="bg-(--page-alt) px-4 py-8 sm:px-6 md:py-14">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-10 max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-widest text-navly-red">
-              Who Navly Helps
-            </p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-(--page-heading) sm:text-3xl md:text-4xl">
-              Built for different immigration stages.
-            </h2>
-            <p className="mt-3 text-(--page-body)">
-              Navly changes the questions and tracking dashboard based on where
-              you are in your immigration journey.
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {userTypes.map((type) => {
-              const Icon = type.icon;
-              return (
-                <div
-                  key={type.title}
-                  className="rounded-2xl border border-(--page-border) bg-(--page-card) p-5 shadow-sm"
-                >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-navly-red/10">
-                    <Icon className="h-5 w-5 text-navly-red" />
-                  </div>
-                  <h3 className="mt-4 font-bold text-(--page-heading)">{type.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-(--page-body)">{type.desc}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="bg-(--page-bg) px-4 py-10 sm:px-6 md:py-14">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-10 max-w-2xl">
+          <div className="mb-6 max-w-2xl md:mb-8">
             <p className="text-xs font-bold uppercase tracking-widest text-navly-red">
               Features
             </p>
@@ -393,18 +285,28 @@ export default async function Home() {
               Built for clarity, not confusion.
             </h2>
             <p className="mt-3 text-(--page-body)">
-              Navly turns scattered immigration information into a clean,
-              organized workflow.
+              Navly adapts to your immigration stage — different questions, different dashboard, different tracking.
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Persona pills */}
+          <div className="mb-6 flex flex-wrap gap-2">
+            {userTypes.map(({ title, icon: Icon }) => (
+              <div key={title} className="flex items-center gap-2 rounded-full border border-(--page-border) bg-(--page-card) px-3 py-1.5 text-sm font-medium text-(--page-heading) shadow-sm">
+                <Icon className="h-3.5 w-3.5 shrink-0 text-navly-red" />
+                {title}
+              </div>
+            ))}
+          </div>
+
+          {/* Feature cards */}
+          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
                 <div
                   key={feature.title}
-                  className="rounded-2xl border border-(--page-border) bg-(--page-card) p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                  className="w-[78vw] shrink-0 snap-start rounded-2xl border border-(--page-border) bg-(--page-card) p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:w-auto"
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navly-navy">
@@ -421,9 +323,9 @@ export default async function Home() {
       </section>
 
       {/* How It Works */}
-      <section id="how" className="bg-(--page-alt) px-4 py-10 sm:px-6 md:py-14">
+      <section id="how" className="bg-(--page-alt) px-4 py-8 sm:px-6 md:py-14">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-10 text-center">
+          <div className="mb-6 text-center md:mb-10">
             <p className="text-xs font-bold uppercase tracking-widest text-navly-red">
               How It Works
             </p>
@@ -436,11 +338,11 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 md:pb-0">
             {howSteps.map((step, index) => (
               <div
                 key={step.title}
-                className="rounded-2xl border border-(--page-border) bg-(--page-card) p-6 shadow-sm"
+                className="w-[82vw] shrink-0 snap-start rounded-2xl border border-(--page-border) bg-(--page-card) p-5 shadow-sm md:w-auto"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navly-red text-sm font-bold text-white">
@@ -448,7 +350,7 @@ export default async function Home() {
                   </div>
                   <h3 className="font-bold text-(--page-heading)">{step.title}</h3>
                 </div>
-                <p className="mt-4 text-sm leading-6 text-(--page-body)">{step.desc}</p>
+                <p className="mt-3 text-sm leading-6 text-(--page-body)">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -457,7 +359,7 @@ export default async function Home() {
 
       {/* Featured Consultant Ad */}
       {featuredConsultant && (
-        <section className="border-b border-(--page-border) bg-(--page-bg) px-4 py-10 sm:px-6">
+        <section className="border-b border-(--page-border) bg-(--page-bg) px-4 py-6 sm:px-6">
           <div className="mx-auto max-w-7xl">
             <div className="mb-4 flex items-center gap-3">
               <p className="text-xs font-bold uppercase tracking-widest text-(--page-body)/60">Featured Consultant</p>
@@ -518,7 +420,7 @@ export default async function Home() {
       )}
 
       {/* Official Updates */}
-      <section className="bg-(--page-bg) px-4 py-10 sm:px-6 md:py-14">
+      <section className="bg-(--page-bg) px-4 py-8 sm:px-6 md:py-14">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -541,11 +443,11 @@ export default async function Home() {
             </Link>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 md:pb-0">
             {updates.map((u) => (
               <article
                 key={u.id}
-                className="flex flex-col rounded-2xl border border-(--page-border) bg-(--page-card) p-5 shadow-sm"
+                className="flex w-[82vw] shrink-0 snap-start flex-col rounded-2xl border border-(--page-border) bg-(--page-card) p-5 shadow-sm md:w-auto"
               >
                 <div className="mb-3 flex items-center gap-2">
                   <span
@@ -588,7 +490,7 @@ export default async function Home() {
       </section>
 
       {/* What Navly Does Not Do — always dark navy */}
-      <section className="bg-navly-navy px-4 py-10 text-white sm:px-6 md:py-14">
+      <section className="bg-navly-navy px-4 py-8 text-white sm:px-6 md:py-14">
         <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-center">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-navly-red">
@@ -618,9 +520,9 @@ export default async function Home() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="bg-(--page-alt) px-4 py-10 sm:px-6 md:py-14">
+      <section id="pricing" className="bg-(--page-alt) px-4 py-8 sm:px-6 md:py-14">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-10 text-center">
+          <div className="mb-6 text-center md:mb-10">
             <p className="text-xs font-bold uppercase tracking-widest text-navly-red">
               Pricing
             </p>
@@ -633,11 +535,11 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="mx-auto grid max-w-6xl gap-4 md:grid-cols-3">
+          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 md:mx-auto md:grid md:max-w-6xl md:grid-cols-3 md:overflow-visible md:px-0 md:pb-0">
             {pricingPlans.map((plan) => (
               <div
                 key={plan.name}
-                className={`rounded-2xl p-6 shadow-sm ${
+                className={`w-[82vw] shrink-0 snap-start rounded-2xl p-6 shadow-sm md:w-auto ${
                   plan.featured
                     ? "bg-navly-navy text-white ring-2 ring-navly-red"
                     : "border border-(--page-border) bg-(--page-card)"
@@ -700,7 +602,7 @@ export default async function Home() {
       </section>
 
       {/* Final CTA — always red */}
-      <section className="bg-navly-red px-4 py-12 sm:px-6 md:py-16">
+      <section className="bg-navly-red px-4 py-8 sm:px-6 md:py-16">
         <div className="mx-auto max-w-3xl text-center">
           <CheckCircle2 className="mx-auto mb-4 h-10 w-10 text-white" />
           <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl">
@@ -712,7 +614,7 @@ export default async function Home() {
           </p>
           <Link
             href="/onboarding"
-            className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-surface-card px-6 py-3 text-sm font-bold text-navly-red transition hover:bg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
+            className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-navly-red transition hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
           >
             Check My PR Pathway <ArrowRight className="h-4 w-4" />
           </Link>
@@ -720,61 +622,40 @@ export default async function Home() {
       </section>
 
       {/* FAQ */}
-      <section className="bg-(--page-bg) px-4 py-10 sm:px-6 md:py-14">
+      <section className="bg-(--page-bg) px-4 py-8 sm:px-6 md:py-12">
         <div className="mx-auto max-w-7xl">
-          <div className="grid gap-10 md:grid-cols-[1fr_2fr] md:gap-16">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-navly-red">FAQ</p>
-              <h2 className="mt-2 text-2xl font-bold tracking-tight text-(--page-heading) sm:text-3xl">
-                Common questions.
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-(--page-body)">
-                Have a question not covered here? Email us at{' '}
-                <a href="mailto:support@navly.ca" className="font-semibold text-navly-red hover:underline">
-                  support@navly.ca
-                </a>
-              </p>
-            </div>
-            <FAQAccordion />
+          <div className="mb-5 md:mb-8">
+            <p className="text-xs font-bold uppercase tracking-widest text-navly-red">FAQ</p>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-(--page-heading)">
+              Common questions.
+            </h2>
           </div>
+          <FAQAccordion />
         </div>
       </section>
 
       {/* Footer — always dark navy */}
-      <footer className="bg-navly-navy px-4 py-10 sm:px-6">
+      <footer className="bg-navly-navy px-4 py-6 sm:px-6">
         <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <NavlyLogo size="sm" variant="light" />
-              <p className="mt-2 max-w-sm text-xs leading-5 text-muted-text/70">
-                Navly is an educational immigration planning and tracking tool.
-                It is not a law firm, RCIC practice, or government service.
+              <p className="mt-1.5 max-w-sm text-xs leading-5 text-white/40">
+                Educational planning tool — not a law firm or government service.
               </p>
             </div>
 
-            <nav className="flex flex-wrap gap-x-6 gap-y-2 pt-4 text-xs text-muted-text/70">
+            <nav className="flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-white/85">
               <Link href="/pricing" className="transition hover:text-white">Pricing</Link>
-              <Link href="/privacy" className="transition hover:text-white">Privacy Policy</Link>
-              <Link href="/terms" className="transition hover:text-white">Terms of Service</Link>
+              <Link href="/privacy" className="transition hover:text-white">Privacy</Link>
+              <Link href="/terms" className="transition hover:text-white">Terms</Link>
               <a href="mailto:support@navly.ca" className="transition hover:text-white">Support</a>
-              <a
-                href="https://www.instagram.com/navly.ca"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition hover:text-white"
-              >
-                Instagram
-              </a>
+              <a href="https://www.instagram.com/navly.ca" target="_blank" rel="noopener noreferrer" className="transition hover:text-white">Instagram</a>
             </nav>
           </div>
 
-          <div className="mt-8 border-t border-white/10 pt-6 text-center text-xs text-muted-text">
-            <p>© {new Date().getFullYear()} Navly. All rights reserved.</p>
-            <p className="mt-1">
-              Navly provides general educational information only — not legal
-              advice. Always consult a licensed RCIC or immigration lawyer for
-              advice about your specific situation.
-            </p>
+          <div className="mt-4 border-t border-white/10 pt-4 text-center text-xs text-white/35">
+            <p>© {new Date().getFullYear()} Navly. All rights reserved. General educational information only — not legal advice.</p>
           </div>
         </div>
       </footer>
