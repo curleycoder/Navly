@@ -21,6 +21,7 @@ import { loadTasks } from '@/lib/tasks'
 import { PlanGate } from '@/components/ui/PlanGate'
 import { usePlan, hasPlan } from '@/lib/subscription'
 import { getLatestCutoff } from '@/lib/draws'
+import { NewcomerEssentials } from '@/components/dashboard/NewcomerEssentials'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -198,15 +199,24 @@ export default function DashboardPage() {
             {/* Progress bar */}
             <div className="mt-5">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs font-bold text-white/60">0</span>
-                <span className="text-xs font-bold text-white/60">Target {LATEST_CUTOFF}+</span>
-                <span className="text-xs font-bold text-white/60">600</span>
+                <span className="text-xs font-bold text-white/80">0</span>
+                <span className="text-xs font-bold text-white/80">Target {LATEST_CUTOFF}+</span>
+                <span className="text-xs font-bold text-white/80">600</span>
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-card/10" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
                 <div className="h-full rounded-full bg-navly-red transition-all duration-1000" style={{ width: `${progressPct}%` }} />
               </div>
               {!hasData && (
                 <p className="mt-2 text-xs text-muted-text">Complete your profile to unlock your score</p>
+              )}
+              {crs > 0 && (
+                <div className={`mt-2 rounded-lg px-3 py-1.5 text-center text-xs font-semibold ${
+                  crs >= LATEST_CUTOFF ? 'bg-green-500/20 text-green-300' : 'bg-white/5 text-white/80'
+                }`}>
+                  {crs >= LATEST_CUTOFF
+                    ? `${crs - LATEST_CUTOFF} pts above last cutoff ✓`
+                    : `${LATEST_CUTOFF - crs} pts below last cutoff (${LATEST_CUTOFF})`}
+                </div>
               )}
             </div>
           </Link>
@@ -284,6 +294,9 @@ export default function DashboardPage() {
           </div>
           <ChevronRight className="h-5 w-5 shrink-0 text-muted-text/50 transition group-hover:translate-x-0.5 group-hover:text-navly-red" aria-hidden="true" />
         </Link>
+
+        {/* ── Newcomer Essentials ──────────────────────────────────────── */}
+        <NewcomerEssentials province={profile?.intendedProvince ?? profile?.province} />
 
         {/* Disclaimer */}
         <p className="pb-2 text-center text-xs text-muted-text/70">
