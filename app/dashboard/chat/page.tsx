@@ -204,7 +204,8 @@ export default function ChatPage() {
 
   async function send(text?: string) {
     const content = (text ?? input).trim()
-    if (!content || loading || !isPaid) return
+    if (!content || loading) return
+    if (!isPaid) { setShowUpgradeModal(true); return }
 
     const userMessage: Message = { role: 'user', content }
     const next = [...messages, userMessage]
@@ -304,6 +305,10 @@ export default function ChatPage() {
         <div className="mb-2.5 rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-800">
           <span className="font-bold">{t('chat.educationalUse')}</span>{' '}
           {t('chat.educationalDesc')}
+        </div>
+        <div className="mb-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-text/70">
+          <span>Rules last verified: June 2026</span>
+          <span>Chat history is saved on this device only.</span>
         </div>
         <div className="flex items-start gap-2">
           <div className="flex-1 min-w-0">

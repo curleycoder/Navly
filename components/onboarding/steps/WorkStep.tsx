@@ -337,6 +337,14 @@ export function StepWork({ data, onChange }: { data: IntakeData; onChange: (fiel
               <Input id="workStart" type="date" value={data.workStartDate}
                 onChange={(e) => onChange({ workStartDate: e.target.value })} className={inputClass} />
             </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="passportExpiry" className="text-sm font-semibold text-heading">
+                Passport expiry
+                <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Navly will remind you when renewal is due.</span>
+              </Label>
+              <Input id="passportExpiry" type="month" value={data.passportExpiry}
+                onChange={(e) => onChange({ passportExpiry: e.target.value })} className={inputClass} />
+            </div>
           </div>
 
           <div className="flex flex-col gap-2">

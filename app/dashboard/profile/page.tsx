@@ -836,6 +836,11 @@ export default function ProfilePage() {
                   onChange={(e) => update({ visaExpiryDate: e.target.value })}
                   className="block w-full rounded-xl border-subtle focus-visible:ring-navly-red" />
               </SettingsRow>
+              <SettingsRow label="Passport expiry" value={data.passportExpiry || null} editing={ep}>
+                <Input type="month" value={data.passportExpiry}
+                  onChange={(e) => update({ passportExpiry: e.target.value })}
+                  className="block w-full rounded-xl border-subtle focus-visible:ring-navly-red" />
+              </SettingsRow>
             </SettingsGroup>
           )}
 

@@ -121,6 +121,7 @@ export type IntakeData = {
   // Worker-specific
   workPermitType: string
   permitExpiry: string          // 'YYYY-MM'
+  passportExpiry: string        // 'YYYY-MM' — used for passport renewal reminders
   wage: string                  // hourly CAD
   hoursPerWeek: string
   workStartDate: string         // 'YYYY-MM-DD'
@@ -294,6 +295,7 @@ export const EMPTY_PROFILE: IntakeData = {
   workAuthAfterGrad: '',
   workPermitType: '',
   permitExpiry: '',
+  passportExpiry: '',
   wage: '',
   hoursPerWeek: '',
   workStartDate: '',

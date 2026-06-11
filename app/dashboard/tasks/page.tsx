@@ -6,7 +6,7 @@ import { Plus, ListChecks, ChevronRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { loadTasks, saveTasks, generateTasks, type Task, type TaskCategory } from '@/lib/tasks'
+import { loadTasks, saveTasks, generateTasks, generateArrivalTasks, ARRIVAL_DONE_KEY, type Task, type TaskCategory } from '@/lib/tasks'
 import { loadProfile } from '@/lib/profile'
 import { calculateScore } from '@/lib/scoring'
 import { cn } from '@/lib/utils'
@@ -22,15 +22,29 @@ export default function TasksPage() {
   const [newTitle, setNewTitle] = useState('')
   const { message, showToast } = useToast()
 
+  const [arrivalTasks, setArrivalTasks] = useState<Task[]>([])
+  const [arrivalDone, setArrivalDone] = useState<Set<string>>(new Set())
+
   // Track if we've initialized so we don't flash empty state
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
+    const profile = loadProfile()
+
+    // Arrival tasks — generated fresh, completion stored separately
+    if (profile) {
+      setArrivalTasks(generateArrivalTasks(profile))
+    }
+    try {
+      const raw = localStorage.getItem(ARRIVAL_DONE_KEY)
+      if (raw) setArrivalDone(new Set(JSON.parse(raw)))
+    } catch { /* ignore */ }
+
+    // Main tasks
     const saved = typeof window !== 'undefined' ? localStorage.getItem('navly_tasks') : null;
     if (saved) {
       setTasks(loadTasks())
     } else {
-      const profile = loadProfile()
       if (profile) {
         const score = calculateScore(profile)
         const generated = generateTasks(profile, score)
@@ -42,6 +56,16 @@ export default function TasksPage() {
     }
     setIsLoaded(true)
   }, [])
+
+  function toggleArrival(id: string) {
+    setArrivalDone((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      try { localStorage.setItem(ARRIVAL_DONE_KEY, JSON.stringify([...next])) } catch { /* ignore */ }
+      return next
+    })
+    showToast(arrivalDone.has(id) ? 'Marked incomplete' : 'Task completed')
+  }
 
   function update(updated: Task[]) {
     setTasks(updated)
@@ -136,6 +160,78 @@ export default function TasksPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Arrival Checklist */}
+      {arrivalTasks.length > 0 && (
+        <div className="mb-8">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="t-eyebrow text-muted-text/70 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-navly-red" />
+              Arrival Checklist
+            </h2>
+            <span className="t-caption">
+              {arrivalTasks.filter(t => !arrivalDone.has(t.id)).length} remaining
+            </span>
+          </div>
+          <p className="mb-4 text-xs text-muted-text/60">Completion is saved on this device only.</p>
+          <div className="flex flex-col">
+            {arrivalTasks.map((t) => {
+              const done = arrivalDone.has(t.id)
+              const urgencyBadge =
+                t.urgency === 'now'   ? 'bg-red-100 text-red-700' :
+                t.urgency === 'week'  ? 'bg-amber-100 text-amber-700' :
+                                        'bg-slate-100 text-slate-600'
+              const urgencyLabel =
+                t.urgency === 'now'  ? 'Do now' :
+                t.urgency === 'week' ? 'This week' : 'This month'
+              return (
+                <div
+                  key={t.id}
+                  className={cn(
+                    'group flex items-start gap-4 rounded-2xl border p-4 transition-all mb-3',
+                    done ? 'border-subtle/50 bg-surface-alt shadow-none opacity-60' : 'border-subtle bg-surface-card shadow-sm hover:border-navly-navy/20 hover:shadow-md'
+                  )}
+                >
+                  <button
+                    onClick={() => toggleArrival(t.id)}
+                    className={cn(
+                      'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all focus:outline-none cursor-pointer',
+                      done ? 'border-[#10b981] bg-[#10b981]' : 'border-subtle hover:border-[#10b981] hover:bg-green-50'
+                    )}
+                  >
+                    {done && (
+                      <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 12 12">
+                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                      {!done && (
+                        <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider', urgencyBadge)}>
+                          {urgencyLabel}
+                        </span>
+                      )}
+                      <span className={cn('text-[15px] font-semibold', done ? 'text-muted-text/70 line-through' : 'text-heading')}>
+                        {t.title}
+                      </span>
+                    </div>
+                    {t.details && !done && (
+                      <p className="text-xs text-muted-text/70 mt-0.5 leading-5">{t.details}</p>
+                    )}
+                    {t.link && !done && (
+                      <a href={t.link} target="_blank" rel="noopener noreferrer"
+                        className="mt-1 inline-block text-xs font-semibold text-navly-red hover:underline">
+                        Official source →
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Pending Categories */}
       {Array.from(pendingByCategory.entries()).map(([category, catTasks]) => (
