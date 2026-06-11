@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase/client'
 
-export type Plan = 'report' | 'tracker' | null
+export type Plan = 'tracker' | null
 
 export function usePlan(): { plan: Plan; loading: boolean } {
   const [plan, setPlan] = useState<Plan>(null)
@@ -32,10 +32,7 @@ export function usePlan(): { plan: Plan; loading: boolean } {
   return { plan, loading }
 }
 
-/** Check whether a user's active plan covers the required feature plan.
- *  'tracker' is the highest tier and includes everything in 'report'. */
-export function hasPlan(userPlan: Plan, required: 'report' | 'tracker'): boolean {
-  if (!userPlan) return false
-  if (userPlan === 'tracker') return true  // tracker includes report
-  return userPlan === required
+/** Check whether a user has an active tracker plan. */
+export function hasPlan(userPlan: Plan, required: 'tracker'): boolean {
+  return userPlan === 'tracker'
 }

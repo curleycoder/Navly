@@ -137,17 +137,17 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-bold text-heading">6. Payment and refunds</h2>
             <p className="mt-3">
-              Paid features (Personalized Report and PR Tracker) are charged as described on the{' '}
+              The PR Tracker is charged as described on the{' '}
               <Link href="/pricing" className="font-semibold text-navly-red hover:underline">pricing page</Link>.
               All prices are in Canadian dollars (CAD) and include applicable taxes.
             </p>
             <p className="mt-3">
-              The Personalized Report is a one-time purchase. The PR Tracker is a recurring monthly
-              subscription that you may cancel at any time. Cancellation takes effect at the end of
-              the current billing period — no partial refunds are issued for unused time.
+              The PR Tracker is a recurring monthly subscription that you may cancel at any time.
+              Cancellation takes effect at the end of the current billing period — no partial refunds
+              are issued for unused time.
             </p>
             <p className="mt-3">
-              If you are not satisfied with a one-time Report purchase, contact us at{' '}
+              If you have a billing issue, contact us at{' '}
               <a href="mailto:support@navly.ca" className="font-semibold text-navly-red hover:underline">
                 support@navly.ca
               </a>{' '}

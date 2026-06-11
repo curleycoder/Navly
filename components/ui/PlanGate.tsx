@@ -3,18 +3,15 @@
 import { usePlan, hasPlan } from '@/lib/subscription'
 import { UpgradeBanner } from './UpgradeBanner'
 
-type RequiredPlan = 'report' | 'tracker'
-
 /**
- * Renders children only when the user has the required plan.
+ * Renders children only when the user has an active tracker plan.
  * Otherwise renders the UpgradeBanner (or a custom fallback).
  */
 export function PlanGate({
-  plan,
   children,
   fallback,
 }: {
-  plan: RequiredPlan
+  plan?: 'tracker'  // kept for call-site compatibility — always requires tracker
   children: React.ReactNode
   fallback?: React.ReactNode
 }) {
@@ -22,7 +19,7 @@ export function PlanGate({
 
   if (loading) return null
 
-  if (hasPlan(userPlan, plan)) return <>{children}</>
+  if (hasPlan(userPlan, 'tracker')) return <>{children}</>
 
-  return fallback !== undefined ? <>{fallback}</> : <UpgradeBanner plan={plan} />
+  return fallback !== undefined ? <>{fallback}</> : <UpgradeBanner />
 }

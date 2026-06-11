@@ -105,11 +105,9 @@ export default function DashboardPage() {
             </h1>
           </div>
           <span className={`mt-1 rounded-full px-2.5 py-1 text-xs font-bold ${
-            hasPlan(plan, 'tracker') ? 'bg-navly-red/10 text-navly-red'
-            : hasPlan(plan, 'report') ? 'bg-amber-100 text-amber-700'
-            : 'bg-subtle text-muted-text'
+            hasPlan(plan, 'tracker') ? 'bg-navly-red/10 text-navly-red' : 'bg-subtle text-muted-text'
           }`}>
-            {hasPlan(plan, 'tracker') ? 'PR Tracker' : hasPlan(plan, 'report') ? 'Readiness Report' : 'Free'}
+            {hasPlan(plan, 'tracker') ? 'PR Tracker' : 'Free'}
           </span>
         </div>
 

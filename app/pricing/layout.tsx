@@ -3,11 +3,11 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Pricing',
   description:
-    'Find your path to Canadian PR. Free eligibility check, Readiness Report for $29, or PR Tracker at $14.99/month.',
+    'Find your path to Canadian PR. Free eligibility check or PR Tracker at $14.99/month — full breakdown, daily tracking, and alerts in one plan.',
   openGraph: {
     title: 'Navly Pricing — Canadian PR Pathway Plans',
     description:
-      'Not sure where you stand? Start free. Need clarity? Get your Readiness Report. Already in the process? Let Navly track it for you.',
+      'Start free to see where you stand. Upgrade to PR Tracker for the full score breakdown, daily presence tracking, and alerts — everything in one plan.',
   },
 }
 

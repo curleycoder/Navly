@@ -4,15 +4,18 @@ import { createClient } from '@/lib/supabase/server'
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export async function POST(req: Request) {
-  const { plan } = (await req.json()) as { plan: 'report' | 'tracker' }
+  const { plan, billing = 'monthly' } = (await req.json()) as {
+    plan: string
+    billing?: 'monthly' | 'annual'
+  }
 
-  if (!plan || !['report', 'tracker'].includes(plan)) {
+  if (plan !== 'tracker') {
     return Response.json({ error: 'Invalid plan.' }, { status: 400 })
   }
 
-  const priceId = plan === 'tracker'
-    ? process.env.STRIPE_PRICE_TRACKER
-    : process.env.STRIPE_PRICE_REPORT
+  const priceId = billing === 'annual'
+    ? process.env.STRIPE_PRICE_TRACKER_ANNUAL
+    : process.env.STRIPE_PRICE_TRACKER
 
   if (!priceId) {
     return Response.json({ error: 'Stripe price not configured.' }, { status: 500 })
@@ -27,12 +30,13 @@ export async function POST(req: Request) {
   const userId = session.user.id
 
   const checkoutSession = await stripe.checkout.sessions.create({
-    mode: plan === 'tracker' ? 'subscription' : 'payment',
+    mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/checkout-success?plan=${plan}&session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/checkout-success?plan=tracker&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
     client_reference_id: userId,
-    metadata: { plan },
+    metadata: { plan: 'tracker', billing },
+    subscription_data: { trial_period_days: 7 },
     allow_promotion_codes: true,
   })
 

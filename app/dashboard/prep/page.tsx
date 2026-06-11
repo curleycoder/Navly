@@ -148,12 +148,12 @@ export default function PrepPage() {
         </p>
       </div>
 
-      <PlanGate plan="report" fallback={
+      <PlanGate plan="tracker" fallback={
         <div className="mt-4">
           <div className="mb-6 rounded-2xl border border-subtle bg-surface-alt p-8 text-center">
             <p className="mb-1 font-semibold text-heading">Unlock your consultation summary</p>
-            <p className="mb-4 text-sm text-muted-text">The full summary — with score breakdown, pathway analysis, and print/export — is included in the Personalized Report.</p>
-            <div className="mx-auto max-w-md"><UpgradeBanner plan="report" /></div>
+            <p className="mb-4 text-sm text-muted-text">The full summary — with score breakdown, pathway analysis, and print/export — is included in the PR Tracker.</p>
+            <div className="mx-auto max-w-md"><UpgradeBanner /></div>
           </div>
         </div>
       }>

@@ -109,34 +109,23 @@ const pricingPlans = [
     cta: "Start Free →",
   },
   {
-    name: "Personalized Report",
-    price: "$29.99",
-    desc: "Understand exactly where you stand today.",
+    name: "PR Tracker",
+    price: "$9.99/mo",
+    desc: "Full clarity + we watch your journey so you don't miss anything. Billed $119.99/year — or $14.99/month.",
     points: [
       "Full CRS + FSW score breakdown",
       "Top 3 PR pathways ranked for your profile",
       "Score improvement roadmap",
       "Province-by-province PNP match",
       "Consultant-ready PDF summary",
-    ],
-    href: "/pricing",
-    featured: true,
-    cta: "Get My Report →",
-  },
-  {
-    name: "PR Tracker",
-    price: "$14.99/mo",
-    desc: "We watch your immigration journey so you don't miss anything.",
-    points: [
       "Canada physical presence days tracker",
       "Permit expiry reminders",
       "Express Entry draw alerts",
       "Monthly CRS recalculation",
-      "Profile update reminders",
       "AI immigration assistant",
     ],
     href: "/pricing",
-    featured: false,
+    featured: true,
     cta: "Start Tracking →",
   },
 ];
@@ -450,7 +439,7 @@ export default async function Home() {
               Start free. Upgrade when ready.
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-(--page-body)">
-              Use the free check first. Pay only when you want a deeper report
+              Use the free check first. Upgrade to PR Tracker when you're ready for the full picture.
               or ongoing immigration tracking.
             </p>
           </div>

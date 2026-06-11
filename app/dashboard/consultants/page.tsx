@@ -90,7 +90,7 @@ export default function ConsultantsPage() {
   const [shared, setShared] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const { plan } = usePlan()
-  const isPaid = hasPlan(plan, 'report')
+  const isPaid = hasPlan(plan, 'tracker')
 
   useEffect(() => {
     const p = loadProfile()
@@ -299,13 +299,13 @@ export default function ConsultantsPage() {
             </div>
             <div>
               <p className="font-bold text-heading">Unlock your consultation checklist</p>
-              <p className="mt-1 text-sm text-muted-text">Get your Readiness Report to copy, email, download, or print your full profile summary.</p>
+              <p className="mt-1 text-sm text-muted-text">Get PR Tracker to copy, email, download, or print your full profile summary.</p>
             </div>
             <button
               onClick={() => setShowUpgradeModal(true)}
               className="inline-flex items-center gap-2 rounded-xl bg-navly-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-navly-navy/80 transition-colors"
             >
-              Get Personalized Report — $29.99
+              Get PR Tracker — $14.99/month
             </button>
           </div>
         )}
@@ -400,7 +400,7 @@ export default function ConsultantsPage() {
     </div>
 
     {showUpgradeModal && (
-      <UpgradeModal plan="report" onClose={() => setShowUpgradeModal(false)} />
+      <UpgradeModal onClose={() => setShowUpgradeModal(false)} />
     )}
     </>
   )
