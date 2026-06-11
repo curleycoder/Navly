@@ -53,7 +53,7 @@ const features = [
   },
   {
     title: "Pathway screening",
-    desc: "See possible routes like CEC, FSW, PNP, study-to-PR, family sponsorship, or citizenship.",
+    desc: "See possible routes like CEC, FSW, FST, PNP, study-to-PR, or citizenship.",
     icon: Target,
   },
   {

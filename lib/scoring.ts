@@ -358,7 +358,6 @@ function additionalPts(
   canadianEducation: string,
   canadianSibling: string,
   pnpNomination: boolean,
-  frenchBonus: number,
 ): number {
   let pts = 0
   if (pnpNomination) pts += 600
@@ -366,7 +365,6 @@ function additionalPts(
   if (canadianEducation === '3-plus-year') pts += 30
   else if (canadianEducation === '1-2-year') pts += 15
   if (canadianSibling === 'yes') pts += 15
-  pts += frenchBonus
   return pts
 }
 
@@ -530,6 +528,76 @@ function assessFSW(
       jobOffer: jobOfferPts,
       adaptability: adaptPts,
     },
+  }
+}
+
+// ─── FST Assessment ───────────────────────────────────────────────────────────
+
+function assessFST(profile: IntakeData, clb: CLBScores | null, foreignYears: number): PathwayStatus {
+  const teer = profile.teerLevel
+  // FST covers TEER 2 and 3 trade occupations — we use TEER as a proxy since we don't parse NOC groups
+  const tradesTeer = teer === '2' || teer === '3'
+
+  // Language: CLB 5 speaking + listening, CLB 4 reading + writing
+  const langOk = clb
+    ? clb.s >= 5 && clb.l >= 5 && clb.r >= 4 && clb.w >= 4
+    : false
+
+  // Work experience: 2+ years full-time skilled trade work in last 5 years
+  // We use foreignWorkYears as the signal (Canadian work also counts but treated separately)
+  const canYears = parseFloat(profile.canadianWorkMonths || '0') / 12
+  const totalSkillYears = foreignYears + canYears
+  const hasWorkExp = totalSkillYears >= 2
+
+  // Requirement: valid job offer (1+ year) OR certificate of qualification from a province/territory
+  // We track job offer; certificate of qualification field not yet in profile
+  const hasJobOffer = profile.hasJobOffer === 'yes'
+
+  if (!tradesTeer) {
+    return {
+      id: 'fst', name: 'Federal Skilled Trades',
+      status: 'not-applicable',
+      reason: 'FST requires a TEER 2 or 3 skilled trades occupation.',
+    }
+  }
+
+  if (!langOk && !clb) {
+    return {
+      id: 'fst', name: 'Federal Skilled Trades',
+      status: 'not-yet',
+      reason: 'FST requires CLB 5 in speaking and listening, and CLB 4 in reading and writing.',
+    }
+  }
+
+  if (!langOk) {
+    return {
+      id: 'fst', name: 'Federal Skilled Trades',
+      status: 'not-yet',
+      reason: `FST language minimum: CLB 5 speaking/listening, CLB 4 reading/writing. Your scores are below this threshold.`,
+    }
+  }
+
+  if (!hasWorkExp) {
+    const yearsLeft = Math.ceil((2 - totalSkillYears) * 10) / 10
+    return {
+      id: 'fst', name: 'Federal Skilled Trades',
+      status: 'not-yet',
+      reason: `FST requires 2 years of full-time skilled trade work in the last 5 years. You need approximately ${yearsLeft} more year${yearsLeft !== 1 ? 's' : ''}.`,
+    }
+  }
+
+  if (!hasJobOffer) {
+    return {
+      id: 'fst', name: 'Federal Skilled Trades',
+      status: 'possible',
+      reason: 'You may meet the FST work and language requirements. FST also needs either a valid full-time job offer of at least 1 year, or a certificate of qualification in your trade from a Canadian province/territory.',
+    }
+  }
+
+  return {
+    id: 'fst', name: 'Federal Skilled Trades',
+    status: 'eligible',
+    reason: 'You may meet the basic FST screening criteria: TEER 2/3 trades occupation, 2+ years experience, language minimum, and a job offer.',
   }
 }
 
@@ -891,7 +959,7 @@ export function calculateScore(profile: IntakeData): ScoreResult {
     canadianExperience: canadianWorkPts(canMonths, spouseComing),
     skillTransferability: skillTransferabilityPts(profile.educationLevel, clb, foreignYears, canMonths),
     // Job offer no longer adds CRS points as of March 25, 2025
-    additional: additionalPts(profile.canadianEducation, profile.canadianSibling, pnpNomination, frenchBonus),
+    additional: additionalPts(profile.canadianEducation, profile.canadianSibling, pnpNomination),
     total: 0,
   }
   breakdown.total = breakdown.age + breakdown.education + breakdown.firstLanguage +
@@ -925,6 +993,9 @@ export function calculateScore(profile: IntakeData): ScoreResult {
       ? `Settlement funds below the minimum required for FSW.`
       : `${fsw.score}/100 — below 67-point pass mark.`,
   })
+
+  // FST
+  pathways.push(assessFST(profile, clb, foreignYears))
 
   // PNP
   pathways.push({
