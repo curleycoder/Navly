@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import type { ConsultantListing } from '@/lib/consultants'
 import { loadProfile, statusLabels, goalLabels, type IntakeData } from '@/lib/profile'
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
-import { loadPresence, type PresenceData } from '@/lib/presence'
+import { EMPTY_PRESENCE, loadPresence, type PresenceData } from '@/lib/presence'
 import { loadTasks, type Task } from '@/lib/tasks'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -83,7 +83,7 @@ export default function ConsultantsPage() {
   // Profile / checklist state
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
-  const [presence, setPresence] = useState<PresenceData>({ totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null, lastAcknowledgedDate: null, arrivalDate: null, travelLog: [] })
+  const [presence, setPresence] = useState<PresenceData>(EMPTY_PRESENCE)
   const [tasks, setTasks] = useState<Task[]>([])
   const [notes, setNotes] = useState('')
   const [copied, setCopied] = useState(false)

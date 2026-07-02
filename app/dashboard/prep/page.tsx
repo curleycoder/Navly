@@ -12,7 +12,7 @@ import { PlanGate } from '@/components/ui/PlanGate'
 import { UpgradeBanner } from '@/components/ui/UpgradeBanner'
 import { loadTasks } from '@/lib/tasks'
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
-import { loadPresence, type PresenceData } from '@/lib/presence'
+import { EMPTY_PRESENCE, loadPresence, type PresenceData } from '@/lib/presence'
 import type { IntakeData } from '@/lib/profile'
 import type { Task } from '@/lib/tasks'
 
@@ -81,7 +81,7 @@ function buildSummaryText(
 export default function PrepPage() {
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
-  const [presence, setPresence] = useState<PresenceData>({ totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null, lastAcknowledgedDate: null, arrivalDate: null, travelLog: [] })
+  const [presence, setPresence] = useState<PresenceData>(EMPTY_PRESENCE)
   const [tasks, setTasks] = useState<Task[]>([])
   const [notes, setNotes] = useState('')
   const [copied, setCopied] = useState(false)
