@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { AlertTriangle, Clock, CheckCircle2, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
-import { syncProfile, type IntakeData } from '@/lib/profile'
+import type { IntakeData } from '@/lib/profile'
 import {
   getActiveDeadlines,
   formatDeadlineDate,
@@ -85,7 +85,7 @@ function DeadlineCard({ d }: { d: Deadline }) {
           <div className="flex items-start justify-between gap-2">
             <p className={`text-sm font-bold ${cfg.textClass}`}>{d.label}</p>
             <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${cfg.tagClass}`}>
-              {daysLabel}
+              {cfg.label} · {daysLabel}
             </span>
           </div>
           <p className={`mt-0.5 text-xs ${cfg.subTextClass}`}>

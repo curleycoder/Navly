@@ -127,7 +127,18 @@ export default function DashboardPage() {
         {/* ── Action Required (deadlines) ──────────────────────────────── */}
         {profile && (() => {
           const urgent = getUrgentDeadlines(profile).slice(0, 2)
-          if (urgent.length === 0) return null
+          if (urgent.length === 0) return (
+            <Link
+              href="/dashboard/dates"
+              className="flex items-center justify-between rounded-2xl border border-dashed border-subtle bg-surface-card p-4 transition hover:border-navly-red/30 hover:bg-navly-red/5"
+            >
+              <div>
+                <p className="text-sm font-semibold text-heading">Track your key dates</p>
+                <p className="mt-0.5 text-xs text-muted-text">Add permit expiry, passport, and language test dates to get deadline reminders.</p>
+              </div>
+              <ChevronRight className="ml-4 h-5 w-5 shrink-0 text-muted-text/50" aria-hidden="true" />
+            </Link>
+          )
           return (
             <div className="space-y-2">
               <div className="flex items-center justify-between">

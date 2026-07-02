@@ -1,13 +1,18 @@
 /**
- * Cron route — sends permit expiry warnings and daily check-in reminders.
+ * Cron route — deadline expiry reminders + daily check-in reminders.
  *
  * Called by Vercel Cron (see vercel.json) or manually via GET with
  * Authorization: Bearer <CRON_SECRET>
  *
- * Email is sent via Resend (https://resend.com). Set RESEND_API_KEY in env.
- * If no key is set, notifications are logged only (safe for development).
+ * Email is sent via Brevo. Set BREVO_API_KEY and BREVO_FROM_EMAIL in env.
+ * If no key is set, emails are logged only (safe for development).
+ *
+ * Dedup: deadline reminders are recorded in public.deadline_reminders.
+ * Each (user_id, deadline_id, threshold_days) is sent at most once.
  */
 import { createClient } from '@supabase/supabase-js'
+import { EMPTY_PROFILE, type IntakeData } from '@/lib/profile'
+import { computeDeadlines, ALERT_DAYS, formatDeadlineDate } from '@/lib/deadlines'
 
 function adminDb() {
   return createClient(
@@ -22,7 +27,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
     console.log(`[reminders] (no BREVO_API_KEY) Would send to ${to}: ${subject}`)
     return
   }
-  await fetch('https://api.brevo.com/v3/smtp/email', {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
       'api-key': apiKey,
@@ -35,43 +40,47 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
       htmlContent: html,
     }),
   })
+  if (!res.ok) {
+    const body = await res.text()
+    throw new Error(`Brevo ${res.status}: ${body}`)
+  }
 }
 
-function permitExpiryHtml(daysLeft: number, permitType: string, expiryDate: string, renewalFee: string, renewalUrl: string): string {
-  const urgency = daysLeft <= 30 ? 'critical' : 'warning'
-  const color = urgency === 'critical' ? '#D62828' : '#D97706'
+// ─── Email templates ──────────────────────────────────────────────────────────
+
+function deadlineEmailHtml(opts: {
+  label: string
+  date: string
+  daysUntil: number
+  action: string
+  officialUrl: string
+  isExpired: boolean
+}): string {
+  const { label, date, daysUntil, action, officialUrl, isExpired } = opts
+  const statusColor = isExpired ? '#D62828' : daysUntil <= 60 ? '#D97706' : '#1D4ED8'
+  const daysLine = isExpired
+    ? `<strong style="color:${statusColor}">Expired ${Math.abs(daysUntil)} day${Math.abs(daysUntil) !== 1 ? 's' : ''} ago</strong>`
+    : `expires in <strong style="color:${statusColor}">${daysUntil} day${daysUntil !== 1 ? 's' : ''}</strong>`
+
   return `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
-      <h2 style="color:#0B1F3A;margin-bottom:8px">Permit expiry reminder</h2>
-      <p style="color:#374151">Your <strong>${permitType}</strong> expires in <strong style="color:${color}">${daysLeft} day${daysLeft !== 1 ? 's' : ''}</strong> — on <strong>${expiryDate}</strong>.</p>
-      ${urgency === 'critical'
-        ? '<p style="color:#D62828;font-weight:600">This is urgent — file your extension or change of status immediately to maintain implied status.</p>'
-        : '<p style="color:#374151">Apply to extend or renew at least 30 days before expiry to stay on valid status.</p>'
-      }
-      <table style="margin-top:16px;border-collapse:collapse;width:100%">
-        <tr>
-          <td style="padding:8px 12px;background:#F9FAFB;border:1px solid #E5E7EB;font-size:13px;color:#374151;font-weight:600">Expiry date</td>
-          <td style="padding:8px 12px;background:#F9FAFB;border:1px solid #E5E7EB;font-size:13px;color:#374151">${expiryDate}</td>
-        </tr>
-        <tr>
-          <td style="padding:8px 12px;border:1px solid #E5E7EB;font-size:13px;color:#374151;font-weight:600">Renewal fee</td>
-          <td style="padding:8px 12px;border:1px solid #E5E7EB;font-size:13px;color:#374151">${renewalFee}</td>
-        </tr>
-        <tr>
-          <td style="padding:8px 12px;background:#F9FAFB;border:1px solid #E5E7EB;font-size:13px;color:#374151;font-weight:600">How to renew</td>
-          <td style="padding:8px 12px;background:#F9FAFB;border:1px solid #E5E7EB;font-size:13px"><a href="${renewalUrl}" style="color:#D62828">IRCC renewal instructions →</a></td>
-        </tr>
-      </table>
-      <div style="margin-top:16px;display:flex;gap:12px">
-        <a href="https://navly.ca/dashboard" style="display:inline-block;background:#D62828;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">
-          View my tracker
+      <h2 style="color:#0B1F3A;margin-bottom:8px">${isExpired ? 'Expired' : 'Reminder'}: ${label}</h2>
+      <p style="color:#374151">Your <strong>${label}</strong> ${daysLine} — date: <strong>${date}</strong>.</p>
+      <p style="color:#374151;margin-top:12px">${action}</p>
+      <div style="margin-top:20px">
+        <a href="https://navly.ca/dashboard/dates"
+           style="display:inline-block;background:#D62828;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;margin-right:12px">
+          View in Navly
         </a>
-        <a href="${renewalUrl}" style="display:inline-block;background:#0B1F3A;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">
-          Renew on IRCC
+        <a href="${officialUrl}"
+           style="display:inline-block;background:#0B1F3A;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">
+          Official IRCC guidance
         </a>
       </div>
       <p style="margin-top:24px;font-size:12px;color:#9CA3AF">
-        Navly is a planning tool only — not legal advice. Fees shown are from IRCC's public fee schedule and may change. Always verify at canada.ca before submitting payment. Consult a licensed RCIC or immigration lawyer for advice about your specific situation.
+        Navly is a planning tool only — not legal advice. Always verify dates and requirements at canada.ca
+        before making decisions. For your specific situation, consult a licensed Regulated Canadian
+        Immigration Consultant (RCIC) or immigration lawyer.
       </p>
     </div>
   `
@@ -82,8 +91,9 @@ function checkinReminderHtml(streak: number): string {
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
       <h2 style="color:#0B1F3A;margin-bottom:8px">Daily Canada check-in</h2>
       <p style="color:#374151">Don't forget to confirm you were in Canada today to keep your presence log accurate.</p>
-      ${streak > 0 ? `<p style="color:#374151">Your current streak: <strong style="color:#F97316">${streak} day${streak !== 1 ? 's' : ''}</strong> 🔥</p>` : ''}
-      <a href="https://navly.ca/dashboard/days" style="display:inline-block;margin-top:16px;background:#0B1F3A;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600">
+      ${streak > 0 ? `<p style="color:#374151">Your current streak: <strong style="color:#F97316">${streak} day${streak !== 1 ? 's' : ''}</strong></p>` : ''}
+      <a href="https://navly.ca/dashboard/days"
+         style="display:inline-block;margin-top:16px;background:#0B1F3A;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600">
         Log today's check-in
       </a>
       <p style="margin-top:24px;font-size:12px;color:#9CA3AF">
@@ -93,8 +103,22 @@ function checkinReminderHtml(streak: number): string {
   `
 }
 
+// ─── Threshold logic ──────────────────────────────────────────────────────────
+
+// Returns the single threshold to notify for this deadline today, or null if
+// it's too early (> 180 days out) or already past the expired state.
+// Only the closest upcoming threshold is returned — prevents multiple emails
+// on first sign-up when several thresholds are already past.
+function thresholdToSend(daysUntil: number): number | null {
+  if (daysUntil < 0) return 0  // expired notification
+  // ALERT_DAYS is [180, 120, 90, 60, 30, 7] — sort ascending to find smallest >= daysUntil
+  const ascending = [...ALERT_DAYS].sort((a, b) => a - b)
+  return ascending.find(t => t >= daysUntil) ?? null
+}
+
+// ─── Handler ──────────────────────────────────────────────────────────────────
+
 export async function GET(req: Request) {
-  // Auth check
   const secret = process.env.CRON_SECRET
   const auth = req.headers.get('authorization')
   if (!secret || auth !== `Bearer ${secret}`) {
@@ -103,32 +127,33 @@ export async function GET(req: Request) {
 
   const db = adminDb()
   const today = new Date().toISOString().slice(0, 10)
-  let permitWarnings = 0
-  let checkinReminders = 0
+  let deadlinesSent = 0
+  let checkinsSent = 0
   const errors: string[] = []
 
-  // Fetch all users with profile data — paginated to handle any number of users
+  // ── Fetch all profiles (paginated) ──────────────────────────────────────────
   const PAGE_SIZE = 500
-  let profiles: { id: string; profile_data: Record<string, string> }[] = []
+  const profiles: { id: string; profile_data: Record<string, unknown> }[] = []
   let offset = 0
   while (true) {
-    const { data: page, error: pageErr } = await db
+    const { data: page, error } = await db
       .from('profiles')
       .select('id, profile_data')
+      .not('profile_data', 'is', null)
       .range(offset, offset + PAGE_SIZE - 1)
-    if (pageErr) return Response.json({ error: pageErr.message }, { status: 500 })
+    if (error) return Response.json({ error: error.message }, { status: 500 })
     if (!page || page.length === 0) break
-    profiles = profiles.concat(page)
+    profiles.push(...page)
     if (page.length < PAGE_SIZE) break
     offset += PAGE_SIZE
   }
 
-  // Fetch user emails via auth.users — paginated to handle any number of users
+  // ── Fetch user emails ────────────────────────────────────────────────────────
   const emailById: Record<string, string> = {}
   let authPage = 1
   while (true) {
-    const { data: { users }, error: usersErr } = await db.auth.admin.listUsers({ page: authPage, perPage: 1000 })
-    if (usersErr) return Response.json({ error: usersErr.message }, { status: 500 })
+    const { data: { users }, error } = await db.auth.admin.listUsers({ page: authPage, perPage: 1000 })
+    if (error) return Response.json({ error: error.message }, { status: 500 })
     if (!users || users.length === 0) break
     for (const u of users) {
       if (u.email) emailById[u.id] = u.email
@@ -137,44 +162,58 @@ export async function GET(req: Request) {
     authPage++
   }
 
+  // ── Process each profile ─────────────────────────────────────────────────────
   for (const row of profiles) {
     const email = emailById[row.id]
     if (!email) continue
 
-    const profile = row.profile_data as Record<string, string>
+    const profile: IntakeData = { ...EMPTY_PROFILE, ...(row.profile_data as Partial<IntakeData>) }
 
-    // ── Permit expiry warning ──────────────────────────────────────────────
-    const expiryStr = profile.visaExpiryDate || (profile.permitExpiry ? profile.permitExpiry + '-01' : '')
-    if (expiryStr) {
-      const expiry = new Date(expiryStr)
-      const daysLeft = Math.floor((expiry.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    // ── Deadline reminders ───────────────────────────────────────────────────
+    const deadlines = computeDeadlines(profile).filter(d => d.relevant)
 
-      // Warn at 90, 60, 30, 14, and 7 days
-      if ([90, 60, 30, 14, 7].includes(daysLeft)) {
-        const permitInfoMap: Record<string, { label: string; fee: string; renewalUrl: string }> = {
-          student: { label: 'Study permit', fee: '$150 CAD', renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/extend-study-permit.html' },
-          'work-permit': { label: 'Work permit', fee: '$155 CAD', renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit/temporary/extend.html' },
-          visitor: { label: 'Visitor status', fee: '$100 CAD', renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/extend-stay.html' },
-          'family-member': { label: 'Work/study permit', fee: '$155 CAD', renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit/temporary/extend.html' },
-          pr: { label: 'PR card', fee: '$50 CAD', renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/new-immigrants/pr-card/apply-renew-replace.html' },
-        }
-        const pInfo = permitInfoMap[profile.status] ?? { label: profile.workPermitType || profile.status || 'permit', fee: 'See IRCC website', renewalUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada.html' }
-        const expiryDate = expiry.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })
-        try {
-          await sendEmail(
-            email,
-            `Action needed: your ${pInfo.label} expires in ${daysLeft} days`,
-            permitExpiryHtml(daysLeft, pInfo.label, expiryDate, pInfo.fee, pInfo.renewalUrl)
-          )
-          permitWarnings++
-        } catch (e) {
-          errors.push(`permit warning for ${row.id}: ${(e as Error).message}`)
-        }
+    for (const d of deadlines) {
+      const threshold = thresholdToSend(d.daysUntil)
+      if (threshold === null) continue  // > 180 days out, too early
+
+      // Check if already sent for this threshold
+      const { data: existing } = await db
+        .from('deadline_reminders')
+        .select('id')
+        .eq('user_id', row.id)
+        .eq('deadline_id', d.id)
+        .eq('threshold_days', threshold)
+        .maybeSingle()
+
+      if (existing) continue  // already sent
+
+      const subject = d.status === 'expired'
+        ? `${d.label} — date has passed`
+        : `${d.label} — ${d.daysUntil} day${d.daysUntil !== 1 ? 's' : ''} remaining`
+
+      const html = deadlineEmailHtml({
+        label: d.label,
+        date: formatDeadlineDate(d.date),
+        daysUntil: d.daysUntil,
+        action: d.action,
+        officialUrl: d.officialUrl,
+        isExpired: d.status === 'expired',
+      })
+
+      try {
+        await sendEmail(email, subject, html)
+        await db.from('deadline_reminders').insert({
+          user_id: row.id,
+          deadline_id: d.id,
+          threshold_days: threshold,
+        })
+        deadlinesSent++
+      } catch (e) {
+        errors.push(`deadline ${d.id} for ${row.id}: ${(e as Error).message}`)
       }
     }
 
-    // ── Daily check-in reminder ────────────────────────────────────────────
-    // Only send to tracker subscribers
+    // ── Daily check-in reminder (tracker subscribers only) ───────────────────
     const { data: sub } = await db
       .from('subscriptions')
       .select('plan')
@@ -183,32 +222,29 @@ export async function GET(req: Request) {
       .maybeSingle()
 
     if (sub?.plan === 'tracker') {
-      // Check if user already checked in today
-      const { data: presence } = await db
+      const { data: alreadyCheckedIn } = await db
         .from('presence_logs')
         .select('date')
         .eq('user_id', row.id)
         .eq('date', today)
         .maybeSingle()
 
-      if (!presence) {
-        // Get streak from presence data
+      if (!alreadyCheckedIn) {
         const { data: streakRow } = await db
           .from('presence_streaks')
           .select('streak')
           .eq('user_id', row.id)
           .maybeSingle()
-        const streak = streakRow?.streak ?? 0
 
         try {
           await sendEmail(
             email,
             "Don't forget your Canada check-in today",
-            checkinReminderHtml(streak)
+            checkinReminderHtml(streakRow?.streak ?? 0)
           )
-          checkinReminders++
+          checkinsSent++
         } catch (e) {
-          errors.push(`check-in reminder for ${row.id}: ${(e as Error).message}`)
+          errors.push(`check-in for ${row.id}: ${(e as Error).message}`)
         }
       }
     }
@@ -217,8 +253,8 @@ export async function GET(req: Request) {
   return Response.json({
     ok: true,
     date: today,
-    permitWarnings,
-    checkinReminders,
+    deadlinesSent,
+    checkinsSent,
     errors: errors.length > 0 ? errors : undefined,
   })
 }
