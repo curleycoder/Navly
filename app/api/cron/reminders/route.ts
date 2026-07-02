@@ -176,12 +176,14 @@ export async function GET(req: Request) {
       const threshold = thresholdToSend(d.daysUntil)
       if (threshold === null) continue  // > 180 days out, too early
 
-      // Check if already sent for this threshold
+      // Check if already sent for this threshold + this exact date
+      // Including deadline_date means a changed expiry date allows new reminders
       const { data: existing } = await db
         .from('deadline_reminders')
         .select('id')
         .eq('user_id', row.id)
         .eq('deadline_id', d.id)
+        .eq('deadline_date', d.date)
         .eq('threshold_days', threshold)
         .maybeSingle()
 
@@ -205,6 +207,7 @@ export async function GET(req: Request) {
         await db.from('deadline_reminders').insert({
           user_id: row.id,
           deadline_id: d.id,
+          deadline_date: d.date,
           threshold_days: threshold,
         })
         deadlinesSent++

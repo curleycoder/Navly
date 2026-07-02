@@ -416,8 +416,8 @@ export const fr: LocaleDict = {
   },
 
   pathways: {
-    eligible: 'Admissible',
-    possible: 'Possible',
+    eligible: 'Semble correspondre',
+    possible: 'Peut valoir la peine d\'explorer',
     notReady: 'Pas encore prêt',
     weak: 'Voie faible',
     missing: 'Exigence manquante',
@@ -483,9 +483,9 @@ export const fr: LocaleDict = {
     unlockTitle: 'Débloquer le bilan complet',
     unlockDesc: 'Consultez votre score CRS par catégorie, toutes vos voies admissibles, et les améliorations exactes qui feraient bouger votre score.',
     topPathwayPreview: 'Aperçu de la meilleure voie',
-    eligible: 'Admissible',
-    possible: 'Possible',
-    notReady: 'Pas prêt',
+    eligible: 'Semble correspondre',
+    possible: 'Peut valoir la peine d\'explorer',
+    notReady: 'Pas encore prêt',
     startProfile: 'Compléter votre profil',
     reminder: 'Rappel :',
     reminderText: "Navly fournit des estimations basées sur les données que vous avez saisies. L'admissibilité finale dépend des règles officielles de l'IRCC et de l'examen des documents par un professionnel agréé. Il ne s'agit pas d'un avis juridique.",

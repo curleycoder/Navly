@@ -2,15 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { TrendingUp, LayoutDashboard, MessageSquare, ListChecks, UserCircle } from 'lucide-react'
+import { LayoutDashboard, CalendarDays, MapPin, ListChecks, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const BOTTOM_TABS = [
-  { href: '/dashboard/tasks', label: 'Tasks', icon: ListChecks, tourId: 'nav-tasks' },
-  { href: '/dashboard/pr-tracker', label: 'Tracker', icon: TrendingUp, tourId: 'nav-tracker' },
   { href: '/dashboard', label: 'Home', icon: LayoutDashboard, tourId: undefined },
-  { href: '/dashboard/chat', label: 'AI', icon: MessageSquare, tourId: 'nav-ai' },
-  { href: '/dashboard/profile', label: 'Profile', icon: UserCircle, tourId: 'nav-profile' },
+  { href: '/dashboard/dates', label: 'Dates', icon: CalendarDays, tourId: 'nav-dates' },
+  { href: '/dashboard/days', label: 'Travel', icon: MapPin, tourId: 'nav-travel' },
+  { href: '/dashboard/tasks', label: 'Tasks', icon: ListChecks, tourId: 'nav-tasks' },
+  { href: '/dashboard/chat', label: 'Ask', icon: MessageSquare, tourId: 'nav-ai' },
 ]
 
 export function BottomNav() {

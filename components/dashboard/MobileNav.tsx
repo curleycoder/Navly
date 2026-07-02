@@ -20,6 +20,7 @@ export function MobileNav() {
 
   const PAGE_TITLES: Record<string, string> = {
     '/dashboard': t('nav.home'),
+    '/dashboard/dates': 'Important Dates',
     '/dashboard/pr-tracker': t('nav.prTracker'),
     '/dashboard/days': t('nav.daysInCanada'),
     '/dashboard/tasks': t('nav.tasks'),

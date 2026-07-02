@@ -234,7 +234,6 @@ export default function DashboardPage() {
             <div className="mt-5">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs font-bold text-white/80">0</span>
-                <span className="text-xs font-bold text-white/80">Target {LATEST_CUTOFF}+</span>
                 <span className="text-xs font-bold text-white/80">600</span>
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-card/10" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
@@ -242,15 +241,6 @@ export default function DashboardPage() {
               </div>
               {!hasData && (
                 <p className="mt-2 text-xs text-muted-text">Complete your profile to unlock your score</p>
-              )}
-              {crs > 0 && (
-                <div className={`mt-2 rounded-lg px-3 py-1.5 text-center text-xs font-semibold ${
-                  crs >= LATEST_CUTOFF ? 'bg-green-500/20 text-green-300' : 'bg-white/5 text-white/80'
-                }`}>
-                  {crs >= LATEST_CUTOFF
-                    ? `${crs - LATEST_CUTOFF} pts above last cutoff ✓`
-                    : `${LATEST_CUTOFF - crs} pts below last cutoff (${LATEST_CUTOFF})`}
-                </div>
               )}
             </div>
           </Link>

@@ -204,8 +204,8 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
     return {
       title: 'PGWP & CEC readiness',
       details: [
-        { label: 'PGWP', value: pgwp ? (pgwp.status === 'eligible' ? 'Eligible' : pgwp.status === 'possible' ? 'Likely' : 'Check') : 'Pending' },
-        { label: 'CEC', value: cec ? (cec.status === 'eligible' ? 'Eligible' : 'Not yet') : 'Not yet' },
+        { label: 'PGWP', value: pgwp ? (pgwp.status === 'eligible' ? 'Appears to match' : pgwp.status === 'possible' ? 'Possible' : 'Check') : 'Pending' },
+        { label: 'CEC', value: cec ? (cec.status === 'eligible' ? 'Appears to match' : 'Not ready yet') : 'Not ready yet' },
         { label: 'Min lang', value: minLang >= 7 ? `CLB ${minLang} ✓` : `CLB ${minLang || '?'} (need 7)` },
       ],
       status: (cec?.status === 'eligible' ? 'Complete' : pgwp?.status === 'eligible' ? 'In Progress' : 'Required') as 'Complete' | 'In Progress' | 'Required',
@@ -224,7 +224,7 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
     title: 'Pathway eligibility',
     details: currentScore.pathways.filter(p => p.status !== 'not-applicable').slice(0, 3).map(p => ({
       label: p.name.replace('Federal Skilled Worker', 'FSW').replace('Canadian Experience Class', 'CEC').replace('Provincial Nominee', 'PNP'),
-      value: p.status === 'eligible' ? 'Eligible ✓' : p.status === 'possible' ? 'Possible' : 'Not yet',
+      value: p.status === 'eligible' ? 'Appears to match' : p.status === 'possible' ? 'May be worth exploring' : 'Not ready yet',
     })),
     status: (isEligible ? 'Complete' : currentScore.pathways.some(p => p.status === 'possible') ? 'In Progress' : 'Under Review') as 'Complete' | 'In Progress' | 'Under Review',
     progress: isEligible ? 100 : currentScore.pathways.some(p => p.status === 'possible') ? 70 : 40,
@@ -426,7 +426,7 @@ function PNPStreamRow({ s }: { s: PNPStream }) {
             ))}
           </div>
           {s.readinessItems.every((item: ReadinessItem) => item.met && !item.warning) ? (
-            <p className="mt-2 text-xs font-semibold text-green-700">All gates confirmed — eligible to apply.</p>
+            <p className="mt-2 text-xs font-semibold text-green-700">All criteria appear to be met — review with a licensed RCIC before applying.</p>
           ) : s.readinessItems.every((item: ReadinessItem) => item.met) ? (
             <p className="mt-2 text-xs font-semibold text-amber-700">Gates met but some items need verification before applying.</p>
           ) : (

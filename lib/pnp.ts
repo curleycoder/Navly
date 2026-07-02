@@ -702,10 +702,10 @@ export function matchPNPStreams(profile: IntakeData): PNPStream[] {
 }
 
 export const pnpStatusLabels: Record<PNPStreamStatus, string> = {
-  eligible: 'Likely eligible',
-  possible: 'Possible',
-  'not-yet': 'Not yet',
-  'not-applicable': 'Not applicable',
+  eligible: 'Appears to match',
+  possible: 'May be worth exploring',
+  'not-yet': 'Not ready yet',
+  'not-applicable': 'Not a likely match',
 }
 
 export const pnpStatusColors: Record<PNPStreamStatus, string> = {
