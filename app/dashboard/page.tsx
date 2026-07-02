@@ -13,15 +13,14 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useLocale } from '@/lib/i18n'
-import { loadProfile, loadProfileFromSupabase, statusLabels, getPermitWarning, type IntakeData } from '@/lib/profile'
-import { loadPresence, checkIn, isCheckedInToday, getDaysInCanada, type PresenceData } from '@/lib/presence'
+import { syncProfile, statusLabels, type IntakeData } from '@/lib/profile'
+import { EMPTY_PRESENCE, syncPresence, syncPresenceToSupabase, checkIn, isCheckedInToday, getDaysInCanada, type PresenceData } from '@/lib/presence'
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import { loadTasks } from '@/lib/tasks'
-import { PlanGate } from '@/components/ui/PlanGate'
 import { usePlan, hasPlan } from '@/lib/subscription'
 import { getLatestCutoff } from '@/lib/draws'
-import { NewcomerEssentials } from '@/components/dashboard/NewcomerEssentials'
+import { getUrgentDeadlines, formatDeadlineDate } from '@/lib/deadlines'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -45,26 +44,23 @@ export default function DashboardPage() {
   const { plan } = usePlan()
   const [profile, setProfile] = useState<IntakeData | null>(null)
   const [score, setScore] = useState<ScoreResult | null>(null)
-  const [presence, setPresence] = useState<PresenceData>({
-    totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null,
-    lastAcknowledgedDate: null, arrivalDate: null, travelLog: [],
-  })
+  const [presence, setPresence] = useState<PresenceData>(EMPTY_PRESENCE)
+  const [userId, setUserId] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     async function init() {
-      let p = loadProfile()
-      if (!p) {
-        const { supabase } = await import('@/lib/supabase/client')
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) p = await loadProfileFromSupabase(user.id)
-      }
+      const { supabase } = await import('@/lib/supabase/client')
+      const { data: { user } } = await supabase.auth.getUser()
+      const uid = user?.id ?? null
+      setUserId(uid)
+
+      const p = uid ? await syncProfile(uid) : null
       setProfile(p)
-      if (p) {
-        const s = calculateScore(p)
-        setScore(s)
-      }
-      setPresence(loadPresence())
+      if (p) setScore(calculateScore(p))
+
+      const presenceData = uid ? await syncPresence(uid) : EMPTY_PRESENCE
+      setPresence(presenceData)
       setLoaded(true)
     }
     init()
@@ -79,7 +75,6 @@ export default function DashboardPage() {
   const tasks = loadTasks()
   const nextTask = tasks.find((t) => !t.done)
   const doneTasks = tasks.filter((t) => t.done).length
-  const topPathway = score?.pathways.find((p) => p.status === 'eligible' || p.status === 'possible')
   // Seed arrival date from profile if presence tracker hasn't been set up yet
   const effectivePresence = presence.arrivalDate
     ? presence
@@ -89,7 +84,9 @@ export default function DashboardPage() {
   const progressPct = crs > 0 ? Math.max(3, Math.round((crs / 600) * 100)) : 3
 
   function handleHomeCheckIn() {
-    setPresence(checkIn())
+    const updated = checkIn()
+    setPresence(updated)
+    if (userId) syncPresenceToSupabase(userId, updated).catch(() => {})
   }
 
   return (
@@ -127,38 +124,66 @@ export default function DashboardPage() {
           </Link>
         )}
 
-        {/* ── Permit warning ───────────────────────────────────────────── */}
+        {/* ── Action Required (deadlines) ──────────────────────────────── */}
         {profile && (() => {
-          const w = getPermitWarning(profile)
-          if (!w) return null
+          const urgent = getUrgentDeadlines(profile).slice(0, 2)
+          if (urgent.length === 0) return null
           return (
-            <PlanGate plan="tracker" fallback={null}>
-              <div role="alert" className={`rounded-2xl border-l-4 p-4 ${w.urgent ? 'border-l-red-500 bg-red-50' : 'border-l-amber-400 bg-amber-50'}`}>
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className={`mt-0.5 h-5 w-5 shrink-0 ${w.urgent ? 'text-red-500' : 'text-amber-500'}`} aria-hidden="true" />
-                  <div className="min-w-0 flex-1">
-                    <p className={`text-sm font-bold ${w.urgent ? 'text-red-900' : 'text-amber-900'}`}>
-                      {w.daysLeft <= 0
-                        ? `${w.permitLabel} may have expired`
-                        : `${w.permitLabel} expires in ${w.daysLeft} day${w.daysLeft !== 1 ? 's' : ''}`}
-                    </p>
-                    <p className={`mt-0.5 text-xs ${w.urgent ? 'text-red-700' : 'text-amber-700'}`}>
-                      Expiry: <strong>{w.expiryDate}</strong> · Fee: <strong>{w.renewalFee}</strong>
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <a href={w.renewalUrl} target="_blank" rel="noopener noreferrer"
-                        className={`inline-flex min-h-[36px] items-center rounded-xl px-3 py-1.5 text-xs font-semibold transition ${w.urgent ? 'bg-red-100 text-red-800 hover:bg-red-200' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'}`}>
-                        How to renew →
-                      </a>
-                      <Link href="/dashboard/consultants"
-                        className={`inline-flex min-h-[36px] items-center rounded-xl px-3 py-1.5 text-xs font-semibold transition ${w.urgent ? 'bg-red-100 text-red-800 hover:bg-red-200' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'}`}>
-                        Find a consultant →
-                      </Link>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-text">Action Required</p>
+                <Link href="/dashboard/dates" className="text-xs font-semibold text-navly-red hover:underline">
+                  See all →
+                </Link>
+              </div>
+              {urgent.map((d) => {
+                const isExpired = d.status === 'expired'
+                const isUrgent = d.status === 'urgent'
+                return (
+                  <div
+                    key={d.id}
+                    role="alert"
+                    className={`rounded-2xl border-l-4 p-4 ${
+                      isExpired
+                        ? 'border-l-red-500 bg-red-50'
+                        : isUrgent
+                          ? 'border-l-amber-400 bg-amber-50'
+                          : 'border-l-blue-400 bg-blue-50'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle
+                        className={`mt-0.5 h-5 w-5 shrink-0 ${
+                          isExpired ? 'text-red-500' : isUrgent ? 'text-amber-500' : 'text-blue-500'
+                        }`}
+                        aria-hidden="true"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-sm font-bold ${
+                          isExpired ? 'text-red-900' : isUrgent ? 'text-amber-900' : 'text-blue-900'
+                        }`}>
+                          {isExpired
+                            ? `${d.label} may have expired`
+                            : `${d.label} expires in ${d.daysUntil} day${d.daysUntil !== 1 ? 's' : ''}`}
+                        </p>
+                        <p className={`mt-0.5 text-xs ${
+                          isExpired ? 'text-red-700' : isUrgent ? 'text-amber-700' : 'text-blue-700'
+                        }`}>
+                          {formatDeadlineDate(d.date)}
+                        </p>
+                        <div className="mt-3">
+                          <Link href="/dashboard/dates" className={`inline-flex min-h-[36px] items-center rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+                            isExpired ? 'bg-red-100 text-red-800 hover:bg-red-200' : isUrgent ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                          }`}>
+                            View details →
+                          </Link>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </PlanGate>
+                )
+              })}
+            </div>
           )
         })()}
 
@@ -226,26 +251,34 @@ export default function DashboardPage() {
 
             {/* Days in Canada */}
             {!isOutside && effectivePresence.arrivalDate && (
-              <div data-tour="days" className={`flex flex-col rounded-2xl border bg-surface-card p-4 ${checkedInToday ? 'border-subtle' : 'border-orange-200'}`}>
-                <div className="flex items-center justify-between">
-                  <CalendarDays className={`h-10 w-10 ${checkedInToday ? 'text-heading' : 'text-orange-400'}`} aria-hidden="true" />
-                  <p className="t-stat leading-none">{daysInCanada}</p>
-                </div>
-                <p className="mt-2 t-caption">Days in Canada</p>
-                <div className="mt-auto pt-3 flex items-center gap-2">
+              <div data-tour="days" className={`flex flex-col rounded-2xl border p-4 ${checkedInToday ? 'border-blue-100 bg-blue-50' : 'border-orange-200 bg-orange-50'}`}>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${checkedInToday ? 'bg-navly-navy/10' : 'bg-orange-100'}`}>
+                      <CalendarDays className={`h-4 w-4 ${checkedInToday ? 'text-navly-navy' : 'text-orange-500'}`} aria-hidden="true" />
+                    </div>
+                    <p className={`truncate text-xs font-semibold ${checkedInToday ? 'text-navly-navy/60' : 'text-orange-700/70'}`}>Days in Canada</p>
+                  </div>
                   {checkedInToday ? (
-                    <>
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100">
-                        <CheckCircle2 className="h-3 w-3 text-green-600" />
-                      </span>
-                      <Link href="/dashboard/days" className="text-xs font-semibold text-muted-text hover:text-heading">
-                        {t('dashboard.details')}
-                      </Link>
-                    </>
+                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                      <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> Today
+                    </span>
+                  ) : (
+                    <span className="shrink-0 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-600">
+                      Missed
+                    </span>
+                  )}
+                </div>
+                <p className={`mt-3 text-3xl font-bold leading-none ${checkedInToday ? 'text-navly-navy' : 'text-orange-700'}`}>{daysInCanada}</p>
+                <div className="mt-auto pt-3">
+                  {checkedInToday ? (
+                    <Link href="/dashboard/days" className="text-xs font-semibold text-navly-navy/70 hover:text-navly-navy">
+                      View details →
+                    </Link>
                   ) : (
                     <button
                       onClick={handleHomeCheckIn}
-                      className="rounded-lg bg-navly-red px-3 py-1.5 text-xs font-bold text-white hover:bg-navly-red/80 transition-colors"
+                      className="w-full rounded-lg bg-orange-500 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-orange-600"
                     >
                       {t('dashboard.checkIn')}
                     </button>
@@ -259,15 +292,22 @@ export default function DashboardPage() {
               <Link
                 href="/dashboard/tasks"
                 data-tour="tasks"
-                className="group flex flex-col rounded-2xl border border-subtle bg-surface-card p-4 transition hover:border-subtle/80"
+                className={`group flex flex-col rounded-2xl border p-4 transition ${nextTask ? 'border-navly-red/20 bg-red-50 hover:border-navly-red/40' : 'border-green-200 bg-green-50 hover:border-green-300'}`}
               >
-                <ListChecks className={`h-4 w-4 ${nextTask ? 'text-heading' : 'text-green-500'}`} aria-hidden="true" />
-                <p className="mt-3 t-eyebrow text-navly-red">{t('dashboard.nextTask')}</p>
-                <p className={`mt-1 line-clamp-2 t-section-title leading-snug ${nextTask ? '' : 'text-green-700'}`}>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${nextTask ? 'bg-navly-red/10' : 'bg-green-100'}`}>
+                      <ListChecks className={`h-4 w-4 ${nextTask ? 'text-navly-red' : 'text-green-600'}`} aria-hidden="true" />
+                    </div>
+                    <p className={`truncate text-xs font-semibold ${nextTask ? 'text-navly-red/70' : 'text-green-700/70'}`}>{t('dashboard.nextTask')}</p>
+                  </div>
+                  <ChevronRight className={`h-4 w-4 shrink-0 transition group-hover:translate-x-0.5 ${nextTask ? 'text-navly-red/30 group-hover:text-navly-red' : 'text-green-400'}`} aria-hidden="true" />
+                </div>
+                <p className={`mt-3 line-clamp-2 text-sm font-bold leading-snug ${nextTask ? 'text-heading' : 'text-green-700'}`}>
                   {nextTask ? nextTask.title : t('dashboard.allDone')}
                 </p>
                 {doneTasks > 0 && (
-                  <p className="mt-auto pt-3 t-caption">
+                  <p className="mt-auto pt-3 text-xs text-muted-text">
                     {doneTasks} {t('dashboard.tasksComplete')}
                   </p>
                 )}
@@ -281,20 +321,20 @@ export default function DashboardPage() {
         <Link
           href="/dashboard/consultants"
           data-tour="consultant"
-          className="group flex items-center gap-4 rounded-2xl border border-subtle bg-surface-card p-5 transition hover:border-subtle/80 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-navly-navy focus-visible:ring-offset-2"
+          className="group relative block overflow-hidden rounded-2xl bg-navly-navy p-5 transition hover:bg-navly-navy/95 focus-visible:ring-2 focus-visible:ring-navly-red focus-visible:ring-offset-2"
         >
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navly-navy/8">
-            <Sparkles className="h-5 w-5 text-heading" aria-hidden="true" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(220,38,38,0.18),transparent_65%)]" />
+          <div className="relative flex items-center gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10">
+              <Sparkles className="h-5 w-5 text-white" aria-hidden="true" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-white">{t('dashboard.talkToConsultant')}</p>
+              <p className="mt-0.5 text-xs text-white/55">{t('dashboard.consultantDesc')}</p>
+            </div>
+            <ChevronRight className="h-5 w-5 shrink-0 text-white/30 transition group-hover:translate-x-0.5 group-hover:text-white" aria-hidden="true" />
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="t-section-title">{t('dashboard.talkToConsultant')}</p>
-            <p className="mt-0.5 t-caption">{t('dashboard.consultantDesc')}</p>
-          </div>
-          <ChevronRight className="h-5 w-5 shrink-0 text-muted-text/50 transition group-hover:translate-x-0.5 group-hover:text-navly-red" aria-hidden="true" />
         </Link>
-
-        {/* ── Newcomer Essentials ──────────────────────────────────────── */}
-        <NewcomerEssentials province={profile?.intendedProvince ?? profile?.province} />
 
         {/* Disclaimer */}
         <p className="pb-2 text-center text-xs text-muted-text/70">

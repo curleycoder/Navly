@@ -203,6 +203,9 @@ export type IntakeData = {
   // Account state (set by auth flow, not user-editable)
   phoneVerified: string    // 'yes' | 'no' | ''
   duplicateStatus: string  // 'clean' | 'duplicate' | ''
+
+  // Sync metadata — not user-editable
+  _updatedAt: string  // ISO timestamp set on every local save; used for conflict resolution
 }
 
 export const EMPTY_PROFILE: IntakeData = {
@@ -351,11 +354,21 @@ export const EMPTY_PROFILE: IntakeData = {
   appliedBeforeStatusExpiry: '',
   phoneVerified: '',
   duplicateStatus: '',
+  _updatedAt: '',
 }
 
 const KEY = 'navly_profile'
 
-export function saveProfile(data: IntakeData) {
+export function saveProfile(data: IntakeData): IntakeData {
+  if (typeof window === 'undefined') return data
+  const stamped: IntakeData = { ...data, _updatedAt: new Date().toISOString() }
+  localStorage.setItem(KEY, JSON.stringify(stamped))
+  return stamped
+}
+
+// Write to localStorage without updating _updatedAt — used when restoring from cloud
+// so the cloud timestamp is preserved for future comparisons.
+function writeProfileToCache(data: IntakeData) {
   if (typeof window === 'undefined') return
   localStorage.setItem(KEY, JSON.stringify(data))
 }
@@ -499,10 +512,11 @@ export const plannedEntryLabels: Record<string, string> = {
 
 export async function saveProfileToSupabase(userId: string, data: IntakeData): Promise<void> {
   const { supabase } = await import('./supabase/client')
+  const ts = data._updatedAt || new Date().toISOString()
   await supabase.from('profiles').upsert({
     id: userId,
-    profile_data: data,
-    updated_at: new Date().toISOString(),
+    profile_data: { ...data, _updatedAt: ts },
+    updated_at: ts,
   })
 }
 
@@ -514,9 +528,65 @@ export async function loadProfileFromSupabase(userId: string): Promise<IntakeDat
     .eq('id', userId)
     .single()
   if (data?.profile_data) {
-    const profile = { ...EMPTY_PROFILE, ...(data.profile_data as Partial<IntakeData>) }
-    saveProfile(profile)
+    const profile: IntakeData = {
+      ...EMPTY_PROFILE,
+      ...(data.profile_data as Partial<IntakeData>),
+      // profile_data._updatedAt is the single source of truth for conflict resolution.
+      // DB updated_at is audit metadata only and is intentionally ignored here.
+      _updatedAt: (data.profile_data as Partial<IntakeData>)._updatedAt || '',
+    }
+    writeProfileToCache(profile)
     return profile
   }
   return null
+}
+
+// Sync profile between localStorage and Supabase.
+// profile_data._updatedAt is the sole conflict-resolution authority.
+// DB updated_at is never used for comparison — a server-side DB touch
+// must not silently beat a newer client record.
+export async function syncProfile(userId: string): Promise<IntakeData | null> {
+  const local = loadProfile()
+
+  try {
+    const { supabase } = await import('./supabase/client')
+    const { data } = await supabase
+      .from('profiles')
+      .select('profile_data')
+      .eq('id', userId)
+      .single()
+
+    if (!data?.profile_data) {
+      // Nothing in cloud — upload local data if it exists
+      if (local) saveProfileToSupabase(userId, local).catch(() => {})
+      return local
+    }
+
+    const remote: IntakeData = {
+      ...EMPTY_PROFILE,
+      ...(data.profile_data as Partial<IntakeData>),
+      _updatedAt: (data.profile_data as Partial<IntakeData>)._updatedAt || '',
+    }
+
+    if (!local) {
+      writeProfileToCache(remote)
+      return remote
+    }
+
+    const localTime = local._updatedAt ? new Date(local._updatedAt).getTime() : 0
+    const remoteTime = remote._updatedAt ? new Date(remote._updatedAt).getTime() : 0
+
+    if (remoteTime > localTime) {
+      // Cloud is newer — restore to local cache
+      writeProfileToCache(remote)
+      return remote
+    } else {
+      // Local is newer — push to cloud
+      saveProfileToSupabase(userId, local).catch(() => {})
+      return local
+    }
+  } catch {
+    // Offline or network error — fall back to local
+    return local
+  }
 }

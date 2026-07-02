@@ -12,6 +12,7 @@ import {
   saveProfileToSupabase,
   type IntakeData,
 } from '@/lib/profile'
+import { loadPresence, syncPresenceToSupabase } from '@/lib/presence'
 
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -81,13 +82,8 @@ export function IntakeFlow() {
 
   function update(fields: Partial<IntakeData>) {
     setData((currentData) => {
-      const nextData = {
-        ...currentData,
-        ...fields,
-      }
-
-      saveProfile(nextData)
-      return nextData
+      const nextData = { ...currentData, ...fields }
+      return saveProfile(nextData)
     })
   }
 
@@ -146,18 +142,25 @@ export function IntakeFlow() {
     fullName: string
     email: string
   }) {
-    const nextData = {
+    const nextData = saveProfile({
       ...data,
       fullName: account.fullName,
       email: account.email,
-    }
+    })
 
     setData(nextData)
-    saveProfile(nextData)
     await saveToSupabase(nextData)
 
-    const currentSteps = getSteps(nextData)
+    // Upload any presence data collected before account creation
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (user) {
+      const presence = loadPresence()
+      syncPresenceToSupabase(user.id, presence).catch(() => {})
+    }
 
+    const currentSteps = getSteps(nextData)
     if (safeStepIndex >= currentSteps.length - 1) {
       setDone(true)
       return
@@ -167,15 +170,23 @@ export function IntakeFlow() {
   }
 
   async function handlePhoneComplete(phone: string) {
-    const finalData = {
+    const finalData = saveProfile({
       ...data,
       phone,
       phoneVerified: phone ? 'yes' : '',
-    }
+    })
 
     setData(finalData)
-    saveProfile(finalData)
     await saveToSupabase(finalData)
+
+    // Upload any presence data collected before account creation
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (user) {
+      const presence = loadPresence()
+      syncPresenceToSupabase(user.id, presence).catch(() => {})
+    }
 
     setDone(true)
   }

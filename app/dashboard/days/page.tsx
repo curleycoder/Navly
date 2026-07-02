@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { loadProfile } from '@/lib/profile'
 import {
+  EMPTY_PRESENCE,
   loadPresence,
-  savePresence,
   checkIn,
   confirmMissedDay,
   declineMissedDay,
@@ -23,21 +23,19 @@ import {
   getDaysSinceArrival,
   computeStreak,
   getPresenceGoal,
+  syncPresence,
   syncPresenceToSupabase,
-  loadPresenceFromSupabase,
   type PresenceData,
   type TravelEntry,
 } from '@/lib/presence'
+import { syncProfile } from '@/lib/profile'
 import { supabase } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 
 export default function DaysPage() {
   const { t } = useLocale()
-  const [presence, setPresence] = useState<PresenceData>({
-    totalDays: 0, streak: 0, longestStreak: 0, lastCheckIn: null,
-    lastAcknowledgedDate: null, arrivalDate: null, travelLog: [],
-  })
+  const [presence, setPresence] = useState<PresenceData>(EMPTY_PRESENCE)
   const [missedDays, setMissedDays] = useState<string[]>([])
   const [goal, setGoal] = useState<{ days: number; label: string } | null>(null)
   const [checkedIn, setCheckedIn] = useState(false)
@@ -46,29 +44,21 @@ export default function DaysPage() {
 
   useEffect(() => {
     async function init() {
-      const profile = loadProfile()
-      if (profile?.goal) setGoal(getPresenceGoal(profile.goal))
-
-      // Get auth user for Supabase sync
       const { data: { user } } = await supabase.auth.getUser()
       const uid = user?.id ?? null
       setUserId(uid)
 
-      // Load from localStorage first
-      let data = loadPresence()
+      // Sync profile for goal display
+      const profile = uid ? await syncProfile(uid) : loadProfile()
+      if (profile?.goal) setGoal(getPresenceGoal(profile.goal))
 
-      // If localStorage is empty and user is logged in, try to restore from DB
-      if (uid && data.lastCheckIn === null && data.totalDays === 0) {
-        const remote = await loadPresenceFromSupabase(uid)
-        if (remote) {
-          savePresence(remote)  // write back to localStorage
-          data = remote
-        }
-      }
+      // Sync presence — merges local and cloud, resolves conflicts by timestamp
+      let data = uid ? await syncPresence(uid) : loadPresence()
 
-      // Seed arrival date from profile if not already set
+      // Seed arrival date from profile if not set in presence tracker
       if (!data.arrivalDate && profile?.arrivalDate) {
         data = setArrivalDate(profile.arrivalDate)
+        if (uid) syncPresenceToSupabase(uid, data).catch(() => {})
       }
 
       setPresence(data)

@@ -18,6 +18,19 @@ const CATEGORY_ICONS: Record<PartnerCategory, React.ElementType> = {
   language:       BookOpen,
 }
 
+const AVATAR_COLORS = [
+  'bg-blue-100 text-blue-700',
+  'bg-violet-100 text-violet-700',
+  'bg-emerald-100 text-emerald-700',
+  'bg-amber-100 text-amber-700',
+  'bg-rose-100 text-rose-700',
+  'bg-cyan-100 text-cyan-700',
+]
+
+function avatarColor(name: string) {
+  return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length]
+}
+
 function PartnerTile({ partner }: { partner: PartnerListing }) {
   const [imgError, setImgError] = useState(false)
 
@@ -26,7 +39,7 @@ function PartnerTile({ partner }: { partner: PartnerListing }) {
       href={partner.cta_url}
       target="_blank"
       rel="noopener noreferrer sponsored"
-      className="group flex items-center gap-3 rounded-xl border border-subtle bg-surface p-3 transition hover:border-subtle/60 hover:bg-surface-card hover:shadow-sm"
+      className="group flex items-center gap-3 rounded-xl border border-subtle bg-surface-card p-3 transition hover:border-navly-navy/20 hover:shadow-sm"
     >
       {/* Logo */}
       <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-subtle bg-white">
@@ -38,7 +51,7 @@ function PartnerTile({ partner }: { partner: PartnerListing }) {
             onError={() => setImgError(true)}
           />
         ) : (
-          <span className="text-sm font-bold text-heading">
+          <span className={`text-sm font-bold ${avatarColor(partner.name)}`}>
             {partner.name.charAt(0)}
           </span>
         )}
@@ -49,7 +62,7 @@ function PartnerTile({ partner }: { partner: PartnerListing }) {
         <div className="flex items-center gap-1.5">
           <p className="truncate text-xs font-bold text-heading">{partner.name}</p>
           {partner.sponsored && (
-            <span className="shrink-0 rounded-full bg-subtle px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-muted-text">
+            <span className="shrink-0 rounded-full bg-navly-red/8 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-navly-red/70">
               Partner
             </span>
           )}
@@ -59,7 +72,7 @@ function PartnerTile({ partner }: { partner: PartnerListing }) {
 
       {/* CTA */}
       <div className="shrink-0">
-        <span className="inline-flex items-center gap-1 rounded-lg bg-navly-navy px-2.5 py-1.5 text-xs font-semibold text-white transition group-hover:bg-navly-navy/80">
+        <span className="inline-flex items-center gap-1 rounded-lg border border-navly-navy/15 bg-navly-navy/5 px-2.5 py-1.5 text-xs font-semibold text-navly-navy transition group-hover:bg-navly-navy group-hover:text-white">
           {partner.cta_text}
           <ExternalLink className="h-3 w-3" aria-hidden="true" />
         </span>
@@ -84,8 +97,8 @@ export function NewcomerEssentials({ province }: { province?: string | null }) {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        <p className="t-eyebrow text-muted-text">Newcomer Essentials</p>
-        <p className="text-[10px] text-muted-text/50">Sponsored links</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-heading">Newcomer Essentials</p>
+        <p className="text-[10px] font-medium text-muted-text/50">Sponsored</p>
       </div>
 
       <div className="flex flex-col gap-4">

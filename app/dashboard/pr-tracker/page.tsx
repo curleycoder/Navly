@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
-import { loadProfile, loadProfileFromSupabase, saveProfile, type IntakeData } from '@/lib/profile'
+import { syncProfile, saveProfile, type IntakeData } from '@/lib/profile'
 import { calculateScore, type ScoreResult, type RiskFlag } from '@/lib/scoring'
 import { ProgressGauge } from '@/components/dashboard/ProgressGauge'
 import { RequirementCard } from '@/components/dashboard/RequirementCard'
@@ -710,13 +710,9 @@ export default function PRTrackerPage() {
 
   useEffect(() => {
     async function init() {
-      let p = loadProfile()
-
-      if (!p) {
-        const { supabase } = await import('@/lib/supabase/client')
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) p = await loadProfileFromSupabase(user.id)
-      }
+      const { supabase } = await import('@/lib/supabase/client')
+      const { data: { user } } = await supabase.auth.getUser()
+      const p = user ? await syncProfile(user.id) : null
 
       setProfile(p)
       if (p) {

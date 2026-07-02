@@ -4,16 +4,20 @@ export type TravelEntry = {
   returnDate: string     // 'YYYY-MM-DD' — empty string if still away
   country: string
   reason: string
+  createdAt: string      // ISO timestamp — set once on creation
+  updatedAt: string      // ISO timestamp — updated on edit; used for merge conflict resolution
 }
 
 export type PresenceData = {
   totalDays: number
   streak: number
   longestStreak: number
-  lastCheckIn: string | null       // 'YYYY-MM-DD' — last day confirmed as "in Canada"
+  lastCheckIn: string | null          // 'YYYY-MM-DD' — last day confirmed as "in Canada"
   lastAcknowledgedDate: string | null // 'YYYY-MM-DD' — last day answered (yes or no)
-  arrivalDate: string | null       // 'YYYY-MM-DD' — when user first arrived
+  arrivalDate: string | null          // 'YYYY-MM-DD' — when user first arrived
   travelLog: TravelEntry[]
+  deletedTravelIds: string[]  // IDs of removed trips — propagates deletes across devices
+  _updatedAt: string          // ISO timestamp set on every local save; used for conflict resolution
 }
 
 const KEY = 'navly_presence'
@@ -26,6 +30,8 @@ export const EMPTY_PRESENCE: PresenceData = {
   lastAcknowledgedDate: null,
   arrivalDate: null,
   travelLog: [],
+  deletedTravelIds: [],
+  _updatedAt: '',
 }
 
 export function toDateStr(d: Date): string {
@@ -56,6 +62,7 @@ export function loadPresence(): PresenceData {
       ...EMPTY_PRESENCE,
       ...parsed,
       travelLog: parsed.travelLog ?? [],
+      deletedTravelIds: parsed.deletedTravelIds ?? [],
     }
   } catch {
     return EMPTY_PRESENCE
@@ -63,23 +70,37 @@ export function loadPresence(): PresenceData {
 }
 
 // ─── Supabase sync ────────────────────────────────────────────────────────────
-// Saves presence data to profiles.presence_data so users don't lose their
-// streak and travel log when switching devices or clearing the browser.
 
+// Write to localStorage without updating _updatedAt — used when restoring from
+// cloud so the cloud timestamp is preserved for future comparisons.
+function writePresenceToCache(data: PresenceData) {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(KEY, JSON.stringify(data))
+}
+
+// Stamps _updatedAt and saves to localStorage. Returns the stamped data.
+export function savePresence(data: PresenceData): PresenceData {
+  if (typeof window === 'undefined') return data
+  const stamped: PresenceData = { ...data, _updatedAt: new Date().toISOString() }
+  localStorage.setItem(KEY, JSON.stringify(stamped))
+  return stamped
+}
+
+// Saves presence data to Supabase. Uses upsert so it works even if the
+// profiles row doesn't exist yet (e.g. first sync before profile is uploaded).
 export async function syncPresenceToSupabase(userId: string, data: PresenceData): Promise<void> {
   try {
     const { supabase } = await import('./supabase/client')
     await supabase
       .from('profiles')
-      .update({ presence_data: data })
-      .eq('id', userId)
+      .upsert({ id: userId, presence_data: data })
   } catch {
-    // Non-fatal — localStorage is the primary store; DB is the backup
+    // Non-fatal — caller may retry; localStorage holds the data safely
   }
 }
 
-// Returns presence data from the database, or null if none exists yet.
-// Used as a fallback when localStorage is empty (e.g. new device).
+// Returns raw presence data from Supabase without writing to localStorage.
+// syncPresence() decides what to write after merging.
 export async function loadPresenceFromSupabase(userId: string): Promise<PresenceData | null> {
   try {
     const { supabase } = await import('./supabase/client')
@@ -89,9 +110,77 @@ export async function loadPresenceFromSupabase(userId: string): Promise<Presence
       .eq('id', userId)
       .maybeSingle()
     if (!data?.presence_data || Object.keys(data.presence_data).length === 0) return null
-    return { ...EMPTY_PRESENCE, ...(data.presence_data as Partial<PresenceData>), travelLog: (data.presence_data as Partial<PresenceData>).travelLog ?? [] }
+    const p = data.presence_data as Partial<PresenceData>
+    return {
+      ...EMPTY_PRESENCE,
+      ...p,
+      travelLog: p.travelLog ?? [],
+      deletedTravelIds: p.deletedTravelIds ?? [],
+    }
   } catch {
     return null
+  }
+}
+
+// Merges two presence records.
+// Travel logs are union-merged by ID — newest updatedAt per entry wins.
+// Deleted IDs from both sources are combined so deletes propagate.
+// Scalar fields (totalDays, streak, etc.) come from whichever record is newer.
+function mergePresence(local: PresenceData, remote: PresenceData): PresenceData {
+  const allDeletedIds = new Set([
+    ...(local.deletedTravelIds ?? []),
+    ...(remote.deletedTravelIds ?? []),
+  ])
+
+  const byId = new Map<string, TravelEntry>()
+  for (const entry of [...(local.travelLog ?? []), ...(remote.travelLog ?? [])]) {
+    if (allDeletedIds.has(entry.id)) continue
+    const existing = byId.get(entry.id)
+    if (!existing) {
+      byId.set(entry.id, entry)
+    } else {
+      const existingTime = existing.updatedAt ? new Date(existing.updatedAt).getTime() : 0
+      const newTime = entry.updatedAt ? new Date(entry.updatedAt).getTime() : 0
+      if (newTime > existingTime) byId.set(entry.id, entry)
+    }
+  }
+
+  const mergedTravelLog = Array.from(byId.values())
+    .sort((a, b) => a.departureDate.localeCompare(b.departureDate))
+
+  const localTime = local._updatedAt ? new Date(local._updatedAt).getTime() : 0
+  const remoteTime = remote._updatedAt ? new Date(remote._updatedAt).getTime() : 0
+  const base = remoteTime > localTime ? remote : local
+
+  return {
+    ...base,
+    travelLog: mergedTravelLog,
+    deletedTravelIds: Array.from(allDeletedIds),
+  }
+}
+
+// Sync presence between localStorage and Supabase.
+// Travel logs are merged from both sources. Scalar fields use the newer record.
+// On first login from a new device, cloud data is restored automatically.
+export async function syncPresence(userId: string): Promise<PresenceData> {
+  const local = loadPresence()
+
+  try {
+    const remote = await loadPresenceFromSupabase(userId)
+
+    if (!remote) {
+      // Nothing in cloud — upload local data
+      syncPresenceToSupabase(userId, local).catch(() => {})
+      return local
+    }
+
+    const merged = mergePresence(local, remote)
+    // Write merged to both stores (preserve existing _updatedAt from base)
+    writePresenceToCache(merged)
+    syncPresenceToSupabase(userId, merged).catch(() => {})
+    return merged
+  } catch {
+    return local
   }
 }
 
@@ -100,11 +189,6 @@ function addOneDay(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00')
   d.setDate(d.getDate() + 1)
   return toDateStr(d)
-}
-
-export function savePresence(data: PresenceData) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(KEY, JSON.stringify(data))
 }
 
 export function checkIn(): PresenceData {
@@ -121,8 +205,7 @@ export function checkIn(): PresenceData {
     lastCheckIn: today,
     lastAcknowledgedDate: today,
   }
-  savePresence(updated)
-  return updated
+  return savePresence(updated)
 }
 
 // Returns the list of unconfirmed days between last acknowledged date and yesterday,
@@ -163,8 +246,7 @@ export function confirmMissedDay(date: string): PresenceData {
     lastCheckIn: isConsecutive ? date : data.lastCheckIn,
     lastAcknowledgedDate: date,
   }
-  savePresence(updated)
-  return updated
+  return savePresence(updated)
 }
 
 // Decline a specific past date as "not in Canada".
@@ -177,36 +259,42 @@ export function declineMissedDay(date: string): PresenceData {
     streak: isConsecutive ? 0 : data.streak,
     lastAcknowledgedDate: date,
   }
-  savePresence(updated)
-  return updated
+  return savePresence(updated)
 }
 
 // Set/update arrival date
 export function setArrivalDate(date: string): PresenceData {
   const data = loadPresence()
   const updated: PresenceData = { ...data, arrivalDate: date }
-  savePresence(updated)
-  return updated
+  return savePresence(updated)
 }
 
-// Add a travel entry (trip outside Canada)
-export function addTravel(entry: Omit<TravelEntry, 'id'>): PresenceData {
+// Add a travel entry (trip outside Canada).
+// Uses crypto.randomUUID() for collision-safe IDs and records timestamps
+// so multi-device merge can resolve conflicts correctly.
+export function addTravel(entry: Omit<TravelEntry, 'id' | 'createdAt' | 'updatedAt'>): PresenceData {
   const data = loadPresence()
-  const newEntry: TravelEntry = { ...entry, id: `travel-${Date.now()}` }
+  const now = new Date().toISOString()
+  const newEntry: TravelEntry = {
+    ...entry,
+    id: crypto.randomUUID(),
+    createdAt: now,
+    updatedAt: now,
+  }
   const updated: PresenceData = { ...data, travelLog: [...data.travelLog, newEntry] }
-  savePresence(updated)
-  return updated
+  return savePresence(updated)
 }
 
-// Remove a travel entry
+// Remove a travel entry.
+// Records the deleted ID so the deletion propagates to other devices on next sync.
 export function removeTravel(id: string): PresenceData {
   const data = loadPresence()
   const updated: PresenceData = {
     ...data,
     travelLog: data.travelLog.filter((e) => e.id !== id),
+    deletedTravelIds: [...(data.deletedTravelIds ?? []), id],
   }
-  savePresence(updated)
-  return updated
+  return savePresence(updated)
 }
 
 // Calculate total days outside Canada from travel log.
