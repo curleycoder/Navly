@@ -203,6 +203,9 @@ export type IntakeData = {
   canApplyInsideCanadaException: string // 'yes' | 'no' | '' — falls under inside-Canada WP/SP exception?
   appliedBeforeStatusExpiry: string     // 'yes' | 'no' | '' — applied before current status expired?
 
+  // User preferences
+  reminderOptIn: string    // 'yes' | '' — explicit consent to receive deadline email reminders
+
   // Account state (set by auth flow, not user-editable)
   phoneVerified: string    // 'yes' | 'no' | ''
   duplicateStatus: string  // 'clean' | 'duplicate' | ''
@@ -356,6 +359,7 @@ export const EMPTY_PROFILE: IntakeData = {
   graduatedFromFlightSchool: '',
   canApplyInsideCanadaException: '',
   appliedBeforeStatusExpiry: '',
+  reminderOptIn: '',
   phoneVerified: '',
   duplicateStatus: '',
   _updatedAt: '',

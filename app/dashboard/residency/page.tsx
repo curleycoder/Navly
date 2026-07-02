@@ -7,6 +7,7 @@ import { syncProfile, type IntakeData } from '@/lib/profile'
 import { syncPresence, type PresenceData, EMPTY_PRESENCE } from '@/lib/presence'
 import { computePRResidency, type PRResidencyResult } from '@/lib/pr-math'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
+import { track } from '@/lib/analytics'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -41,6 +42,7 @@ export default function ResidencyPage() {
         syncPresence(user.id),
       ])
       if (profile) setResult(computePRResidency(profile, presence))
+      track('residency_tracker_viewed', { authenticated: true })
       setLoaded(true)
     }
     init()

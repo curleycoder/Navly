@@ -32,6 +32,7 @@ import { syncProfile } from '@/lib/profile'
 import { supabase } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
+import { track } from '@/lib/analytics'
 
 export default function DaysPage() {
   const { t } = useLocale()
@@ -92,10 +93,12 @@ export default function DaysPage() {
     if (!newTrip.departureDate || !newTrip.country) return
     sync(addTravel(newTrip))
     setNewTrip({ departureDate: '', returnDate: '', country: '', reason: '' })
+    track('travel_log_added', { authenticated: !!userId })
   }
 
   function handleRemoveTrip(id: string) {
     sync(removeTravel(id))
+    track('travel_log_deleted', { authenticated: !!userId })
   }
 
   function handleArrivalDate(date: string) {

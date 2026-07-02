@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { AlertTriangle, Clock, CheckCircle2, ExternalLink } from 'lucide-react'
+import { AlertTriangle, Bell, BellOff, Clock, CheckCircle2, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import type { IntakeData } from '@/lib/profile'
 import {
@@ -11,6 +11,7 @@ import {
   type DeadlineStatus,
 } from '@/lib/deadlines'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
+import { track } from '@/lib/analytics'
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -130,19 +131,45 @@ function Section({ title, items }: { title: string; items: Deadline[] }) {
 export default function DatesPage() {
   const [deadlines, setDeadlines] = useState<Deadline[]>([])
   const [loaded, setLoaded] = useState(false)
+  const [reminderOptIn, setReminderOptIn] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [justEnabled, setJustEnabled] = useState(false)
 
   useEffect(() => {
     async function init() {
       const { supabase } = await import('@/lib/supabase/client')
       const { data: { user } } = await supabase.auth.getUser()
+      setUserId(user?.id ?? null)
       const profile: IntakeData | null = user
         ? await import('@/lib/profile').then(m => m.syncProfile(user.id))
         : null
       setDeadlines(profile ? getActiveDeadlines(profile) : [])
+      setReminderOptIn(profile?.reminderOptIn === 'yes')
+      track('dates_page_viewed', { authenticated: !!user })
       setLoaded(true)
     }
     init()
   }, [])
+
+  async function handleToggleReminder() {
+    if (!userId || saving) return
+    const next = !reminderOptIn
+    setSaving(true)
+    const { saveProfile, saveProfileToSupabase, syncProfile } = await import('@/lib/profile')
+    const current = await syncProfile(userId)
+    if (current) {
+      const updated = saveProfile({ ...current, reminderOptIn: next ? 'yes' : '' })
+      await saveProfileToSupabase(userId, updated)
+    }
+    setReminderOptIn(next)
+    if (next) {
+      track('reminders_enabled', { reminder_channel: 'email', source: 'dates_page' })
+      setJustEnabled(true)
+      setTimeout(() => setJustEnabled(false), 3000)
+    }
+    setSaving(false)
+  }
 
   if (!loaded) return <DashboardSkeleton />
 
@@ -182,6 +209,53 @@ export default function DatesPage() {
 
         <Section title="Coming Up" items={actionSoon} />
         <Section title="On Track" items={onTrack} />
+
+        {userId && (
+          <div>
+            <button
+              type="button"
+              onClick={handleToggleReminder}
+              disabled={saving}
+              className={`flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition ${
+                reminderOptIn
+                  ? 'border-navly-red/30 bg-navly-red/5'
+                  : 'border-subtle bg-surface-card hover:bg-surface-alt'
+              }`}
+              aria-pressed={reminderOptIn}
+            >
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                reminderOptIn ? 'bg-navly-red/10' : 'bg-subtle'
+              }`}>
+                {reminderOptIn
+                  ? <Bell className="h-5 w-5 text-navly-red" aria-hidden="true" />
+                  : <BellOff className="h-5 w-5 text-muted-text" aria-hidden="true" />
+                }
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-heading">
+                  {reminderOptIn ? 'Email reminders on' : 'Get email reminders'}
+                </p>
+                <p className="text-xs text-muted-text">
+                  {reminderOptIn
+                    ? "We'll email you before each deadline — 180, 90, 60, 30, and 7 days out."
+                    : 'Tap to receive deadline alerts by email before they lapse.'}
+                </p>
+              </div>
+              <div className={`h-5 w-9 shrink-0 rounded-full transition-colors ${
+                reminderOptIn ? 'bg-navly-red' : 'bg-subtle'
+              }`}>
+                <div className={`mt-0.5 ml-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                  reminderOptIn ? 'translate-x-4' : 'translate-x-0'
+                }`} />
+              </div>
+            </button>
+            {justEnabled && (
+              <p className="mt-2 text-center text-xs font-semibold text-navly-red">
+                Email reminders enabled.
+              </p>
+            )}
+          </div>
+        )}
 
         <p className="pb-2 text-center text-xs text-muted-text/70">
           Dates are estimates based on information you entered. Always verify with official IRCC sources before making decisions.

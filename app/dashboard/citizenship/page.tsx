@@ -7,6 +7,7 @@ import { syncProfile, type IntakeData } from '@/lib/profile'
 import { syncPresence, EMPTY_PRESENCE } from '@/lib/presence'
 import { computeCitizenshipPresence, type CitizenshipResult } from '@/lib/pr-math'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
+import { track } from '@/lib/analytics'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -53,6 +54,7 @@ export default function CitizenshipPage() {
         syncPresence(user.id),
       ])
       if (profile) setResult(computeCitizenshipPresence(profile, presence))
+      track('citizenship_tracker_viewed', { authenticated: true })
       setLoaded(true)
     }
     init()

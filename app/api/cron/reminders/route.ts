@@ -169,7 +169,8 @@ export async function GET(req: Request) {
 
     const profile: IntakeData = { ...EMPTY_PROFILE, ...(row.profile_data as Partial<IntakeData>) }
 
-    // ── Deadline reminders ───────────────────────────────────────────────────
+    // ── Deadline reminders (only sent to users who explicitly opted in) ──────
+    if (profile.reminderOptIn !== 'yes') continue
     const deadlines = computeDeadlines(profile).filter(d => d.relevant)
 
     for (const d of deadlines) {
@@ -189,9 +190,10 @@ export async function GET(req: Request) {
 
       if (existing) continue  // already sent
 
+      // Safe subjects: no permit types or dates visible on lock screens / shared inboxes
       const subject = d.status === 'expired'
-        ? `${d.label} — date has passed`
-        : `${d.label} — ${d.daysUntil} day${d.daysUntil !== 1 ? 's' : ''} remaining`
+        ? 'Navly reminder: an important date has passed'
+        : 'Navly reminder: an important date is coming up'
 
       const html = deadlineEmailHtml({
         label: d.label,

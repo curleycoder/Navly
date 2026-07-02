@@ -20,6 +20,7 @@ import { NavlyLogo } from '@/components/ui/NavlyLogo'
 
 import { getSteps, stepTitles } from './flow'
 import { canContinue, getValidationHint } from './validation'
+import { track, toStatusType, toGoal, type AnalyticsProps } from '@/lib/analytics'
 import { SummaryView } from './SummaryView'
 
 import {
@@ -52,11 +53,9 @@ export function IntakeFlow() {
   const [done, setDone] = useState(false)
 
   useEffect(() => {
+    track('onboarding_started', { authenticated: false })
     const saved = loadProfile()
-
-    if (saved) {
-      setData(saved)
-    }
+    if (saved) setData(saved)
   }, [])
 
   useEffect(() => {
@@ -104,6 +103,23 @@ export function IntakeFlow() {
   }
 
   async function next() {
+    const props: AnalyticsProps = {
+      status_type: toStatusType(data.status),
+      goal: toGoal(data.primaryUse),
+      authenticated: false,
+    }
+
+    // Named step events
+    if (currentStep === 'goal-first') track('onboarding_goal_selected', props)
+    if (currentStep === 'location-split') track('onboarding_location_selected', props)
+    if (currentStep === 'inside-status' || currentStep === 'planned-entry') track('onboarding_status_selected', props)
+    if (currentStep === 'key-date') {
+      const hasDate = !!(data.permitExpiry || data.visaExpiryDate || data.visitorRecordExpiry || data.prDate)
+      if (hasDate) track('onboarding_key_date_added', props)
+    }
+    // plan-preview exit = user committed to saving their plan (before signup friction)
+    if (currentStep === 'plan-preview') track('plan_preview_completed', props)
+
     const currentSteps = getSteps(data)
     const isFinalStep = safeStepIndex >= currentSteps.length - 1
 
@@ -168,6 +184,11 @@ export function IntakeFlow() {
 
     const currentSteps = getSteps(nextData)
     if (safeStepIndex >= currentSteps.length - 1) {
+      track('onboarding_completed', {
+        status_type: toStatusType(nextData.status),
+        goal: toGoal(nextData.primaryUse),
+        authenticated: true,
+      })
       setDone(true)
       return
     }

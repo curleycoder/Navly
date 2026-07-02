@@ -21,6 +21,7 @@ import { loadTasks } from '@/lib/tasks'
 import { usePlan, hasPlan } from '@/lib/subscription'
 import { getLatestCutoff } from '@/lib/draws'
 import { getUrgentDeadlines, formatDeadlineDate } from '@/lib/deadlines'
+import { track, identify } from '@/lib/analytics'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -54,6 +55,10 @@ export default function DashboardPage() {
       const { data: { user } } = await supabase.auth.getUser()
       const uid = user?.id ?? null
       setUserId(uid)
+
+      if (uid) identify(uid)
+      track('dashboard_viewed', { authenticated: !!uid })
+      track('app_opened', { authenticated: !!uid })
 
       const p = uid ? await syncProfile(uid) : null
       setProfile(p)

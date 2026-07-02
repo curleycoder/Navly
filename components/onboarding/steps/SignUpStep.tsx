@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 
 import { supabase } from '@/lib/supabase/client'
+import { track, identify } from '@/lib/analytics'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -119,19 +120,26 @@ export function StepSignUp({
 
     // When email confirmation is disabled in Supabase, signUp returns a session directly.
     if (signUpData?.session) {
+      identify(signUpData.user!.id)
+      track('account_created', { authenticated: true })
       onComplete({ fullName: trimmedName, email: trimmedEmail })
       setLoading(false)
       return
     }
 
     // Email confirmation is enabled — try signing in to check
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email: trimmedEmail, password })
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email: trimmedEmail, password })
 
     if (signInError) {
       // Supabase sent a confirmation email — user needs to verify before logging in
       setError('Account created! Check your email to confirm your address, then log in.')
       setLoading(false)
       return
+    }
+
+    if (signInData.user) {
+      identify(signInData.user.id)
+      track('account_created', { authenticated: true })
     }
 
     onComplete({
