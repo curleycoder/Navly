@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { ChevronLeft, MoreHorizontal, HelpCircle, Shield, Gift, FileText } from 'lucide-react'
+import { ChevronLeft, MoreHorizontal, HelpCircle, Shield, Gift, FileText, UserCircle, TrendingUp } from 'lucide-react'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import {
   DropdownMenu,
@@ -23,6 +23,8 @@ export function MobileNav() {
     '/dashboard/dates': 'Important Dates',
     '/dashboard/pr-tracker': t('nav.prTracker'),
     '/dashboard/days': t('nav.daysInCanada'),
+    '/dashboard/residency': 'PR Residency',
+    '/dashboard/citizenship': 'Citizenship',
     '/dashboard/tasks': t('nav.tasks'),
     '/dashboard/news': t('nav.immigrationNews'),
     '/dashboard/chat': t('nav.aiAssistant'),
@@ -46,6 +48,15 @@ export function MobileNav() {
               <MoreHorizontal className="h-5 w-5" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="min-w-44">
+              <DropdownMenuItem render={<Link href="/dashboard/profile" />}>
+                <UserCircle className="h-4 w-4" />
+                {t('nav.myProfile')}
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/dashboard/pr-tracker" />}>
+                <TrendingUp className="h-4 w-4" />
+                {t('nav.prTracker')}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem render={<Link href="/help" />}>
                 <HelpCircle className="h-4 w-4" />
                 {t('nav.helpCenter')}

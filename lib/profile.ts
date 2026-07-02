@@ -5,6 +5,9 @@ export type IntakeData = {
   phone: string
   gender: string        // 'male' | 'female' | 'non-binary' | 'prefer-not' | ''
 
+  // First question — "What do you need help with today?"
+  primaryUse: string  // 'deadlines' | 'pr' | 'citizenship' | 'residency' | 'explore'
+
   // Phase 1 — always collected
   locationStatus: string  // 'inside' | 'outside' — primary split
   plannedEntry: string    // for outside users: 'study-permit' | 'work-permit' | 'visitor' | 'express-entry' | 'family' | 'business' | 'unsure'
@@ -213,6 +216,7 @@ export const EMPTY_PROFILE: IntakeData = {
   email: '',
   phone: '',
   gender: '',
+  primaryUse: '',
   locationStatus: '',
   plannedEntry: '',
   status: '',

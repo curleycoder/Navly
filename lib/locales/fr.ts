@@ -416,8 +416,8 @@ export const fr: LocaleDict = {
   },
 
   pathways: {
-    eligible: 'Semble correspondre',
-    possible: 'Peut valoir la peine d\'explorer',
+    eligible: 'Semble correspondre aux critères',
+    possible: 'Pourrait valoir la peine d\'être exploré',
     notReady: 'Pas encore prêt',
     weak: 'Voie faible',
     missing: 'Exigence manquante',
@@ -483,8 +483,8 @@ export const fr: LocaleDict = {
     unlockTitle: 'Débloquer le bilan complet',
     unlockDesc: 'Consultez votre score CRS par catégorie, toutes vos voies admissibles, et les améliorations exactes qui feraient bouger votre score.',
     topPathwayPreview: 'Aperçu de la meilleure voie',
-    eligible: 'Semble correspondre',
-    possible: 'Peut valoir la peine d\'explorer',
+    eligible: 'Semble correspondre aux critères',
+    possible: 'Pourrait valoir la peine d\'être exploré',
     notReady: 'Pas encore prêt',
     startProfile: 'Compléter votre profil',
     reminder: 'Rappel :',

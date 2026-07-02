@@ -3,9 +3,12 @@ import type { IntakeData } from '@/lib/profile'
 
 export function getValidationHint(stepId: StepId, data: IntakeData): string {
   switch (stepId) {
+    case 'goal-first': return 'Select what you need help with to continue.'
     case 'location-split': return 'Select whether you are inside or outside Canada to continue.'
     case 'planned-entry': return 'Select your planned entry route to continue.'
     case 'inside-status': return 'Select your current immigration status to continue.'
+    case 'key-date': return ''
+    case 'plan-preview': return ''
     case 'goal': return 'Select your main immigration goal to continue.'
     case 'personal': {
       const age = parseInt(data.age)
@@ -85,9 +88,12 @@ export function getValidationHint(stepId: StepId, data: IntakeData): string {
 
 export function canContinue(stepId: StepId, data: IntakeData): boolean {
   switch (stepId) {
+    case 'goal-first': return !!data.primaryUse
     case 'location-split': return !!data.locationStatus
     case 'planned-entry': return !!data.plannedEntry
     case 'inside-status': return !!data.status
+    case 'key-date': return true   // always continuable — date is optional
+    case 'plan-preview': return false  // custom nav handles progression
     case 'goal': return !!data.goal
     case 'personal': {
       const age = parseInt(data.age)

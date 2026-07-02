@@ -318,6 +318,22 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* ── PR status cards (residency + citizenship) ────────────────── */}
+        {profile?.status === 'pr' && (
+          <div className="grid grid-cols-2 gap-3">
+            <Link href="/dashboard/residency" className="group flex flex-col rounded-2xl border border-subtle bg-surface-card p-4 transition hover:border-navly-red/30 hover:bg-navly-red/5">
+              <p className="text-xs font-semibold text-muted-text">PR Residency</p>
+              <p className="mt-1 text-sm font-bold text-heading leading-snug">730-day obligation</p>
+              <p className="mt-auto pt-3 text-xs font-semibold text-navly-red group-hover:underline">Check status →</p>
+            </Link>
+            <Link href="/dashboard/citizenship" className="group flex flex-col rounded-2xl border border-subtle bg-surface-card p-4 transition hover:border-navly-red/30 hover:bg-navly-red/5">
+              <p className="text-xs font-semibold text-muted-text">Citizenship</p>
+              <p className="mt-1 text-sm font-bold text-heading leading-snug">1,095-day tracker</p>
+              <p className="mt-auto pt-3 text-xs font-semibold text-navly-red group-hover:underline">Check status →</p>
+            </Link>
+          </div>
+        )}
+
         {/* ── Consultant CTA ───────────────────────────────────────────── */}
         <Link
           href="/dashboard/consultants"

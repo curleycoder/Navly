@@ -1,13 +1,18 @@
 import type { IntakeData } from '@/lib/profile'
 
 export type StepId =
-  | 'location-split'
-  | 'planned-entry'
-  | 'inside-status'
+  // ── Short initial onboarding (5 steps) ───────────────────────────────────────
+  | 'goal-first'       // "What do you need help with today?"
+  | 'location-split'   // "Are you in Canada?"
+  | 'inside-status'    // current status (inside Canada)
+  | 'planned-entry'    // planned route (outside Canada)
+  | 'key-date'         // one key date relevant to their situation
+  | 'plan-preview'     // personalized value reveal before account creation
+  | 'early-signup'     // account creation
+  // ── Progressive profile completion (not shown in initial onboarding) ─────────
   | 'goal'
   | 'province'
   | 'personal'
-  | 'early-signup'
   | 'canada-dates'
   | 'pr-status'
   | 'spouse-language'
@@ -20,107 +25,55 @@ export type StepId =
   | 'risk'
   | 'contact-phone'
 
-export function getSteps(data: IntakeData): StepId[] {
-  const steps: StepId[] = ['location-split']
+// STATUS VALUES THAT NEED A KEY DATE
+const KEY_DATE_STATUSES = new Set([
+  'work-permit', 'pgwp', 'open-work-permit', 'employer-specific-work-permit',
+  'student', 'visitor', 'pr',
+])
 
+export function getSteps(data: IntakeData): StepId[] {
+  // ── Step 1: goal-first ───────────────────────────────────────────────────────
+  const steps: StepId[] = ['goal-first']
+  if (!data.primaryUse) return steps
+
+  // ── Step 2: location ─────────────────────────────────────────────────────────
+  steps.push('location-split')
   if (!data.locationStatus) return steps
 
   const isInside = data.locationStatus === 'inside'
-  const isPR = data.status === 'pr'
 
-  const hasSpouse =
-    (data.maritalStatus === 'married' || data.maritalStatus === 'common-law') &&
-    data.spouseComing === 'yes'
-
-  const hasSpecificProvince =
-    Boolean(data.intendedProvince) &&
-    data.intendedProvince !== 'QC' &&
-    data.intendedProvince !== 'Any'
-
-  const isManitoba = data.intendedProvince === 'MB'
-
+  // ── Step 3: status ───────────────────────────────────────────────────────────
   if (isInside) {
-    if (isPR) {
-      steps.push('inside-status', 'province', 'personal', 'early-signup', 'pr-status')
-
-      if (hasSpouse) {
-        steps.push('spouse-language')
-      }
-
-      steps.push('language', 'risk', 'contact-phone')
-      return steps
-    }
-
-    steps.push('inside-status', 'goal', 'canada-dates', 'province', 'personal', 'early-signup')
-
-    if (hasSpouse) {
-      steps.push('spouse-language')
-    }
-
-    steps.push('language', 'education', 'work')
-
-
-    const isStudent = data.status === 'student'
-    const isWorker =
-      data.status === 'work-permit' ||
-      data.status === 'pgwp' ||
-      data.status === 'open-work-permit' ||
-      data.status === 'employer-specific-work-permit'
-
-    if (!isStudent && !isWorker) {
-      steps.push('settlement')
-    }
-
-    if (hasSpecificProvince) {
-      steps.push('pnp-details')
-    }
-
-    if (isManitoba) {
-      steps.push('manitoba-family')
-    }
-
-    steps.push('risk', 'contact-phone')
-    return steps
+    steps.push('inside-status')
+    if (!data.status) return steps
+  } else {
+    steps.push('planned-entry')
+    if (!data.plannedEntry) return steps
   }
 
-  steps.push('planned-entry', 'goal', 'province', 'personal', 'early-signup')
-
-  if (hasSpouse) {
-    steps.push('spouse-language')
+  // ── Step 4: one key date (inside users only, skip for outside and 'other') ───
+  if (isInside && KEY_DATE_STATUSES.has(data.status)) {
+    steps.push('key-date')
   }
 
-  steps.push('language', 'education', 'work')
+  // ── Step 5: plan preview → account creation ──────────────────────────────────
+  steps.push('plan-preview', 'early-signup')
 
-  const needsSettlementFunds =
-    data.goal === 'pr' ||
-    data.plannedEntry === 'express-entry' ||
-    data.plannedEntry === 'pnp' ||
-    data.hasJobOffer === 'no'
-
-  if (needsSettlementFunds) {
-    steps.push('settlement')
-  }
-
-  if (hasSpecificProvince) {
-    steps.push('pnp-details')
-  }
-
-  if (isManitoba) {
-    steps.push('manitoba-family')
-  }
-
-  steps.push('risk', 'contact-phone')
   return steps
 }
 
 export const stepTitles: Record<StepId, string> = {
+  'goal-first': 'Your goal',
   'location-split': 'Your location',
-  'planned-entry': 'Your plan',
   'inside-status': 'Your status',
+  'planned-entry': 'Your plan',
+  'key-date': 'Key date',
+  'plan-preview': 'Your plan',
+  'early-signup': 'Save your plan',
+  // Progressive steps (used in future profile completion flows)
   goal: 'Your goal',
   province: 'Province',
   personal: 'Basic details',
-  'early-signup': 'Save your results',
   'canada-dates': 'Canada dates',
   'pr-status': 'PR details',
   'spouse-language': 'Spouse details',

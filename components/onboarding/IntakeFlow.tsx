@@ -40,6 +40,11 @@ import { StepPNP } from './steps/PNPStep'
 import { StepRisk } from './steps/RiskStep'
 import { StepEarlySignup } from './steps/EarlySignupStep'
 import { StepContactPhone } from './steps/ContactPhoneStep'
+import {
+  StepGoalFirst,
+  StepKeyDate,
+  StepPlanPreview,
+} from './steps/QuickOnboardingSteps'
 
 export function IntakeFlow() {
   const [data, setData] = useState<IntakeData>({ ...EMPTY_PROFILE })
@@ -66,7 +71,8 @@ export function IntakeFlow() {
 
   const isAccountStep = currentStep === 'early-signup'
   const isPhoneStep = currentStep === 'contact-phone'
-  const usesCustomNav = isAccountStep || isPhoneStep
+  const isPlanPreviewStep = currentStep === 'plan-preview'
+  const usesCustomNav = isAccountStep || isPhoneStep || isPlanPreviewStep
 
   const ok = canContinue(currentStep, data)
   const hint = !ok ? getValidationHint(currentStep, data) : ''
@@ -231,6 +237,21 @@ export function IntakeFlow() {
 
       <main className="flex flex-1 items-start justify-center px-6 py-6 pb-28">
         <div className="w-full max-w-2xl">
+          {currentStep === 'goal-first' && (
+            <StepGoalFirst
+              value={data.primaryUse}
+              onChange={(v) => update({ primaryUse: v })}
+            />
+          )}
+
+          {currentStep === 'key-date' && (
+            <StepKeyDate data={data} onChange={update} />
+          )}
+
+          {currentStep === 'plan-preview' && (
+            <StepPlanPreview data={data} onSave={next} />
+          )}
+
           {currentStep === 'location-split' && (
             <StepLocationSplit
               value={data.locationStatus}
