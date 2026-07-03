@@ -746,7 +746,7 @@ export default function PRTrackerPage() {
       {!profile && (
         <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
           {t('prTracker.noProfile')}{' '}
-          <Link href="/onboarding" className="font-semibold underline">{t('prTracker.noProfileLink')}</Link>{' '}
+          <Link href="/dashboard/profile" className="font-semibold underline">{t('prTracker.noProfileLink')}</Link>{' '}
           {t('prTracker.noProfileSuffix')}
         </div>
       )}
@@ -803,7 +803,7 @@ export default function PRTrackerPage() {
                 <p className="mt-1 text-sm text-muted-text">
                   {t('prTracker.missingLabel')} <span className="font-medium text-navly-red">{score.missingFields.join(', ')}</span>
                 </p>
-                <Link href="/onboarding" className="mt-3 inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-navly-red hover:underline">
+                <Link href="/dashboard/profile" className="mt-3 inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-navly-red hover:underline">
                   {t('prTracker.updateProfile')} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
               </div>
