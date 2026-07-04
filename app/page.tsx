@@ -5,6 +5,7 @@ import {
   FileText,
   MessageSquare,
   CalendarCheck,
+  Bell,
   Target,
   ShieldCheck,
   GraduationCap,
@@ -33,22 +34,27 @@ const userTypes = [
 const features = [
   {
     title: "Smart intake",
-    desc: "Build a profile based on your status, language scores, education, work, province, and goal.",
+    desc: "Build a profile based on your status, language scores, education, work history, province, and goal.",
     icon: FileText,
   },
   {
     title: "Pathway screening",
-    desc: "See possible routes like CEC, FSW, FST, PNP, study-to-PR, or citizenship.",
+    desc: "See possible routes like CEC, FSW, PNP streams, study-to-PR, or citizenship — ranked by your profile.",
     icon: Target,
   },
   {
-    title: "Deadline tracker",
-    desc: "Track permit expiry, PR card expiry, citizenship days, and key immigration reminders.",
+    title: "Canada days tracker",
+    desc: "Log your physical presence in Canada daily. Track your streak, total confirmed days, and trips outside Canada.",
     icon: CalendarCheck,
   },
   {
+    title: "Deadline reminders",
+    desc: "Track permit expiry, PR card renewal, passport expiry, and language test validity — with alerts before they expire.",
+    icon: Bell,
+  },
+  {
     title: "AI assistant",
-    desc: "Ask general immigration questions in plain English with clear legal-safety reminders.",
+    desc: "Ask general immigration questions in plain English. Clear legal-safety reminders included.",
     icon: MessageSquare,
   },
 ];
@@ -60,7 +66,7 @@ const howSteps = [
   },
   {
     title: "See your planning dashboard",
-    desc: "Get an estimated pathway view, score gaps, missing requirements, and deadline reminders.",
+    desc: "Get an estimated pathway view, score gaps, missing requirements, Canada presence tracker, and deadline reminders.",
   },
   {
     title: "Track and improve",
@@ -73,7 +79,7 @@ const notDoItems = [
   "Guarantee approval or results",
   "Replace an RCIC or immigration lawyer",
   "Give legal advice",
-  "Ask for passport, SIN, or government ID for the free check",
+  "Ask for passport, SIN, or government IDs",
 ];
 
 const pricingPlans = [
@@ -173,9 +179,9 @@ export default async function Home() {
             </h1>
 
             <p className="mt-5 max-w-lg text-base leading-7 text-white/70">
-              Answer a few questions and see your estimated PR pathway, score
-              gaps, missing requirements, and next steps — without uploading
-              documents.
+              Answer a few questions and get your estimated PR pathway, CRS
+              score gaps, Canada presence tracking, permit deadlines, and next
+              steps — without uploading documents.
             </p>
 
             {/* CTAs */}
@@ -303,7 +309,7 @@ export default async function Home() {
           </div>
 
           {/* Feature cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
