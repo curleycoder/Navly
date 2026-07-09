@@ -102,6 +102,24 @@ const pricingPlans = [
     badge: null,
   },
   {
+    name: "Readiness Report",
+    price: "$69.99",
+    priceNote: "one-time",
+    desc: "A deep-dive PDF snapshot of your PR readiness — ready to share with a consultant.",
+    points: [
+      "Full CRS + FSW score breakdown",
+      "Top 3 PR pathways ranked",
+      "Gap analysis with risk flags",
+      "Province-by-province PNP match",
+      "Timeline estimate to eligibility",
+      "Downloadable PDF (consultant-ready)",
+    ],
+    href: "/pricing",
+    featured: false,
+    cta: "Get My Report",
+    badge: null,
+  },
+  {
     name: "PR Tracker",
     price: "$119.99",
     priceNote: "/ year",
@@ -498,12 +516,11 @@ export default async function Home() {
               Start free. Upgrade when ready.
             </h2>
             <p className="mx-auto mt-3 max-w-lg text-(--page-body)">
-              Use the free check to see where you stand. Upgrade to PR Tracker
-              for the full breakdown, daily tracking, and alerts.
+              Start free to see where you stand. Get a one-time Readiness Report, or unlock the full PR Tracker for live tracking and alerts.
             </p>
           </div>
 
-          <div className="mx-auto grid max-w-3xl gap-6 md:grid-cols-2">
+          <div className="mx-auto grid gap-6 lg:grid-cols-3">
             {pricingPlans.map((plan) => (
               <div
                 key={plan.name}

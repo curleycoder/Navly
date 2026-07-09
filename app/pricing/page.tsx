@@ -80,7 +80,7 @@ function ReportCheckoutButton() {
       className="mt-auto flex w-full items-center justify-center gap-2 rounded-xl bg-navly-navy px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-navly-navy/80 disabled:opacity-60"
     >
       {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-      {loading ? 'Redirecting…' : 'Get my report — $69 →'}
+      {loading ? 'Redirecting…' : 'Get my report — $69.99 →'}
     </button>
   )
 }
@@ -228,7 +228,7 @@ export default function PricingPage() {
             </div>
             <h2 className="text-xl font-bold text-heading">Readiness Report</h2>
             <div className="mt-2 flex items-end gap-1">
-              <span className="text-4xl font-bold text-heading">$69</span>
+              <span className="text-4xl font-bold text-heading">$69.99</span>
               <span className="mb-1 text-sm text-muted-text">one-time</span>
             </div>
             <p className="mt-2 text-sm text-muted-text">A deep-dive snapshot of your PR readiness — delivered as a PDF you can share with a consultant.</p>
@@ -322,15 +322,15 @@ export default function PricingPage() {
           <h2 className="mb-6 text-center text-xl font-bold text-heading">What's included</h2>
           <div className="overflow-hidden rounded-2xl border border-subtle bg-surface-card shadow-sm">
             <div className="grid grid-cols-4 border-b-2 border-subtle bg-navly-navy">
-              <div className="px-5 py-4 text-xs font-bold uppercase tracking-wide text-muted-text/70">Feature</div>
+              <div className="px-5 py-4 text-s font-bold uppercase tracking-wide text-white">Feature</div>
               {[
-                { label: 'Free Check', sub: '$0', accent: 'text-muted-text/50' },
-                { label: 'Report', sub: '$69 one-time', accent: 'text-white' },
+                { label: 'Free Check', sub: '$0', accent: 'text-white' },
+                { label: 'Report', sub: '$69.99 one-time', accent: 'text-white' },
                 { label: 'PR Tracker', sub: billing === 'annual' ? '$119.99/yr' : '$14.99/mo', accent: 'text-navly-red' },
               ].map((h) => (
                 <div key={h.label} className="px-4 py-4 text-center">
                   <p className={`text-sm font-bold ${h.accent}`}>{h.label}</p>
-                  <p className="text-[11px] text-muted-text">{h.sub}</p>
+                  <p className="text-[11px] text-white">{h.sub}</p>
                 </div>
               ))}
             </div>
