@@ -44,7 +44,7 @@ const FREE_FEATURES = [
   'FSW 67-point grid check',
   'Basic pathway overview',
   'Gap summary — what\'s missing',
-  'Find a certified consultant (discount code included)',
+  'Certified consultant directory',
 ]
 
 function ReportCheckoutButton() {

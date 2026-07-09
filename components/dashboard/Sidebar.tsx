@@ -12,6 +12,7 @@ import {
   UserCircle,
   LogOut,
   TrendingUp,
+  FileText,
 } from 'lucide-react'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { cn } from '@/lib/utils'
@@ -97,6 +98,19 @@ export function Sidebar() {
         >
           <TrendingUp className="h-4 w-4 shrink-0" />
           {t('nav.prTracker')}
+        </Link>
+        <Link
+          href="/dashboard/report"
+          aria-current={pathname === '/dashboard/report' ? 'page' : undefined}
+          className={cn(
+            'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors',
+            pathname === '/dashboard/report'
+              ? 'bg-navly-navy text-white'
+              : 'text-muted-text hover:bg-subtle hover:text-heading'
+          )}
+        >
+          <FileText className="h-4 w-4 shrink-0" />
+          Readiness Report
         </Link>
         <div className="my-2 border-t border-subtle/60" />
         <button

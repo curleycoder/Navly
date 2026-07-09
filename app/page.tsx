@@ -94,7 +94,7 @@ const pricingPlans = [
       "FSW 67-point grid check",
       "Basic pathway overview",
       "Gap summary — what's missing",
-      "Find a certified consultant (discount code included)",
+      "Certified consultant directory",
     ],
     href: "/onboarding",
     featured: false,

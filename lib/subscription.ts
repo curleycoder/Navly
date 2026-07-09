@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase/client'
 
-export type Plan = 'tracker' | null
+export type Plan = 'tracker' | 'report' | null
 
 export function usePlan(): { plan: Plan; loading: boolean } {
   const [plan, setPlan] = useState<Plan>(null)
@@ -33,6 +33,11 @@ export function usePlan(): { plan: Plan; loading: boolean } {
 }
 
 /** Check whether a user has an active tracker plan. */
-export function hasPlan(userPlan: Plan, required: 'tracker'): boolean {
+export function hasPlan(userPlan: Plan, _required: 'tracker'): boolean {
   return userPlan === 'tracker'
+}
+
+/** Check whether a user can access the readiness report (report purchase OR tracker subscription). */
+export function hasReport(userPlan: Plan): boolean {
+  return userPlan === 'report' || userPlan === 'tracker'
 }

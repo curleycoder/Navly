@@ -10,6 +10,7 @@ import {
   Sparkles,
   ChevronRight,
   TrendingUp,
+  FileText,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useLocale } from '@/lib/i18n'
@@ -18,7 +19,7 @@ import { EMPTY_PRESENCE, syncPresence, syncPresenceToSupabase, checkIn, isChecke
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import { loadTasks } from '@/lib/tasks'
-import { usePlan, hasPlan } from '@/lib/subscription'
+import { usePlan, hasPlan, hasReport } from '@/lib/subscription'
 import { getLatestCutoff } from '@/lib/draws'
 import { getUrgentDeadlines, formatDeadlineDate } from '@/lib/deadlines'
 import { track, identify } from '@/lib/analytics'
@@ -359,6 +360,25 @@ export default function DashboardPage() {
               <p className="mt-auto pt-3 text-xs font-semibold text-navly-red group-hover:underline">Check status →</p>
             </Link>
           </div>
+        )}
+
+        {/* ── Readiness Report CTA (report or tracker plan holders) ───── */}
+        {hasReport(plan) && (
+          <Link
+            href="/dashboard/report"
+            className="group flex items-center justify-between rounded-2xl border border-subtle bg-surface-card p-4 transition hover:border-navly-red/30 hover:bg-navly-red/5"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-navly-red/10">
+                <FileText className="h-4 w-4 text-navly-red" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-heading">Your Readiness Report</p>
+                <p className="text-xs text-muted-text">View and download your full PR readiness PDF</p>
+              </div>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-text/40 transition group-hover:translate-x-0.5 group-hover:text-navly-red" aria-hidden="true" />
+          </Link>
         )}
 
         {/* ── Consultant CTA ───────────────────────────────────────────── */}
