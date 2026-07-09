@@ -7,6 +7,7 @@ import type { IntakeData } from '@/lib/profile'
 import { computeDeadlines, formatDeadlineDate } from '@/lib/deadlines'
 import { roughCRS } from '@/lib/rough-crs'
 import { track } from '@/lib/analytics'
+import { supabase } from '@/lib/supabase/client'
 
 // ─── Step: Quick CRS inputs ───────────────────────────────────────────────────
 
@@ -468,60 +469,162 @@ function RoughCRSCard({ data }: { data: IntakeData }) {
 
 const CRS_THRESHOLD = 450
 
-function ConsultantCTA({ estimate }: { estimate: { low: number; high: number } }) {
-  const [clicked, setClicked] = useState(false)
-  const base = Math.round((estimate.low + estimate.high) / 2)
+// State machine:
+//   low_score  → idle → waitlist-form → waitlist-done
+//                     → consultant-soon
+//   high_score → idle → connect-soon
+//
+// Requires a `waitlist` Supabase table:
+//   create table waitlist (
+//     id uuid default gen_random_uuid() primary key,
+//     email text not null,
+//     source text not null default 'plan_preview',
+//     created_at timestamptz default now()
+//   );
+
+type CTAPhase = 'idle' | 'waitlist-form' | 'waitlist-done' | 'coming-soon'
+
+function ConsultantCTA({
+  estimate,
+  prefillEmail = '',
+}: {
+  estimate: { low: number; high: number }
+  prefillEmail?: string
+}) {
+  const [phase, setPhase]         = useState<CTAPhase>('idle')
+  const [email, setEmail]         = useState(prefillEmail)
+  const [submitting, setSubmitting] = useState(false)
+
+  const base    = Math.round((estimate.low + estimate.high) / 2)
   const variant = base < CRS_THRESHOLD ? 'low_score' : 'high_score'
 
   useEffect(() => {
     track('plan_cta_viewed', { cta_variant: variant })
   }, [variant])
 
-  function handleClick() {
-    track('plan_cta_clicked', { cta_variant: variant })
-    setClicked(true)
+  function handleClick(cta_type: 'waitlist' | 'consultant' | 'connect') {
+    track('plan_cta_clicked', { cta_variant: variant, cta_type })
+    setPhase(cta_type === 'waitlist' ? 'waitlist-form' : 'coming-soon')
   }
 
-  if (clicked) {
+  async function handleWaitlistSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email.trim()) return
+    setSubmitting(true)
+    await supabase.from('waitlist').insert({ email: email.trim(), source: 'plan_preview' })
+    setSubmitting(false)
+    setPhase('waitlist-done')
+  }
+
+  // ── Waitlist email form ────────────────────────────────────────────────────
+  if (phase === 'waitlist-form') {
+    return (
+      <form
+        onSubmit={handleWaitlistSubmit}
+        className="rounded-2xl border border-subtle bg-surface-card p-5"
+      >
+        <p className="text-sm font-bold text-heading">Be first to know when it launches</p>
+        <p className="mt-1 text-xs text-muted-text">
+          We&rsquo;ll reach out as soon as the personalized action plan is ready.
+        </p>
+        <div className="mt-4 flex gap-2">
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your@email.com"
+            className="flex-1 rounded-xl border border-subtle bg-surface-alt px-4 py-2.5 text-sm text-heading placeholder:text-muted-text/50 focus:border-navly-red focus:outline-none"
+            aria-label="Your email address"
+          />
+          <button
+            type="submit"
+            disabled={submitting || !email.trim()}
+            className="rounded-xl bg-navly-red px-4 py-2.5 text-sm font-bold text-white transition disabled:opacity-40"
+          >
+            {submitting ? '…' : 'Notify me'}
+          </button>
+        </div>
+      </form>
+    )
+  }
+
+  // ── Waitlist confirmed ─────────────────────────────────────────────────────
+  if (phase === 'waitlist-done') {
     return (
       <div className="rounded-2xl border border-subtle bg-surface-card p-5 text-center">
         <CheckCircle2 className="mx-auto h-6 w-6 text-navly-red" aria-hidden="true" />
-        <p className="mt-2 text-sm font-semibold text-heading">We&rsquo;re building this</p>
+        <p className="mt-2 text-sm font-semibold text-heading">You&rsquo;re on the list</p>
         <p className="mt-1 text-xs text-muted-text">
-          Sign up below — we&rsquo;ll notify you as soon as it launches.
+          We&rsquo;ll email you when the personalized action plan is ready.
         </p>
       </div>
     )
   }
 
-  if (variant === 'low_score') {
+  // ── Coming soon (consultant paths) ────────────────────────────────────────
+  if (phase === 'coming-soon') {
     return (
-      <button
-        type="button"
-        onClick={handleClick}
-        className="w-full rounded-2xl border border-navly-red/30 bg-navly-red/5 p-5 text-left transition hover:bg-navly-red/10"
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-bold text-heading">Your score needs work before a draw invite</p>
-            <p className="mt-1 text-xs text-muted-text">
-              Recent Express Entry draws have cut off around 480–520. A personalized action plan
-              could show you the fastest path to close the gap.
-            </p>
-          </div>
-          <span className="shrink-0 rounded-full bg-navly-red/10 px-2 py-0.5 text-xs font-semibold text-navly-red">
-            Coming soon
-          </span>
-        </div>
-        <p className="mt-3 text-sm font-semibold text-navly-red">Get a personalized action plan →</p>
-      </button>
+      <div className="rounded-2xl border border-subtle bg-surface-card p-5 text-center">
+        <p className="text-sm font-semibold text-heading">Consultant matching — coming soon</p>
+        <p className="mt-1 text-xs text-muted-text">
+          Sign up below and we&rsquo;ll let you know when this is available.
+        </p>
+      </div>
     )
   }
 
+  // ── Idle — low score: two separate CTAs ───────────────────────────────────
+  if (variant === 'low_score') {
+    return (
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={() => handleClick('waitlist')}
+          className="w-full rounded-2xl border border-navly-red/30 bg-navly-red/5 p-5 text-left transition hover:bg-navly-red/10"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-bold text-heading">Your score needs work before a draw invite</p>
+              <p className="mt-1 text-xs text-muted-text">
+                Recent Express Entry draws have cut off around 480–520. Get a sequenced plan —
+                what to fix first, in what order, and which PNP stream to target.
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-navly-red/10 px-2 py-0.5 text-xs font-semibold text-navly-red">
+              Coming soon
+            </span>
+          </div>
+          <p className="mt-3 text-sm font-semibold text-navly-red">Join the waitlist →</p>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleClick('consultant')}
+          className="w-full rounded-2xl border border-subtle bg-surface-card p-5 text-left transition hover:bg-surface-alt"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-bold text-heading">Or speak to a certified RCIC</p>
+              <p className="mt-1 text-xs text-muted-text">
+                An RCIC can review your exact profile, flag your best path, and tell you what to fix first.
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-surface-alt px-2 py-0.5 text-xs font-semibold text-muted-text">
+              Coming soon
+            </span>
+          </div>
+          <p className="mt-3 text-sm font-semibold text-navly-red">Book a free consultation →</p>
+        </button>
+      </div>
+    )
+  }
+
+  // ── Idle — high score: single connect CTA ─────────────────────────────────
   return (
     <button
       type="button"
-      onClick={handleClick}
+      onClick={() => handleClick('connect')}
       className="w-full rounded-2xl border border-subtle bg-surface-card p-5 text-left transition hover:bg-surface-alt"
     >
       <div className="flex items-start justify-between gap-3">
@@ -562,7 +665,7 @@ export function StepPlanPreview({
       <div className="mt-6 space-y-4">
         {/* CRS estimate + action CTA — shown for all non-PR users */}
         {crsEstimate && <RoughCRSCard data={data} />}
-        {crsEstimate && <ConsultantCTA estimate={crsEstimate} />}
+        {crsEstimate && <ConsultantCTA estimate={crsEstimate} prefillEmail={data.email} />}
 
         {isOutside ? (
           <OutsideCanadaPreview />

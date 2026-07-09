@@ -55,6 +55,7 @@ export type AnalyticsProps = {
   authenticated?: boolean
   step?: 'goal' | 'location' | 'status' | 'key_date' | 'quick_crs' | 'save_plan' | 'signup'
   cta_variant?: 'low_score' | 'high_score'
+  cta_type?: 'waitlist' | 'consultant' | 'connect'
   reminder_channel?: 'email'
 }
 
