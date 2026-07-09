@@ -24,6 +24,9 @@ export type AnalyticsEvent =
   | 'onboarding_completed'     // user finished signup and landed on dashboard
   | 'onboarding_step_viewed'
   | 'onboarding_step_completed'
+  // Plan preview CTAs
+  | 'plan_cta_viewed'          // impression — fires when CTA renders (use for CTR denominator)
+  | 'plan_cta_clicked'         // click — primary demand signal for the coming-soon feature
   // Account
   | 'account_created'
   // Dates & deadlines
@@ -50,7 +53,8 @@ export type AnalyticsProps = {
   status_type?: 'work_permit' | 'study_permit' | 'pr' | 'visitor' | 'unknown'
   goal?: 'deadlines' | 'pr_planning' | 'citizenship' | 'pr_residency' | 'explore'
   authenticated?: boolean
-  step?: 'goal' | 'location' | 'status' | 'key_date' | 'save_plan'
+  step?: 'goal' | 'location' | 'status' | 'key_date' | 'quick_crs' | 'save_plan' | 'signup'
+  cta_variant?: 'low_score' | 'high_score'
   reminder_channel?: 'email'
 }
 

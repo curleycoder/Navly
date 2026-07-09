@@ -18,32 +18,22 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 
-import { getSteps, stepTitles } from './flow'
+import { getSteps, stepTitles, type StepId } from './flow'
 import { canContinue, getValidationHint } from './validation'
 import { track, toStatusType, toGoal, type AnalyticsProps } from '@/lib/analytics'
 import { SummaryView } from './SummaryView'
 
 import {
-  StepGoal,
   StepInsideStatus,
   StepLocationSplit,
   StepPlannedEntry,
 } from './steps/LocationSteps'
 
-import { StepCanadaDates, StepPersonal } from './steps/PersonalSteps'
-import { StepLanguage, StepSpouseLanguage } from './steps/LanguageSteps'
-import { StepEducation } from './steps/EducationStep'
-import { StepWork } from './steps/WorkStep'
-import { StepPRStatus } from './steps/PRStep'
-import { StepSettlement } from './steps/SettlementStep'
-import { StepProvince, StepManitobaFamily } from './steps/ProvinceSteps'
-import { StepPNP } from './steps/PNPStep'
-import { StepRisk } from './steps/RiskStep'
 import { StepEarlySignup } from './steps/EarlySignupStep'
-import { StepContactPhone } from './steps/ContactPhoneStep'
 import {
   StepGoalFirst,
   StepKeyDate,
+  StepQuickCRS,
   StepPlanPreview,
 } from './steps/QuickOnboardingSteps'
 
@@ -66,12 +56,27 @@ export function IntakeFlow() {
   const safeStepIndex = Math.min(stepIndex, steps.length - 1)
   const currentStep = steps[safeStepIndex]
 
+  // Fire a step_viewed event on every step change so PostHog can build a
+  // drop-off funnel: goal → location → status → key_date → quick_crs → save_plan → signup
+  useEffect(() => {
+    const stepMap: Partial<Record<StepId, AnalyticsProps['step']>> = {
+      'goal-first':     'goal',
+      'location-split': 'location',
+      'inside-status':  'status',
+      'planned-entry':  'status',
+      'key-date':       'key_date',
+      'quick-crs':      'quick_crs',
+      'plan-preview':   'save_plan',
+      'early-signup':   'signup',
+    }
+    track('onboarding_step_viewed', { step: stepMap[currentStep] })
+  }, [currentStep])
+
   const progress = ((safeStepIndex + 1) / steps.length) * 100
 
   const isAccountStep = currentStep === 'early-signup'
-  const isPhoneStep = currentStep === 'contact-phone'
   const isPlanPreviewStep = currentStep === 'plan-preview'
-  const usesCustomNav = isAccountStep || isPhoneStep || isPlanPreviewStep
+  const usesCustomNav = isAccountStep || isPlanPreviewStep
 
   const ok = canContinue(currentStep, data)
   const hint = !ok ? getValidationHint(currentStep, data) : ''
@@ -196,29 +201,6 @@ export function IntakeFlow() {
     setStepIndex((currentIndex) => currentIndex + 1)
   }
 
-  async function handlePhoneComplete(phone: string) {
-    const finalData = saveProfile({
-      ...data,
-      phone,
-      phoneVerified: phone ? 'yes' : '',
-    })
-
-    setData(finalData)
-    await saveToSupabase(finalData)
-
-    // Upload any presence data collected before account creation
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (user) {
-      const presence = loadPresence()
-      syncPresenceToSupabase(user.id, presence).catch(() => {})
-    }
-
-    setDone(true)
-  }
-
-
   if (done) {
     return <SummaryView data={data} />
   }
@@ -297,75 +279,14 @@ export function IntakeFlow() {
             />
           )}
 
-          {currentStep === 'goal' && (
-            <StepGoal
-              data={data}
-              onChange={(value) => update({ goal: value })}
-            />
-          )}
-
-          {currentStep === 'province' && (
-            <StepProvince data={data} onChange={update} />
-          )}
-
-          {currentStep === 'personal' && (
-            <StepPersonal data={data} onChange={update} />
+          {currentStep === 'quick-crs' && (
+            <StepQuickCRS data={data} onChange={update} />
           )}
 
           {currentStep === 'early-signup' && (
             <StepEarlySignup
               data={data}
               onComplete={handleEarlySignupComplete}
-            />
-          )}
-
-          {currentStep === 'canada-dates' && (
-            <StepCanadaDates data={data} onChange={update} />
-          )}
-
-          {currentStep === 'pr-status' && (
-            <StepPRStatus data={data} onChange={update} />
-          )}
-
-          {currentStep === 'spouse-language' && (
-            <StepSpouseLanguage data={data} onChange={update} />
-          )}
-
-          {currentStep === 'language' && (
-            <StepLanguage data={data} onChange={update} />
-          )}
-
-          {currentStep === 'education' && (
-            <StepEducation data={data} onChange={update} />
-          )}
-
-          {currentStep === 'work' && (
-            <StepWork data={data} onChange={update} />
-          )}
-
-          {currentStep === 'settlement' && (
-            <StepSettlement data={data} onChange={update} />
-          )}
-
-          {currentStep === 'pnp-details' && (
-            <StepPNP data={data} onChange={update} />
-          )}
-
-          {currentStep === 'manitoba-family' && (
-            <StepManitobaFamily
-              value={data.manitobaFamilyRelative}
-              onChange={(value) => update({ manitobaFamilyRelative: value })}
-            />
-          )}
-
-          {currentStep === 'risk' && (
-            <StepRisk data={data} onChange={update} />
-          )}
-
-          {currentStep === 'contact-phone' && (
-            <StepContactPhone
-              data={data}
-              onComplete={handlePhoneComplete}
             />
           )}
         </div>

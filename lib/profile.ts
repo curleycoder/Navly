@@ -206,6 +206,9 @@ export type IntakeData = {
   // User preferences
   reminderOptIn: string    // 'yes' | '' — explicit consent to receive deadline email reminders
 
+  // Quick onboarding CRS inputs (collected before signup to show rough estimate)
+  selfReportedCLB: string  // '5' | '6' | '7' | '8' | '9' | '10' — self-reported best CLB level
+
   // Account state (set by auth flow, not user-editable)
   phoneVerified: string    // 'yes' | 'no' | ''
   duplicateStatus: string  // 'clean' | 'duplicate' | ''
@@ -359,6 +362,7 @@ export const EMPTY_PROFILE: IntakeData = {
   graduatedFromFlightSchool: '',
   canApplyInsideCanadaException: '',
   appliedBeforeStatusExpiry: '',
+  selfReportedCLB: '',
   reminderOptIn: '',
   phoneVerified: '',
   duplicateStatus: '',

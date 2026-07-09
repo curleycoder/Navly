@@ -1,10 +1,186 @@
 'use client'
 
-import { ArrowRight, Bell, CalendarDays, CheckCircle2, MapPin, TrendingUp } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ArrowRight, Bell, CalendarDays, CheckCircle2, MapPin, TrendingUp, Zap } from 'lucide-react'
 import { OptionCard } from '../shared'
 import type { IntakeData } from '@/lib/profile'
-import { computeDeadlines, formatDeadlineDate, daysUntilDate, normalizeDate } from '@/lib/deadlines'
-import { EMPTY_PRESENCE } from '@/lib/presence'
+import { computeDeadlines, formatDeadlineDate } from '@/lib/deadlines'
+import { roughCRS } from '@/lib/rough-crs'
+import { track } from '@/lib/analytics'
+
+// ─── Step: Quick CRS inputs ───────────────────────────────────────────────────
+
+const EDU_OPTIONS = [
+  { value: 'secondary',    label: 'High school' },
+  { value: '1-year',       label: '1-year diploma' },
+  { value: '2-year',       label: '2-year diploma' },
+  { value: 'bachelors',    label: "Bachelor's" },
+  { value: 'masters',      label: "Master's" },
+  { value: 'doctoral',     label: 'PhD / Doctoral' },
+]
+
+const CLB_OPTIONS = [
+  { value: '5',  label: 'Below CLB 6', hint: 'Beginner – intermediate' },
+  { value: '6',  label: 'CLB 6',       hint: 'e.g. IELTS ~5.5' },
+  { value: '7',  label: 'CLB 7',       hint: 'e.g. IELTS ~6.0' },
+  { value: '8',  label: 'CLB 8',       hint: 'e.g. IELTS ~7.0' },
+  { value: '9',  label: 'CLB 9',       hint: 'e.g. IELTS ~7.5' },
+  { value: '10', label: 'CLB 10+',     hint: 'e.g. IELTS 8.5+' },
+]
+
+const WORK_OPTIONS = [
+  { value: '0', label: 'None yet' },
+  { value: '1', label: '1 year' },
+  { value: '2', label: '2 years' },
+  { value: '3', label: '3 years' },
+  { value: '4', label: '4 years' },
+  { value: '5', label: '5+ years' },
+]
+
+type QuickCRSProps = {
+  data: IntakeData
+  onChange: (fields: Partial<IntakeData>) => void
+}
+
+export function StepQuickCRS({ data, onChange }: QuickCRSProps) {
+  const isInsideWorker = data.locationStatus === 'inside' &&
+    ['work-permit', 'pgwp', 'open-work-permit', 'employer-specific-work-permit'].includes(data.status)
+
+  return (
+    <div>
+      <div className="mb-2 flex items-center gap-2 text-navly-red">
+        <Zap className="h-5 w-5" aria-hidden="true" />
+        <span className="text-sm font-semibold uppercase tracking-wide">30 seconds</span>
+      </div>
+      <h1 className="text-3xl font-bold text-heading">Quick score check</h1>
+      <p className="mt-2 text-muted-text">
+        3 questions. We will estimate your CRS score before you sign up.
+      </p>
+
+      {/* Marital status */}
+      <div className="mt-8">
+        <p className="mb-3 text-sm font-semibold text-heading">Marital status</p>
+        <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Marital status">
+          {[
+            { value: 'single',  label: 'Single / no spouse' },
+            { value: 'married', label: 'Married or common-law' },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              role="radio"
+              aria-checked={data.maritalStatus === opt.value || (opt.value === 'married' && data.maritalStatus === 'common-law')}
+              onClick={() => onChange({ maritalStatus: opt.value })}
+              className={`rounded-xl border px-3 py-3 text-sm font-semibold text-left transition ${
+                (data.maritalStatus === opt.value || (opt.value === 'married' && data.maritalStatus === 'common-law'))
+                  ? 'border-navly-red bg-navly-red/5 text-navly-red'
+                  : 'border-subtle bg-surface-card text-heading hover:border-navly-red/40'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Age */}
+      <div className="mt-8">
+        <p className="mb-3 text-sm font-semibold text-heading">How old are you?</p>
+        <input
+          type="number"
+          inputMode="numeric"
+          min={18}
+          max={70}
+          value={data.age}
+          onChange={(e) => onChange({ age: e.target.value })}
+          placeholder="e.g. 29"
+          className="w-full rounded-2xl border-2 border-subtle bg-surface-card px-5 py-4 text-lg font-semibold text-heading placeholder:text-muted-text/50 focus:border-navly-red focus:outline-none"
+          aria-label="Your age"
+        />
+      </div>
+
+      {/* Education */}
+      <div className="mt-8">
+        <p className="mb-3 text-sm font-semibold text-heading">Highest education completed</p>
+        <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Education level">
+          {EDU_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              role="radio"
+              aria-checked={data.educationLevel === opt.value}
+              onClick={() => onChange({ educationLevel: opt.value })}
+              className={`rounded-xl border px-3 py-3 text-sm font-semibold text-left transition ${
+                data.educationLevel === opt.value
+                  ? 'border-navly-red bg-navly-red/5 text-navly-red'
+                  : 'border-subtle bg-surface-card text-heading hover:border-navly-red/40'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* CLB */}
+      <div className="mt-8">
+        <p className="mb-1 text-sm font-semibold text-heading">Best English or French level</p>
+        <p className="mb-3 text-xs text-muted-text">Estimate is fine — you can add exact scores after signing up.</p>
+        <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Language CLB level">
+          {CLB_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              role="radio"
+              aria-checked={data.selfReportedCLB === opt.value}
+              onClick={() => onChange({ selfReportedCLB: opt.value })}
+              className={`rounded-xl border px-3 py-3 text-left transition ${
+                data.selfReportedCLB === opt.value
+                  ? 'border-navly-red bg-navly-red/5'
+                  : 'border-subtle bg-surface-card hover:border-navly-red/40'
+              }`}
+            >
+              <p className={`text-sm font-semibold ${data.selfReportedCLB === opt.value ? 'text-navly-red' : 'text-heading'}`}>
+                {opt.label}
+              </p>
+              <p className="text-xs text-muted-text">{opt.hint}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Work experience */}
+      <div className="mt-8">
+        <p className="mb-1 text-sm font-semibold text-heading">
+          {isInsideWorker ? 'Canadian skilled work experience' : 'Total skilled work experience'}
+        </p>
+        <p className="mb-3 text-xs text-muted-text">
+          {isInsideWorker
+            ? 'Full-time paid work in TEER 0–3 occupation in Canada.'
+            : 'Inside or outside Canada, in a skilled occupation (TEER 0–3).'}
+        </p>
+        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Years of skilled work">
+          {WORK_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              role="radio"
+              aria-checked={data.foreignWorkYears === opt.value}
+              onClick={() => onChange({ foreignWorkYears: opt.value })}
+              className={`rounded-xl border px-3 py-3 text-sm font-semibold text-center transition ${
+                data.foreignWorkYears === opt.value
+                  ? 'border-navly-red bg-navly-red/5 text-navly-red'
+                  : 'border-subtle bg-surface-card text-heading hover:border-navly-red/40'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // ─── Step 1: Goal first ───────────────────────────────────────────────────────
 
@@ -158,16 +334,6 @@ export function StepKeyDate({
         />
       </div>
 
-      {!currentValue && (
-        <button
-          type="button"
-          onClick={() => handleChange('')}
-          className="mt-4 text-sm text-muted-text underline-offset-2 hover:text-heading hover:underline"
-        >
-          I don't know this date — skip for now
-        </button>
-      )}
-
       <p className="mt-6 text-xs text-muted-text/70">
         You can add or update this date any time from your dashboard. Navly will never block you from continuing.
       </p>
@@ -274,6 +440,107 @@ function PRPreview() {
   )
 }
 
+function RoughCRSCard({ data }: { data: IntakeData }) {
+  const est = roughCRS(data)
+  if (!est) return null
+
+  return (
+    <div className="rounded-2xl border border-navly-navy/20 bg-navly-navy p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <Zap className="h-4 w-4 text-navly-red" aria-hidden="true" />
+        <p className="text-xs font-bold uppercase tracking-wider text-white/60">Rough CRS estimate</p>
+      </div>
+      <p className="text-4xl font-bold text-white leading-none">
+        {est.low} – {est.high}
+      </p>
+      <p className="mt-2 text-sm text-white/60">
+        Based on your age, education, language level, and work experience.
+        Assumes the same level across reading, writing, listening, and speaking —
+        exact test scores will refine this after you sign up.
+      </p>
+    </div>
+  )
+}
+
+// ─── Plan preview CTA ─────────────────────────────────────────────────────────
+// TODO: replace hardcoded 450 threshold with dynamic "last 3-draw average"
+// once an IRCC draw-history pipeline exists and the CTA has proven click demand.
+
+const CRS_THRESHOLD = 450
+
+function ConsultantCTA({ estimate }: { estimate: { low: number; high: number } }) {
+  const [clicked, setClicked] = useState(false)
+  const base = Math.round((estimate.low + estimate.high) / 2)
+  const variant = base < CRS_THRESHOLD ? 'low_score' : 'high_score'
+
+  useEffect(() => {
+    track('plan_cta_viewed', { cta_variant: variant })
+  }, [variant])
+
+  function handleClick() {
+    track('plan_cta_clicked', { cta_variant: variant })
+    setClicked(true)
+  }
+
+  if (clicked) {
+    return (
+      <div className="rounded-2xl border border-subtle bg-surface-card p-5 text-center">
+        <CheckCircle2 className="mx-auto h-6 w-6 text-navly-red" aria-hidden="true" />
+        <p className="mt-2 text-sm font-semibold text-heading">We&rsquo;re building this</p>
+        <p className="mt-1 text-xs text-muted-text">
+          Sign up below — we&rsquo;ll notify you as soon as it launches.
+        </p>
+      </div>
+    )
+  }
+
+  if (variant === 'low_score') {
+    return (
+      <button
+        type="button"
+        onClick={handleClick}
+        className="w-full rounded-2xl border border-navly-red/30 bg-navly-red/5 p-5 text-left transition hover:bg-navly-red/10"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-bold text-heading">Your score needs work before a draw invite</p>
+            <p className="mt-1 text-xs text-muted-text">
+              Recent Express Entry draws have cut off around 480–520. A personalized action plan
+              could show you the fastest path to close the gap.
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-navly-red/10 px-2 py-0.5 text-xs font-semibold text-navly-red">
+            Coming soon
+          </span>
+        </div>
+        <p className="mt-3 text-sm font-semibold text-navly-red">Get a personalized action plan →</p>
+      </button>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className="w-full rounded-2xl border border-subtle bg-surface-card p-5 text-left transition hover:bg-surface-alt"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold text-heading">Your score is competitive — don&rsquo;t sit on it</p>
+          <p className="mt-1 text-xs text-muted-text">
+            Express Entry cutoffs shift with every draw. A certified RCIC can tell you which
+            current streams you qualify for and when to submit.
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full bg-surface-alt px-2 py-0.5 text-xs font-semibold text-muted-text">
+          Coming soon
+        </span>
+      </div>
+      <p className="mt-3 text-sm font-semibold text-navly-red">Connect with a certified consultant →</p>
+    </button>
+  )
+}
+
 export function StepPlanPreview({
   data,
   onSave,
@@ -283,6 +550,8 @@ export function StepPlanPreview({
 }) {
   const isOutside = data.locationStatus === 'outside'
   const isPR = data.status === 'pr'
+  const showCRS = !isPR
+  const crsEstimate = showCRS ? roughCRS(data) : null
 
   return (
     <div>
@@ -291,6 +560,10 @@ export function StepPlanPreview({
       <p className="mt-2 text-muted-text">Save your plan to start getting reminders and updates.</p>
 
       <div className="mt-6 space-y-4">
+        {/* CRS estimate + action CTA — shown for all non-PR users */}
+        {crsEstimate && <RoughCRSCard data={data} />}
+        {crsEstimate && <ConsultantCTA estimate={crsEstimate} />}
+
         {isOutside ? (
           <OutsideCanadaPreview />
         ) : isPR ? (

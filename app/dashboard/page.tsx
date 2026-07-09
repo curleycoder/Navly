@@ -251,6 +251,28 @@ export default function DashboardPage() {
           </Link>
         )}
 
+        {/* ── Refine estimate nudge ────────────────────────────────────── */}
+        {profile && !hasData && (
+          <Link
+            href="/dashboard/profile"
+            className="flex items-start justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 transition hover:border-amber-300 hover:bg-amber-100"
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-amber-900">
+                {profile.selfReportedCLB
+                  ? 'Your estimate is rough — refine it'
+                  : 'Complete your profile to unlock your score'}
+              </p>
+              <p className="mt-0.5 text-xs text-amber-700">
+                {profile.selfReportedCLB
+                  ? 'Add exact language scores, work history, and education details to get an accurate CRS number.'
+                  : 'Add your language score, education, and work experience to see your estimated CRS score.'}
+              </p>
+            </div>
+            <ChevronRight className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" aria-hidden="true" />
+          </Link>
+        )}
+
         {/* ── Quick stats grid ─────────────────────────────────────────── */}
         {((!isOutside && effectivePresence.arrivalDate) || profile) && (
           <div className="grid grid-cols-2 gap-3">

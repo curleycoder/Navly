@@ -35,24 +35,9 @@ export function StepSignUp({
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [consent, setConsent] = useState(false)
-  const [resetSent, setResetSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [alreadyExists, setAlreadyExists] = useState(false)
-
-  async function handleForgotPassword() {
-    if (!email.trim()) {
-      setError('Enter your email address first.')
-      return
-    }
-
-    await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin}/dashboard`,
-    })
-
-    setResetSent(true)
-    setError('')
-  }
 
   async function handleCompleteSignUp() {
     const trimmedName = fullName.trim()
@@ -261,14 +246,6 @@ export function StepSignUp({
             >
               Password
             </Label>
-
-            <button
-              type="button"
-              onClick={handleForgotPassword}
-              className="text-xs text-muted-text/70 hover:text-navly-red"
-            >
-              {resetSent ? 'Reset email sent ✓' : 'Forgot password?'}
-            </button>
           </div>
 
           <div className="relative">

@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,7 +12,6 @@ import { supabase } from '@/lib/supabase/client'
 import { loadProfile, loadProfileFromSupabase, saveProfileToSupabase } from '@/lib/profile'
 
 function LoginContent() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/dashboard'
   const [email, setEmail] = useState('')
@@ -22,69 +21,12 @@ function LoginContent() {
   const [error, setError] = useState('')
   const [unconfirmed, setUnconfirmed] = useState(false)
   const [resentAt, setResentAt] = useState<number | null>(null)
-  const [loginMode, setLoginMode] = useState<'email' | 'phone'>('email')
-  const [phone, setPhone] = useState('')
-  const [otp, setOtp] = useState('')
-  const [otpSent, setOtpSent] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   async function handleResendVerification() {
     await supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin}/dashboard` } })
     setResentAt(Date.now())
   }
-  async function handleSendPhoneOtp() {
-  setLoading(true)
-  setError('')
-
-  const trimmedPhone = phone.trim()
-
-  if (!trimmedPhone) {
-    setError('Enter your phone number.')
-    setLoading(false)
-    return
-  }
-
-  const { error: otpError } = await supabase.auth.signInWithOtp({
-    phone: trimmedPhone,
-  })
-
-  if (otpError) {
-    setError(otpError.message)
-    setLoading(false)
-    return
-  }
-
-  setOtpSent(true)
-  setLoading(false)
-}
-async function handleVerifyPhoneOtp() {
-  setLoading(true)
-  setError('')
-
-  const { data, error: verifyError } = await supabase.auth.verifyOtp({
-    phone: phone.trim(),
-    token: otp.trim(),
-    type: 'sms',
-  })
-
-  if (verifyError) {
-    setError('Incorrect code. Check your SMS and try again.')
-    setLoading(false)
-    return
-  }
-
-  if (data.user) {
-    const dbProfile = await loadProfileFromSupabase(data.user.id)
-
-    if (!dbProfile) {
-      const localProfile = loadProfile()
-      if (localProfile?.locationStatus) {
-        await saveProfileToSupabase(data.user.id, localProfile)
-      }
-    }
-  }
-
-  window.location.href = redirectTo
-}
 
   async function handleLogin() {
     setLoading(true)
@@ -128,7 +70,7 @@ async function handleVerifyPhoneOtp() {
       redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin}/dashboard`,
     })
     setError('')
-    alert(`Password reset email sent to ${email}. Check your inbox.`)
+    setResetSent(true)
   }
 
   return (
@@ -221,7 +163,7 @@ async function handleVerifyPhoneOtp() {
                     onClick={handleForgotPassword}
                     className="text-xs text-muted-text/70 hover:text-navly-red"
                   >
-                    Forgot password?
+                    {resetSent ? 'Reset email sent ✓' : 'Forgot password?'}
                   </button>
                 </div>
                 <div className="relative">
