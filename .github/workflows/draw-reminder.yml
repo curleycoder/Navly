@@ -1,0 +1,53 @@
+name: EE Draw Reminder
+
+# Fires every other Tuesday at 9am ET (14:00 UTC).
+# IRCC usually publishes draws on Wednesdays — this gives you a day's heads-up.
+on:
+  schedule:
+    - cron: '0 13 * * 2'   # every Tuesday at 13:00 UTC (9am ET)
+  workflow_dispatch:           # allow manual trigger from the Actions tab
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Skip odd weeks
+        run: |
+          week=$(date +%V)
+          if (( week % 2 != 0 )); then echo "skip=true" >> $GITHUB_ENV; fi
+
+      - name: Open draw-check issue
+        if: env.skip != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const today = new Date().toISOString().slice(0, 10)
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[Draw check] Has IRCC published a new EE draw? — ${today}`,
+              body: `## Bi-weekly Express Entry draw check\n\n` +
+                `IRCC publishes draws roughly every two weeks. Check the official source and update \`lib/draws.ts\` if a new draw has been published.\n\n` +
+                `**Official source:**\n` +
+                `https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/submit-profile/rounds-invitations.html\n\n` +
+                `**If there's a new draw, run:**\n` +
+                `\`\`\`bash\n` +
+                `npx ts-node scripts/add-draw.ts \\\n` +
+                `  --type "All programs" \\\n` +
+                `  --date "Jul 2, 2026" \\\n` +
+                `  --cutoff 491 \\\n` +
+                `  --invited 4500\n` +
+                `\`\`\`\n\n` +
+                `Then verify and commit:\n` +
+                `\`\`\`bash\n` +
+                `git diff lib/draws.ts\n` +
+                `git add lib/draws.ts && git commit -m "draws: <date> <type> cutoff <score>"\n` +
+                `git push\n` +
+                `\`\`\`\n\n` +
+                `**If no new draw yet:** close this issue — next reminder in ~2 weeks.\n\n` +
+                `> Supported \`--type\` values: \`All programs\` · \`Canadian Experience Class\` · \`Federal Skilled Worker\` · \`Provincial Nominee Program\` · \`French Language Proficiency\``,
+              labels: ['maintenance'],
+            })
