@@ -103,9 +103,9 @@ const pricingPlans = [
   },
   {
     name: "PR Tracker",
-    price: "$9.99",
-    priceNote: "/ month, billed annually",
-    monthlyNote: "or $14.99/month",
+    price: "$119.99",
+    priceNote: "/ year",
+    monthlyNote: "or $14.99/month, billed monthly",
     desc: "Full breakdown, daily tracking, permit alerts, and AI assistant — everything in one plan.",
     points: [
       "Full CRS + FSW score breakdown",

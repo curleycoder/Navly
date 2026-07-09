@@ -12,6 +12,8 @@ type ActivationState = 'verifying' | 'active' | 'timeout'
 function SuccessContent() {
   const params = useSearchParams()
   const plan = params.get('plan')
+  const billing = params.get('billing')
+  const priceLabel = billing === 'annual' ? '$119.99 / year' : '$14.99 / month'
 
   const [activation, setActivation] = useState<ActivationState>('verifying')
 
@@ -78,7 +80,7 @@ function SuccessContent() {
           </div>
           <div>
             <p className="font-bold text-heading">PR Tracker</p>
-            <p className="text-sm text-muted-text">$14.99 / month</p>
+            <p className="text-sm text-muted-text">{priceLabel}</p>
           </div>
         </div>
         <ul className="mt-4 space-y-2 text-sm text-muted-text">

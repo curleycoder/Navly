@@ -192,11 +192,11 @@ export default function PricingPage() {
             {billing === 'annual' ? (
               <div className="mt-2">
                 <div className="flex items-end gap-1.5">
-                  <span className="text-4xl font-bold text-heading">$9.99</span>
-                  <span className="mb-1 text-sm text-muted-text">/ month</span>
+                  <span className="text-4xl font-bold text-heading">$119.99</span>
+                  <span className="mb-1 text-sm text-muted-text">/ year</span>
                 </div>
                 <p className="mt-1 text-xs font-semibold text-navly-red">
-                  Billed $119.99/year · saves $60 vs monthly
+                  Saves $60 vs paying monthly
                 </p>
               </div>
             ) : (
@@ -242,7 +242,7 @@ export default function PricingPage() {
               <div className="px-5 py-4 text-xs font-bold uppercase tracking-wide text-muted-text/70">Feature</div>
               {[
                 { label: 'Free Check', sub: '$0', accent: 'text-muted-text/50' },
-                { label: 'PR Tracker', sub: billing === 'annual' ? '$9.99/mo annual' : '$14.99/mo', accent: 'text-navly-red' },
+                { label: 'PR Tracker', sub: billing === 'annual' ? '$119.99/yr' : '$14.99/mo', accent: 'text-navly-red' },
               ].map((h) => (
                 <div key={h.label} className="px-4 py-4 text-center">
                   <p className={`text-sm font-bold ${h.accent}`}>{h.label}</p>
