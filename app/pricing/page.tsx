@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Check, BarChart3, CalendarCheck, Loader2, X } from 'lucide-react'
+import { ArrowLeft, Check, BarChart3, CalendarCheck, FileText, Loader2, X } from 'lucide-react'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
@@ -24,6 +24,22 @@ const TRACKER_FEATURES = [
   'AI immigration assistant',
 ]
 
+const REPORT_FEATURES = [
+  'Full CRS + FSW score breakdown',
+  'Top 3 PR pathways ranked',
+  'Gap analysis with risk flags',
+  'Province-by-province PNP match',
+  'Timeline estimate to eligibility',
+  'Best next actions — personalized',
+  'Downloadable PDF (consultant-ready)',
+]
+
+const REPORT_EXCLUSIONS = [
+  'No live updates or alerts',
+  'No Canada days tracker',
+  'No AI assistant',
+]
+
 const FREE_FEATURES = [
   'Inside/outside Canada intake',
   'Basic CRS score estimate',
@@ -32,6 +48,42 @@ const FREE_FEATURES = [
   'Gap summary — what\'s missing',
   'Find a certified consultant (discount code included)',
 ]
+
+function ReportCheckoutButton() {
+  const [loading, setLoading] = useState(false)
+
+  async function startCheckout() {
+    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      window.location.href = '/login?redirect=/pricing'
+      return
+    }
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: 'report' }),
+    })
+    const { url, error } = await res.json()
+    if (url) {
+      window.location.href = url
+    } else {
+      console.error('Checkout error:', error)
+      setLoading(false)
+    }
+  }
+
+  return (
+    <button
+      onClick={startCheckout}
+      disabled={loading}
+      className="mt-auto flex w-full items-center justify-center gap-2 rounded-xl bg-navly-navy px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-navly-navy/80 disabled:opacity-60"
+    >
+      {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+      {loading ? 'Redirecting…' : 'Get my report — $69 →'}
+    </button>
+  )
+}
 
 function CheckoutButton({ billing, highlight }: { billing: Billing; highlight: boolean }) {
   const [loading, setLoading] = useState(false)
@@ -105,7 +157,7 @@ export default function PricingPage() {
             Find your path to Canadian PR
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-muted-text">
-            Start free to see where you stand. Upgrade to PR Tracker for the full breakdown, daily tracking, and alerts — everything in one plan.
+            Start free to see where you stand. Get a one-time Readiness Report, or unlock the full PR Tracker for live tracking and alerts.
           </p>
 
           {/* Billing toggle */}
@@ -141,7 +193,7 @@ export default function PricingPage() {
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 md:max-w-2xl md:mx-auto">
+        <div className="grid gap-6 lg:grid-cols-3">
           {/* Free tier */}
           <div className="flex flex-col rounded-3xl border border-subtle bg-surface-card p-6 shadow-sm">
             <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-navly-navy text-white">
@@ -167,6 +219,37 @@ export default function PricingPage() {
             >
               Start Free →
             </Link>
+          </div>
+
+          {/* Readiness Report tier */}
+          <div className="flex flex-col rounded-3xl border border-navly-navy bg-surface-card p-6 shadow-sm">
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-navly-navy text-white">
+              <FileText className="h-5 w-5" />
+            </div>
+            <h2 className="text-xl font-bold text-heading">Readiness Report</h2>
+            <div className="mt-2 flex items-end gap-1">
+              <span className="text-4xl font-bold text-heading">$69</span>
+              <span className="mb-1 text-sm text-muted-text">one-time</span>
+            </div>
+            <p className="mt-2 text-sm text-muted-text">A deep-dive snapshot of your PR readiness — delivered as a PDF you can share with a consultant.</p>
+            <ul className="my-5 flex flex-1 flex-col gap-2.5">
+              {REPORT_FEATURES.map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm text-muted-text">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  {f}
+                </li>
+              ))}
+              {REPORT_EXCLUSIONS.map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm text-muted-text/50">
+                  <X className="mt-0.5 h-4 w-4 shrink-0" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <ReportCheckoutButton />
+            <p className="mt-2 text-center text-xs text-muted-text/60">
+              AI-generated planning report · not legal advice
+            </p>
           </div>
 
           {/* Tracker tier */}
@@ -238,10 +321,11 @@ export default function PricingPage() {
         <div className="mt-16">
           <h2 className="mb-6 text-center text-xl font-bold text-heading">What's included</h2>
           <div className="overflow-hidden rounded-2xl border border-subtle bg-surface-card shadow-sm">
-            <div className="grid grid-cols-3 border-b-2 border-subtle bg-navly-navy">
+            <div className="grid grid-cols-4 border-b-2 border-subtle bg-navly-navy">
               <div className="px-5 py-4 text-xs font-bold uppercase tracking-wide text-muted-text/70">Feature</div>
               {[
                 { label: 'Free Check', sub: '$0', accent: 'text-muted-text/50' },
+                { label: 'Report', sub: '$69 one-time', accent: 'text-white' },
                 { label: 'PR Tracker', sub: billing === 'annual' ? '$119.99/yr' : '$14.99/mo', accent: 'text-navly-red' },
               ].map((h) => (
                 <div key={h.label} className="px-4 py-4 text-center">
@@ -252,27 +336,27 @@ export default function PricingPage() {
             </div>
 
             {[
-              { feature: 'Inside/outside Canada intake',    free: 'check', tracker: 'check' },
-              { feature: 'Basic CRS estimate',              free: 'check', tracker: 'check' },
-              { feature: 'FSW 67-point check',              free: 'check', tracker: 'check' },
-              { feature: 'Basic pathway overview',          free: 'check', tracker: 'check' },
-              { feature: 'Gap summary',                     free: 'check', tracker: 'check' },
-              { feature: 'Consultant directory + discount', free: 'check', tracker: 'check' },
-              { feature: 'Full CRS + FSW breakdown',        free: 'x',     tracker: 'check' },
-              { feature: 'Top 3 PR pathways ranked',        free: 'x',     tracker: 'check' },
-              { feature: 'Score improvement roadmap',       free: 'x',     tracker: 'check' },
-              { feature: 'PNP province match',              free: 'x',     tracker: 'check' },
-              { feature: 'Consultant-ready PDF',            free: 'x',     tracker: 'check' },
-              { feature: 'Canada days tracker',             free: 'x',     tracker: 'check' },
-              { feature: 'Permit expiry reminders',         free: 'x',     tracker: 'check' },
-              { feature: 'Express Entry draw alerts',       free: 'x',     tracker: 'check' },
-              { feature: 'Monthly CRS recalculation',       free: 'x',     tracker: 'check' },
-              { feature: 'Progress history',                free: 'x',     tracker: 'check' },
-              { feature: 'AI immigration assistant',        free: 'x',     tracker: 'check' },
+              { feature: 'Basic CRS estimate',              free: 'check', report: 'check', tracker: 'check' },
+              { feature: 'FSW 67-point check',              free: 'check', report: 'check', tracker: 'check' },
+              { feature: 'Basic pathway overview',          free: 'check', report: 'check', tracker: 'check' },
+              { feature: 'Gap summary',                     free: 'check', report: 'check', tracker: 'check' },
+              { feature: 'Consultant directory',            free: 'check', report: 'check', tracker: 'check' },
+              { feature: 'Full CRS + FSW breakdown',        free: 'x',     report: 'check', tracker: 'check' },
+              { feature: 'Top 3 PR pathways ranked',        free: 'x',     report: 'check', tracker: 'check' },
+              { feature: 'Gap analysis + risk flags',       free: 'x',     report: 'check', tracker: 'check' },
+              { feature: 'PNP province match',              free: 'x',     report: 'check', tracker: 'check' },
+              { feature: 'Consultant-ready PDF',            free: 'x',     report: 'check', tracker: 'check' },
+              { feature: 'Score improvement roadmap',       free: 'x',     report: 'check', tracker: 'check' },
+              { feature: 'Canada days tracker',             free: 'x',     report: 'x',     tracker: 'check' },
+              { feature: 'Permit expiry reminders',         free: 'x',     report: 'x',     tracker: 'check' },
+              { feature: 'Express Entry draw alerts',       free: 'x',     report: 'x',     tracker: 'check' },
+              { feature: 'Monthly CRS recalculation',       free: 'x',     report: 'x',     tracker: 'check' },
+              { feature: 'Progress history',                free: 'x',     report: 'x',     tracker: 'check' },
+              { feature: 'AI immigration assistant',        free: 'x',     report: 'x',     tracker: 'check' },
             ].map((row, i) => (
-              <div key={row.feature} className={`grid grid-cols-3 border-b border-subtle/50 last:border-0 ${i % 2 === 1 ? 'bg-surface-alt' : 'bg-surface-card'}`}>
+              <div key={row.feature} className={`grid grid-cols-4 border-b border-subtle/50 last:border-0 ${i % 2 === 1 ? 'bg-surface-alt' : 'bg-surface-card'}`}>
                 <div className="flex items-center px-5 py-4 text-sm font-medium text-heading">{row.feature}</div>
-                {[row.free, row.tracker].map((val, j) => (
+                {[row.free, row.report, row.tracker].map((val, j) => (
                   <div key={j} className="flex items-center justify-center px-4 py-4">
                     {val === 'check' && <Check className="h-5 w-5 text-emerald-500" strokeWidth={2.5} />}
                     {val === 'x' && <X className="h-4 w-4 text-muted-text/50" strokeWidth={2.5} />}
