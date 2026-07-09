@@ -111,7 +111,7 @@ export function UpgradeModal({ onClose }: UpgradeModalProps) {
                 billing === 'annual' ? 'bg-surface-card text-heading shadow-sm' : 'text-muted-text'
               )}
             >
-              Annual · $9.99
+              Annual · $119.99/yr
               <span className="rounded-full bg-navly-red/10 px-1.5 py-0.5 text-[10px] font-bold text-navly-red">
                 −33%
               </span>

@@ -30,7 +30,7 @@ const LATEST_CUTOFF = getLatestCutoff().cutoff
 function getStrength(crs: number, hasData: boolean) {
   if (!hasData) return { label: 'Incomplete', text: 'text-muted-text/70', pill: 'bg-subtle text-muted-text' }
   if (crs >= LATEST_CUTOFF) return { label: 'Competitive', text: 'text-green-400', pill: 'bg-green-500/20 text-green-300' }
-  if (crs >= 440) return { label: 'Developing', text: 'text-amber-400', pill: 'bg-amber-500/20 text-amber-300' }
+  if (crs >= LATEST_CUTOFF - 80) return { label: 'Developing', text: 'text-amber-400', pill: 'bg-amber-500/20 text-amber-300' }
   return { label: 'Below target', text: 'text-red-400', pill: 'bg-red-500/50 text-red-100' }
 }
 

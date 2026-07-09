@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { CheckCircle2, Clock, ExternalLink, Info } from 'lucide-react'
+import { PlanGate } from '@/components/ui/PlanGate'
 import { syncProfile, type IntakeData } from '@/lib/profile'
 import { syncPresence, EMPTY_PRESENCE } from '@/lib/presence'
 import { computeCitizenshipPresence, type CitizenshipResult } from '@/lib/pr-math'
@@ -40,7 +41,7 @@ function StatRow({ label, value, sub }: { label: string; value: string | number;
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function CitizenshipPage() {
+function CitizenshipPage() {
   const [result, setResult] = useState<CitizenshipResult | null>(null)
   const [loaded, setLoaded] = useState(false)
 
@@ -244,4 +245,8 @@ export default function CitizenshipPage() {
       </div>
     </div>
   )
+}
+
+export default function Page() {
+  return <PlanGate><CitizenshipPage /></PlanGate>
 }

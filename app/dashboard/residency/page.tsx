@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { AlertTriangle, CheckCircle2, Clock, ExternalLink } from 'lucide-react'
+import { PlanGate } from '@/components/ui/PlanGate'
 import { syncProfile, type IntakeData } from '@/lib/profile'
 import { syncPresence, type PresenceData, EMPTY_PRESENCE } from '@/lib/presence'
 import { computePRResidency, type PRResidencyResult } from '@/lib/pr-math'
@@ -28,7 +29,7 @@ function ProgressBar({ value, max, colorClass }: { value: number; max: number; c
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function ResidencyPage() {
+function ResidencyPage() {
   const [result, setResult] = useState<PRResidencyResult | null>(null)
   const [loaded, setLoaded] = useState(false)
 
@@ -226,4 +227,8 @@ export default function ResidencyPage() {
       </div>
     </div>
   )
+}
+
+export default function Page() {
+  return <PlanGate><ResidencyPage /></PlanGate>
 }

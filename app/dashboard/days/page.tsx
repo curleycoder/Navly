@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { PlanGate } from '@/components/ui/PlanGate'
 import { Flame, CalendarCheck, Target, Plane, PlusCircle, Trash2, MapPin, AlertTriangle, Info } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -34,7 +35,7 @@ import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 import { track } from '@/lib/analytics'
 
-export default function DaysPage() {
+function DaysPage() {
   const { t } = useLocale()
   const [presence, setPresence] = useState<PresenceData>(EMPTY_PRESENCE)
   const [missedDays, setMissedDays] = useState<string[]>([])
@@ -355,6 +356,10 @@ export default function DaysPage() {
       <p className="mt-4 text-xs text-muted-text/70">{t('tracker.disclaimer')}</p>
     </div>
   )
+}
+
+export default function Page() {
+  return <PlanGate><DaysPage /></PlanGate>
 }
 
 function TripRow({ entry, onRemove, stillAwayLabel }: { entry: TravelEntry; onRemove: (id: string) => void; stillAwayLabel: string }) {
