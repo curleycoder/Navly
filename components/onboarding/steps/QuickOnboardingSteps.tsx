@@ -470,19 +470,25 @@ function RoughCRSCard({ data }: { data: IntakeData }) {
 const CRS_THRESHOLD = 450
 
 // State machine:
-//   low_score  → idle → waitlist-form → waitlist-done
-//                     → consultant-soon
-//   high_score → idle → connect-soon
+//   low_score  → idle → email-form (source='plan_preview')       → email-done
+//                     → email-form (source='consultant_interest') → email-done
+//   high_score → idle → coming-soon
 //
-// Requires a `waitlist` Supabase table:
-//   create table waitlist (
-//     id uuid default gen_random_uuid() primary key,
-//     email text not null,
-//     source text not null default 'plan_preview',
-//     created_at timestamptz default now()
-//   );
+// Requires a `waitlist` Supabase table — see SQL in lib/waitlist-schema.sql
 
-type CTAPhase = 'idle' | 'waitlist-form' | 'waitlist-done' | 'coming-soon'
+type WaitlistSource = 'plan_preview' | 'consultant_interest'
+type CTAPhase = 'idle' | 'email-form' | 'email-done' | 'coming-soon'
+
+const EMAIL_FORM_COPY: Record<WaitlistSource, { title: string; body: string }> = {
+  plan_preview: {
+    title: 'Be first to know when it launches',
+    body:  "We'll reach out as soon as the personalized action plan is ready.",
+  },
+  consultant_interest: {
+    title: "We'll notify you when consultant matching is live",
+    body:  "We're building a network of certified RCICs. We'll reach out when it's ready for your profile.",
+  },
+}
 
 function ConsultantCTA({
   estimate,
@@ -491,8 +497,9 @@ function ConsultantCTA({
   estimate: { low: number; high: number }
   prefillEmail?: string
 }) {
-  const [phase, setPhase]         = useState<CTAPhase>('idle')
-  const [email, setEmail]         = useState(prefillEmail)
+  const [phase, setPhase]           = useState<CTAPhase>('idle')
+  const [formSource, setFormSource] = useState<WaitlistSource>('plan_preview')
+  const [email, setEmail]           = useState(prefillEmail)
   const [submitting, setSubmitting] = useState(false)
 
   const base    = Math.round((estimate.low + estimate.high) / 2)
@@ -504,29 +511,39 @@ function ConsultantCTA({
 
   function handleClick(cta_type: 'waitlist' | 'consultant' | 'connect') {
     track('plan_cta_clicked', { cta_variant: variant, cta_type })
-    setPhase(cta_type === 'waitlist' ? 'waitlist-form' : 'coming-soon')
+    if (cta_type === 'connect') {
+      setPhase('coming-soon')
+    } else {
+      setFormSource(cta_type === 'waitlist' ? 'plan_preview' : 'consultant_interest')
+      setPhase('email-form')
+    }
   }
 
-  async function handleWaitlistSubmit(e: React.FormEvent) {
+  async function handleEmailSubmit(e: { preventDefault(): void }) {
     e.preventDefault()
     if (!email.trim()) return
     setSubmitting(true)
-    await supabase.from('waitlist').insert({ email: email.trim(), source: 'plan_preview' })
+    const { error } = await supabase
+      .from('waitlist')
+      .insert({ email: email.trim(), source: formSource })
+    // 23505 = unique_violation — email already on the list, treat as success
+    if (error && error.code !== '23505') {
+      console.error('waitlist insert error', error)
+    }
     setSubmitting(false)
-    setPhase('waitlist-done')
+    setPhase('email-done')
   }
 
-  // ── Waitlist email form ────────────────────────────────────────────────────
-  if (phase === 'waitlist-form') {
+  // ── Email capture form (waitlist + consultant paths) ───────────────────────
+  if (phase === 'email-form') {
+    const copy = EMAIL_FORM_COPY[formSource]
     return (
       <form
-        onSubmit={handleWaitlistSubmit}
+        onSubmit={handleEmailSubmit}
         className="rounded-2xl border border-subtle bg-surface-card p-5"
       >
-        <p className="text-sm font-bold text-heading">Be first to know when it launches</p>
-        <p className="mt-1 text-xs text-muted-text">
-          We&rsquo;ll reach out as soon as the personalized action plan is ready.
-        </p>
+        <p className="text-sm font-bold text-heading">{copy.title}</p>
+        <p className="mt-1 text-xs text-muted-text">{copy.body}</p>
         <div className="mt-4 flex gap-2">
           <input
             type="email"
@@ -549,20 +566,20 @@ function ConsultantCTA({
     )
   }
 
-  // ── Waitlist confirmed ─────────────────────────────────────────────────────
-  if (phase === 'waitlist-done') {
+  // ── Email confirmed ────────────────────────────────────────────────────────
+  if (phase === 'email-done') {
     return (
       <div className="rounded-2xl border border-subtle bg-surface-card p-5 text-center">
         <CheckCircle2 className="mx-auto h-6 w-6 text-navly-red" aria-hidden="true" />
         <p className="mt-2 text-sm font-semibold text-heading">You&rsquo;re on the list</p>
         <p className="mt-1 text-xs text-muted-text">
-          We&rsquo;ll email you when the personalized action plan is ready.
+          We&rsquo;ll email you as soon as it&rsquo;s ready.
         </p>
       </div>
     )
   }
 
-  // ── Coming soon (consultant paths) ────────────────────────────────────────
+  // ── Coming soon (high_score connect) ──────────────────────────────────────
   if (phase === 'coming-soon') {
     return (
       <div className="rounded-2xl border border-subtle bg-surface-card p-5 text-center">
