@@ -122,16 +122,16 @@ export default function TasksPage() {
           {
             element: '[data-tour="tasks-progress"]',
             popover: {
-              title: 'Your progress',
-              description: 'Track how many tasks you\'ve completed. Each task you check off moves you closer to PR readiness.',
+              title: 'Your PR checklist',
+              description: 'Tasks are generated from your profile. Check them off as you complete them — your score and pathways update too.',
               side: 'bottom', align: 'start',
             },
           },
           {
             element: '[data-tour="tasks-add"]',
             popover: {
-              title: 'Add custom tasks',
-              description: 'Add anything that\'s specific to your situation — a consultation appointment, a test booking, or a document to chase up.',
+              title: 'Add your own tasks',
+              description: 'Add anything specific to your case — a test booking, a consultation, or a document to follow up on.',
               side: 'top', align: 'start',
             },
           },

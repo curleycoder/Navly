@@ -758,15 +758,15 @@ export default function PRTrackerPage() {
             element: '[data-tour="crs-gauge"]',
             popover: {
               title: 'Your CRS score',
-              description: 'This gauge shows your estimated Comprehensive Ranking System score out of 600. The higher it is, the more competitive you are in the Express Entry pool.',
-              side: 'bottom', align: 'center',
+              description: 'Your estimated score out of 600. Compare it to the last draw cutoff shown below the gauge.',
+              side: 'top', align: 'center',
             },
           },
           {
             element: '[data-tour="pr-improvements"]',
             popover: {
-              title: 'How to improve',
-              description: 'These are the highest-impact actions you can take right now to increase your score — ranked by how many points each would add.',
+              title: 'How to move your score',
+              description: 'The top actions ranked by how many CRS points each one adds. Work through these first.',
               side: 'top', align: 'start',
             },
           },

@@ -266,16 +266,16 @@ export default function ChatPage() {
         {
           element: '[data-tour="chat-context"]',
           popover: {
-            title: 'Your profile context',
-            description: 'The AI already knows your status, language scores, and work history. Every answer is tailored to your specific situation.',
+            title: 'Tailored to your profile',
+            description: 'The AI knows your status, scores, and work history. You don\'t need to explain your situation — just ask.',
             side: 'bottom', align: 'start',
           },
         },
         {
           element: '[data-tour="chat-input"]',
           popover: {
-            title: 'Ask anything',
-            description: 'Type any question about your immigration pathway — CRS scoring, permit renewals, PGWP eligibility, PNP options, and more. The AI is updated with the latest IRCC rules.',
+            title: 'Ask your question',
+            description: 'Ask about CRS points, permit renewals, PGWP, PNP streams, or anything immigration-related. For legal advice, always speak to a certified consultant.',
             side: 'top', align: 'start',
           },
         },

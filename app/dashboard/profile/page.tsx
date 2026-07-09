@@ -522,9 +522,9 @@ export default function ProfilePage() {
           {
             element: '[data-tour="profile-immigration"]',
             popover: {
-              title: 'Immigration profile',
-              description: 'This is where your intake data lives. Keep it up to date — your CRS score, pathway matches, and task list all recalculate based on what\'s here.',
-              side: 'bottom', align: 'start',
+              title: 'Keep this updated',
+              description: 'Tap Edit to update your status, language scores, or work history. Your CRS score and pathway matches recalculate automatically.',
+              side: 'top', align: 'start',
             },
           },
         ]}

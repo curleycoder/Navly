@@ -112,6 +112,7 @@ const pricingPlans = [
       "Gap analysis with risk flags",
       "Province-by-province PNP match",
       "Timeline estimate to eligibility",
+      "Best next actions — personalized",
       "Downloadable PDF (consultant-ready)",
     ],
     href: "/pricing",

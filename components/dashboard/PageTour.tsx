@@ -12,6 +12,13 @@ type PageTourProps = {
 export function PageTour({ tourKey, steps }: PageTourProps) {
   useEffect(() => {
     if (typeof window === 'undefined') return
+
+    // Only show on mobile devices
+    const ua = navigator.userAgent
+    const isIOS = /iPhone|iPad|iPod/i.test(ua)
+    const isAndroid = /Android/i.test(ua)
+    if (!isIOS && !isAndroid && window.innerWidth >= 768) return
+
     if (localStorage.getItem(tourKey)) return
 
     const driverObj = driver({
@@ -21,8 +28,8 @@ export function PageTour({ tourKey, steps }: PageTourProps) {
       overlayOpacity: 0.6,
       smoothScroll: true,
       allowClose: true,
-      nextBtnText: 'Next →',
-      prevBtnText: '← Back',
+      nextBtnText: 'Next',
+      prevBtnText: 'Back',
       doneBtnText: 'Got it',
       popoverClass: 'navly-tour-popover',
       steps,

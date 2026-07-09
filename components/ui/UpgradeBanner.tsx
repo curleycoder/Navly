@@ -45,11 +45,12 @@ export function UpgradeBanner({ className }: { className?: string }) {
                 'Full CRS + FSW breakdown',
                 'Top 3 PR pathways ranked',
                 'Score improvement roadmap',
-                'PNP province match',
+                'Province-by-province PNP match',
                 'Consultant-ready PDF',
                 'Canada days tracker',
                 'Permit expiry reminders',
                 'Express Entry draw alerts',
+                'Monthly CRS recalculation',
                 'AI immigration assistant',
               ].map((f) => (
                 <li key={f} className="flex items-center gap-1 text-xs text-muted-text">

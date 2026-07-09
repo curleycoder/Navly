@@ -19,8 +19,6 @@ const TRACKER_FEATURES = [
   'Permit expiry reminders',
   'Express Entry draw alerts',
   'Monthly CRS recalculation',
-  'Profile update reminders',
-  'Progress history',
   'AI immigration assistant',
 ]
 

@@ -51,13 +51,15 @@ function SuccessContent() {
 
   const features = [
     'Full CRS + FSW score breakdown',
-    'Top 3 PR pathways ranked',
+    'Top 3 PR pathways ranked for your profile',
     'Score improvement roadmap',
+    'Province-by-province PNP match',
     'Consultant-ready PDF summary',
-    'Canada days tracker with streak',
+    'Canada physical presence days tracker',
     'Permit expiry reminders',
     'Express Entry draw alerts',
     'Monthly CRS recalculation',
+    'AI immigration assistant',
   ]
 
   return (
