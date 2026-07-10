@@ -16,14 +16,17 @@ export function usePlan(): { plan: Plan; loading: boolean } {
 
       const { data } = await supabase
         .from('subscriptions')
-        .select('plan')
+        .select('plan, expires_at')
         .eq('user_id', user.id)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
 
-      if (data?.plan) setPlan(data.plan as Plan)
+      if (data?.plan) {
+        const expired = data.expires_at && new Date(data.expires_at) < new Date()
+        if (!expired) setPlan(data.plan as Plan)
+      }
       setLoading(false)
     }
     load()

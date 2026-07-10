@@ -47,10 +47,12 @@ export async function POST(req: Request) {
     const sub = event.data.object as Stripe.Subscription
     const customerId = sub.customer as string
     const supabase = getAdminClient()
+    // Scope to tracker only — never cancel one-time purchases (report) when a subscription ends
     await supabase
       .from('subscriptions')
       .update({ status: 'canceled' })
       .eq('stripe_customer_id', customerId)
+      .eq('plan', 'tracker')
   }
 
   return new Response('ok', { status: 200 })

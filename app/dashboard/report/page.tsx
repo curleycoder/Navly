@@ -1,13 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Download, AlertTriangle, CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { Download, AlertTriangle, CheckCircle2, XCircle, Clock, ArrowRight } from 'lucide-react'
 import { loadProfile, statusLabels, type IntakeData } from '@/lib/profile'
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
-import { matchPNPStreams, pnpStatusLabels, type PNPStream } from '@/lib/pnp'
+import { matchPNPStreams, type PNPStream } from '@/lib/pnp'
 import { getLatestCutoff } from '@/lib/draws'
 import { usePlan, hasReport } from '@/lib/subscription'
-import { UpgradeBanner } from '@/components/ui/UpgradeBanner'
 
 const CUTOFF = getLatestCutoff().cutoff
 const CUTOFF_DATE = getLatestCutoff().date
@@ -337,11 +336,33 @@ export default function ReportPage() {
   if (!hasReport(plan)) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-12">
-        <p className="mb-4 text-sm font-semibold text-heading">PR Readiness Report</p>
+        <p className="mb-1 text-xs font-bold uppercase tracking-wide text-navly-red">Readiness Report</p>
+        <h1 className="mb-3 text-2xl font-bold text-heading">Your full PR snapshot</h1>
         <p className="mb-6 text-sm text-muted-text">
-          Get a full PDF snapshot of your PR readiness — CRS breakdown, top pathways, PNP match, and your personalized improvement roadmap.
+          CRS breakdown, top pathways, PNP province match, gap analysis, and a personalized improvement roadmap — delivered as a PDF you can share with a consultant.
         </p>
-        <UpgradeBanner />
+        <div className="space-y-3">
+          <a
+            href="/pricing"
+            className="flex w-full items-center justify-between rounded-2xl border border-navly-navy bg-navly-navy px-5 py-4 text-left transition hover:bg-navly-navy/90"
+          >
+            <div>
+              <p className="font-bold text-white">Readiness Report — $69.99</p>
+              <p className="mt-0.5 text-xs text-white/60">One-time · no subscription</p>
+            </div>
+            <ArrowRight className="h-5 w-5 shrink-0 text-white/60" />
+          </a>
+          <a
+            href="/pricing"
+            className="flex w-full items-center justify-between rounded-2xl border border-subtle bg-surface-card px-5 py-4 text-left transition hover:border-navly-red/30"
+          >
+            <div>
+              <p className="font-bold text-heading">PR Tracker — $14.99/mo</p>
+              <p className="mt-0.5 text-xs text-muted-text">Includes the report + live tracking + AI assistant</p>
+            </div>
+            <ArrowRight className="h-5 w-5 shrink-0 text-muted-text/40" />
+          </a>
+        </div>
       </div>
     )
   }

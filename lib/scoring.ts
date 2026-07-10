@@ -1,6 +1,10 @@
 import type { IntakeData } from './profile'
 import { getRequiredFunds } from './profile'
-import { crsAgePts, crsEducationPts, crsFirstLangSkillPts, crsCanadianWorkPts, crsSkillTransferabilityPts } from './crs-tables'
+import { crsAgePts, crsEducationPts, crsFirstLangSkillPts, crsCanadianWorkPts, crsSkillTransferabilityPts, getCRSAdditional } from './crs-tables'
+import { getActiveRule } from '../rules/loader'
+import { clbVersions } from '../rules/clb'
+
+const { data: CLB } = getActiveRule(clbVersions)
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -62,111 +66,55 @@ export type ScoreResult = {
   missingFields: string[]
 }
 
-// ─── CLB Conversion — English tests ───────────────────────────────────────────
+// ─── CLB Conversion ───────────────────────────────────────────────────────────
+// Tables live in rules/clb/ — update verifiedDate there when IRCC publishes new equivalencies.
 
-function ieltsToCLB(scores: CLBScores): CLBScores {
-  const tables: Record<keyof CLBScores, [number, number][]> = {
-    r: [[8.0,10],[7.0,9],[6.5,8],[6.0,7],[5.0,6],[4.0,5],[3.5,4]],
-    w: [[7.5,10],[7.0,9],[6.5,8],[6.0,7],[5.5,6],[5.0,5],[4.0,4]],
-    l: [[8.5,10],[8.0,9],[7.5,8],[6.0,7],[5.5,6],[5.0,5],[4.5,4]],
-    s: [[7.5,10],[7.0,9],[6.5,8],[6.0,7],[5.5,6],[5.0,5],[4.0,4]],
-  }
-  function convert(score: number, skill: keyof CLBScores): number {
-    for (const [min, clb] of tables[skill]) if (score >= min) return clb
-    return 3
-  }
-  return { r: convert(scores.r,'r'), w: convert(scores.w,'w'), l: convert(scores.l,'l'), s: convert(scores.s,'s') }
-}
-
-function celpipToCLB(scores: CLBScores): CLBScores {
-  const cap = (n: number) => Math.min(Math.max(Math.floor(n), 3), 10)
-  return { r: cap(scores.r), w: cap(scores.w), l: cap(scores.l), s: cap(scores.s) }
-}
-
-// Corrected PTE Core CLB equivalency — IRCC official tables
-function pteCoreToCLB(scores: CLBScores): CLBScores {
-  function reading(s: number) {
-    if (s >= 88) return 10; if (s >= 78) return 9; if (s >= 69) return 8
-    if (s >= 60) return 7;  if (s >= 51) return 6; if (s >= 42) return 5
-    if (s >= 33) return 4;  if (s >= 24) return 3; return 0
-  }
-  function writing(s: number) {
-    if (s >= 90) return 10; if (s >= 88) return 9; if (s >= 79) return 8
-    if (s >= 69) return 7;  if (s >= 60) return 6; if (s >= 51) return 5
-    if (s >= 41) return 4;  if (s >= 32) return 3; return 0
-  }
-  function listening(s: number) {
-    if (s >= 89) return 10; if (s >= 82) return 9; if (s >= 71) return 8
-    if (s >= 60) return 7;  if (s >= 50) return 6; if (s >= 39) return 5
-    if (s >= 28) return 4;  if (s >= 18) return 3; return 0
-  }
-  function speaking(s: number) {
-    if (s >= 89) return 10; if (s >= 84) return 9; if (s >= 76) return 8
-    if (s >= 68) return 7;  if (s >= 59) return 6; if (s >= 51) return 5
-    if (s >= 42) return 4;  if (s >= 34) return 3; return 0
-  }
-  return { r: reading(scores.r), w: writing(scores.w), l: listening(scores.l), s: speaking(scores.s) }
-}
-
-// ─── CLB Conversion — French tests ────────────────────────────────────────────
-
-function tefToCLB(scores: CLBScores): CLBScores {
-  function listening(s: number) {
-    if (s >= 316) return 10; if (s >= 298) return 9; if (s >= 280) return 8
-    if (s >= 249) return 7;  if (s >= 217) return 6; if (s >= 181) return 5
-    if (s >= 145) return 4;  return 3
-  }
-  function speaking(s: number) {
-    if (s >= 393) return 10; if (s >= 349) return 9; if (s >= 310) return 8
-    if (s >= 271) return 7;  if (s >= 226) return 6; if (s >= 181) return 5
-    if (s >= 151) return 4;  return 3
-  }
-  function reading(s: number) {
-    if (s >= 206) return 10; if (s >= 181) return 9; if (s >= 151) return 8
-    if (s >= 121) return 7;  if (s >= 91)  return 6; if (s >= 71)  return 5
-    if (s >= 60)  return 4;  return 3
-  }
-  function writing(s: number) {
-    if (s >= 393) return 10; if (s >= 349) return 9; if (s >= 310) return 8
-    if (s >= 271) return 7;  if (s >= 226) return 6; if (s >= 181) return 5
-    if (s >= 151) return 4;  return 3
-  }
-  return { r: reading(scores.r), w: writing(scores.w), l: listening(scores.l), s: speaking(scores.s) }
-}
-
-function tcfToCLB(scores: CLBScores): CLBScores {
-  function listening(s: number) {
-    if (s >= 549) return 10; if (s >= 523) return 9; if (s >= 503) return 8
-    if (s >= 458) return 7;  if (s >= 398) return 6; if (s >= 369) return 5
-    if (s >= 331) return 4;  return 3
-  }
-  function speaking(s: number) {
-    if (s >= 16) return 10; if (s >= 14) return 9; if (s >= 12) return 8
-    if (s >= 10) return 7;  if (s >= 7)  return 6; if (s >= 6)  return 5
-    if (s >= 4)  return 4;  return 3
-  }
-  function reading(s: number) {
-    if (s >= 549) return 10; if (s >= 524) return 9; if (s >= 499) return 8
-    if (s >= 453) return 7;  if (s >= 406) return 6; if (s >= 375) return 5
-    if (s >= 342) return 4;  return 3
-  }
-  function writing(s: number) {
-    if (s >= 16) return 10; if (s >= 14) return 9; if (s >= 12) return 8
-    if (s >= 10) return 7;  if (s >= 7)  return 6; if (s >= 6)  return 5
-    if (s >= 4)  return 4;  return 3
-  }
-  return { r: reading(scores.r), w: writing(scores.w), l: listening(scores.l), s: speaking(scores.s) }
+function lookupCLB(table: [number, number][], score: number): number {
+  for (const [min, clb] of table) if (score >= min) return clb
+  return 3
 }
 
 export function convertToCLB(testType: string, scores: CLBScores): CLBScores | null {
   if (!testType || testType === 'none') return null
   const { r, w, l, s } = scores
   if (isNaN(r) || isNaN(w) || isNaN(l) || isNaN(s)) return null
-  if (testType === 'ielts-general') return ieltsToCLB(scores)
-  if (testType === 'celpip') return celpipToCLB(scores)
-  if (testType === 'pte') return pteCoreToCLB(scores)
-  if (testType === 'tef') return tefToCLB(scores)
-  if (testType === 'tcf') return tcfToCLB(scores)
+
+  if (testType === 'ielts-general') {
+    return {
+      r: lookupCLB(CLB.ieltsGeneral.r, r),
+      w: lookupCLB(CLB.ieltsGeneral.w, w),
+      l: lookupCLB(CLB.ieltsGeneral.l, l),
+      s: lookupCLB(CLB.ieltsGeneral.s, s),
+    }
+  }
+  if (testType === 'celpip') {
+    const cap = (n: number) => Math.min(Math.max(Math.floor(n), CLB.celpip.min), CLB.celpip.max)
+    return { r: cap(r), w: cap(w), l: cap(l), s: cap(s) }
+  }
+  if (testType === 'pte') {
+    return {
+      r: lookupCLB(CLB.pteCore.r, r),
+      w: lookupCLB(CLB.pteCore.w, w),
+      l: lookupCLB(CLB.pteCore.l, l),
+      s: lookupCLB(CLB.pteCore.s, s),
+    }
+  }
+  if (testType === 'tef') {
+    return {
+      r: lookupCLB(CLB.tef.r, r),
+      w: lookupCLB(CLB.tef.w, w),
+      l: lookupCLB(CLB.tef.l, l),
+      s: lookupCLB(CLB.tef.s, s),
+    }
+  }
+  if (testType === 'tcf') {
+    return {
+      r: lookupCLB(CLB.tcf.r, r),
+      w: lookupCLB(CLB.tcf.w, w),
+      l: lookupCLB(CLB.tcf.l, l),
+      s: lookupCLB(CLB.tcf.s, s),
+    }
+  }
   return null
 }
 
@@ -258,19 +206,20 @@ function secondLangPts(frenchClb: CLBScores | null, englishClb: CLBScores | null
 }
 
 // ─── CRS — Additional Points ──────────────────────────────────────────────────
-// NOTE: Job-offer CRS points removed March 25, 2025. Do NOT add them back.
+// Values come from the active CRS rule (rules/crs/). arrangedEmployment is 0 since 2025-03-25.
 
 function additionalPts(
   canadianEducation: string,
   canadianSibling: string,
   pnpNomination: boolean,
 ): number {
+  const add = getCRSAdditional()
   let pts = 0
-  if (pnpNomination) pts += 600
-  // Job offer CRS points removed March 25, 2025 — 0 points
-  if (canadianEducation === '3-plus-year') pts += 30
-  else if (canadianEducation === '1-2-year') pts += 15
-  if (canadianSibling === 'yes') pts += 15
+  if (pnpNomination) pts += add.pnpNomination
+  // arrangedEmployment is 0 in the active rule — no special-case needed here
+  if (canadianEducation === '3-plus-year') pts += add.canadianEducation.threePlus
+  else if (canadianEducation === '1-2-year') pts += add.canadianEducation.oneToTwo
+  if (canadianSibling === 'yes') pts += add.sibling
   return pts
 }
 

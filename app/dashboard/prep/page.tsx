@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Copy, Check, Printer, AlertTriangle, ShieldCheck, Mail, Download } from 'lucide-react'
+import { Copy, Check, AlertTriangle, ShieldCheck, Mail, Download } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -129,8 +129,14 @@ export default function PrepPage() {
     URL.revokeObjectURL(url)
   }
 
-  function print() {
-    window.print()
+  async function downloadPdf() {
+    const { jsPDF } = await import('jspdf')
+    const text = buildSummaryText(profile, score, presence, tasks, notes)
+    const doc = new jsPDF()
+    doc.setFontSize(11)
+    const lines = doc.splitTextToSize(text, 180)
+    doc.text(lines, 15, 20)
+    doc.save('navly-consultation-summary.pdf')
   }
 
   const pendingTasks = tasks.filter((t) => !t.done)
@@ -176,20 +182,20 @@ export default function PrepPage() {
           {shared ? 'Email opened!' : 'Share by email'}
         </Button>
         <Button
+          onClick={downloadPdf}
+          variant="outline"
+          className="gap-2 border-navly-navy text-heading hover:bg-navly-navy hover:text-white"
+        >
+          <Download className="h-4 w-4" />
+          Download PDF
+        </Button>
+        <Button
           onClick={downloadTxt}
           variant="outline"
           className="gap-2 border-navly-navy text-heading hover:bg-navly-navy hover:text-white"
         >
           <Download className="h-4 w-4" />
           Download .txt
-        </Button>
-        <Button
-          onClick={print}
-          variant="outline"
-          className="gap-2 border-navly-navy text-heading hover:bg-navly-navy hover:text-white"
-        >
-          <Printer className="h-4 w-4" />
-          Print
         </Button>
       </div>
 
