@@ -61,7 +61,12 @@ export const crsBase2024: VersionedRule<CRSTableData> = {
     },
 
     skillTransferability: {
-      advancedEducation:  ['bachelors', 'two-credentials', 'masters', 'professional', 'doctoral'],
+      // IRCC transferability distinguishes by NUMBER of credentials, not level:
+      //   "two or more post-secondary credentials (one 3+ years)" → 25 (CLB7) / 50 (CLB9)
+      //   any single post-secondary credential (incl. bachelor's, master's, doctoral)
+      //     → 13 (CLB7) / 25 (CLB9)
+      // This matches the official CRS tool, which scores the literal selection.
+      advancedEducation:  ['two-credentials'],
       anyPostEducation: ['1-year', '2-year', 'bachelors', 'two-credentials', 'masters', 'professional', 'doctoral'],
       // [highA+highB, highA+lowB, lowA+highB, lowA+lowB] — see CRSTableData for key definitions
       educationLanguage: [50, 25, 25, 13],

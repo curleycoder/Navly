@@ -28,13 +28,15 @@ function adminDb() {
 
 export async function POST() {
   const supabase = await createServerClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) {
+  // getUser() validates the JWT against the auth server — required before an
+  // irreversible action like account deletion. Never trust getSession() here.
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const userId = session.user.id
-  const email = session.user.email ?? null
+  const userId = user.id
+  const email = user.email ?? null
   const db = adminDb()
 
   // 1. Write audit record before doing anything destructive.
@@ -44,22 +46,36 @@ export async function POST() {
     .select('id')
     .single()
 
-  // 2. Cancel active Stripe subscription so the customer is not billed again.
-  const { data: sub } = await db
+  // 2. Cancel any live Stripe subscription so the customer is not billed again.
+  //    - include past_due: those still have a live Stripe sub that retries charges
+  //    - use a list, not maybeSingle(): duplicate rows would make maybeSingle()
+  //      error out and silently skip the cancel
+  const { data: subs } = await db
     .from('subscriptions')
-    .select('stripe_subscription_id')
+    .select('stripe_subscription_id, status')
     .eq('user_id', userId)
     .eq('plan', 'tracker')
-    .eq('status', 'active')
-    .maybeSingle()
+    .in('status', ['active', 'past_due'])
+    .not('stripe_subscription_id', 'is', null)
 
-  if (sub?.stripe_subscription_id) {
+  const cancelErrors: string[] = []
+  for (const sub of subs ?? []) {
     try {
-      await stripe.subscriptions.cancel(sub.stripe_subscription_id)
-    } catch {
-      // Non-fatal: proceed with deletion even if Stripe cancel fails.
-      // The subscription row will be cascade-deleted from our DB.
+      await stripe.subscriptions.cancel(sub.stripe_subscription_id!)
+    } catch (e) {
+      // Proceed with deletion, but keep a trace in the audit row so a
+      // billing ghost can be found and canceled manually in Stripe.
+      cancelErrors.push(
+        `${sub.stripe_subscription_id}: ${e instanceof Error ? e.message : 'unknown'}`
+      )
     }
+  }
+
+  if (cancelErrors.length > 0 && auditRow?.id) {
+    await db
+      .from('account_deletion_requests')
+      .update({ notes: `STRIPE CANCEL FAILED — ${cancelErrors.join('; ')}`.slice(0, 1000) })
+      .eq('id', auditRow.id)
   }
 
   // 3. Hard-delete the user. All related rows cascade automatically:

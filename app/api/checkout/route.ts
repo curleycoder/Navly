@@ -15,11 +15,11 @@ export async function POST(req: Request) {
 
   // Require an active session — payment must be linked to an account
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
     return Response.json({ error: 'You must be signed in to purchase.' }, { status: 401 })
   }
-  const userId = session.user.id
+  const userId = user.id
 
   if (plan === 'report') {
     const priceId = process.env.STRIPE_PRICE_REPORT

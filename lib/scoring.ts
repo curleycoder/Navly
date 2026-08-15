@@ -264,7 +264,10 @@ function calculateCanadianWorkYears(profile: IntakeData): number {
   // Cross-check via hours/week if available (IRCC uses ~1,560 hrs/yr for FTE)
   const hoursPerWeek = parseFloat(profile.hoursPerWeek || '0')
   if (hoursPerWeek > 0 && months > 0) {
-    const totalHours = hoursPerWeek * (months * 4.33)
+    // 52/12 weeks per month — the rounded 4.33 constant made a 30h/week
+    // full-time worker with exactly 12 months come out at 0.9992 years
+    // and fail the CEC 1-year requirement.
+    const totalHours = hoursPerWeek * (months * (52 / 12))
     const yearsByHours = totalHours / 1560
     // Use the more conservative of the two
     return Math.min(yearsByMonths, yearsByHours)
@@ -817,6 +820,14 @@ export function calculateScore(profile: IntakeData): ScoreResult {
     additional: additionalPts(profile.canadianEducation, profile.canadianSibling, pnpNomination),
     total: 0,
   }
+  // IRCC caps the entire "additional points" section at 600 — this includes the
+  // French-language bonus (secondLanguage here) alongside PNP, sibling, and
+  // Canadian education. A PNP nominee with sibling + Canadian education + French
+  // would otherwise show up to 695.
+  if (breakdown.secondLanguage + breakdown.additional > 600) {
+    breakdown.additional = Math.max(0, 600 - breakdown.secondLanguage)
+  }
+
   breakdown.total = breakdown.age + breakdown.education + breakdown.firstLanguage +
     breakdown.secondLanguage + breakdown.spouseFactors + breakdown.canadianExperience +
     breakdown.skillTransferability + breakdown.additional

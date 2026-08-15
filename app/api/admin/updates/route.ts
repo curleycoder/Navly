@@ -10,9 +10,10 @@ function adminDb() {
 
 async function assertAdmin(): Promise<boolean> {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  // getUser() validates the JWT server-side — mandatory for admin routes.
+  const { data: { user } } = await supabase.auth.getUser()
   const adminEmail = process.env.ADMIN_EMAIL
-  return Boolean(session && adminEmail && session.user.email === adminEmail)
+  return Boolean(user && adminEmail && user.email === adminEmail)
 }
 
 // GET — list updates, default unreviewed only

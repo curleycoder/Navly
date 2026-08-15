@@ -22,10 +22,11 @@ function pickAllowed(body: Record<string, unknown>) {
 
 async function assertAdmin(): Promise<string | null> {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  // getUser() validates the JWT server-side — mandatory for admin routes.
+  const { data: { user } } = await supabase.auth.getUser()
   const adminEmail = process.env.ADMIN_EMAIL
-  if (!session || !adminEmail || session.user.email !== adminEmail) return null
-  return session.user.id
+  if (!user || !adminEmail || user.email !== adminEmail) return null
+  return user.id
 }
 
 // GET — list all consultants (admin sees inactive too)

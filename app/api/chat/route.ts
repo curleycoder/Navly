@@ -343,12 +343,14 @@ const MAX_HISTORY = 14 // 7 turns
 
 export async function POST(request: Request) {
   const supabase = await createServerClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) {
+  // getUser() validates the JWT against the auth server; getSession() only
+  // reads the cookie and must not be trusted for server-side authorization.
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const userId = session.user.id
+  const userId = user.id
 
   // ── Server-side plan gate ─────────────────────────────────────────────────
   // AI chat is a tracker-only feature. Check against the DB, not client state.
@@ -371,10 +373,28 @@ export async function POST(request: Request) {
     profile?: IntakeData
   }
 
-  const trimmed = messages.slice(-MAX_HISTORY)
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return Response.json({ error: 'No messages provided.' }, { status: 400 })
+  }
+
+  // Only user/assistant roles are allowed through. Without this filter a user
+  // could POST a { role: "system" } message and override every guardrail.
+  const safeMessages = messages
+    .filter(
+      (m): m is { role: 'user' | 'assistant'; content: string } =>
+        (m.role === 'user' || m.role === 'assistant') &&
+        typeof m.content === 'string'
+    )
+    .map(m => ({ role: m.role, content: m.content.slice(0, 4000) }))
+
+  if (safeMessages.length === 0) {
+    return Response.json({ error: 'No valid messages provided.' }, { status: 400 })
+  }
+
+  const trimmed = safeMessages.slice(-MAX_HISTORY)
 
   // RAG: pull relevant rule snapshots + recent news in parallel
-  const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')?.content ?? ''
+  const lastUserMsg = [...safeMessages].reverse().find(m => m.role === 'user')?.content ?? ''
   const [ruleContext, newsContext] = await Promise.all([
     fetchRuleContext(lastUserMsg),
     fetchRecentNewsContext(),
@@ -392,7 +412,7 @@ export async function POST(request: Request) {
     max_tokens: 2048,
     messages: [
       { role: 'system', content: systemPrompt },
-      ...trimmed as { role: 'user' | 'assistant'; content: string }[],
+      ...trimmed,
     ],
     stream: true,
   })

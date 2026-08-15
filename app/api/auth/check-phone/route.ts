@@ -25,8 +25,8 @@ function isRateLimited(ip: string): boolean {
 export async function POST(req: Request) {
   // Require an active session — phone check only happens after account creation
   const supabase = await createServerClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

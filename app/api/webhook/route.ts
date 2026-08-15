@@ -11,14 +11,29 @@ function getAdminClient() {
   )
 }
 
-// Retrieve current_period_end from a Stripe subscription and return it as an ISO string.
+// Stripe API 2025-03-31+ (SDK v18+): current_period_end moved from the
+// Subscription object to each SubscriptionItem. All items share the same
+// period for standard subscriptions, so read it from the first item.
+function periodEndOf(sub: Stripe.Subscription): string | null {
+  const end = sub.items?.data?.[0]?.current_period_end
+  return end ? new Date(end * 1000).toISOString() : null
+}
+
 async function getExpiresAt(subscriptionId: string): Promise<string | null> {
   try {
     const sub = await stripe.subscriptions.retrieve(subscriptionId)
-    return new Date(sub.current_period_end * 1000).toISOString()
+    return periodEndOf(sub)
   } catch {
     return null
   }
+}
+
+// Stripe API 2025-03-31+: Invoice.subscription was removed — the subscription
+// now lives under invoice.parent.subscription_details.subscription.
+function subscriptionIdOf(invoice: Stripe.Invoice): string | null {
+  const sub = invoice.parent?.subscription_details?.subscription
+  if (!sub) return null
+  return typeof sub === 'string' ? sub : sub.id
 }
 
 export async function POST(req: Request) {
@@ -52,15 +67,25 @@ export async function POST(req: Request) {
 
       const expiresAt = subscriptionId ? await getExpiresAt(subscriptionId) : null
 
-      await supabase.from('subscriptions').upsert({
-        user_id: userId,
-        plan,
-        stripe_session_id: session.id,
-        stripe_customer_id: session.customer as string | null,
-        stripe_subscription_id: subscriptionId,
-        status: 'active',
-        expires_at: expiresAt,
-      })
+      // onConflict user_id,plan — Stripe retries webhooks; without a conflict
+      // target this would insert a duplicate row on every retry (PK is `id`).
+      // Requires the unique index from migration 011.
+      const { error } = await supabase.from('subscriptions').upsert(
+        {
+          user_id: userId,
+          plan,
+          stripe_session_id: session.id,
+          stripe_customer_id: session.customer as string | null,
+          stripe_subscription_id: subscriptionId,
+          status: 'active',
+          expires_at: expiresAt,
+        },
+        { onConflict: 'user_id,plan' }
+      )
+      if (error) {
+        // Non-200 → Stripe retries the event instead of silently dropping it.
+        return new Response(`DB write failed: ${error.message}`, { status: 500 })
+      }
     }
   }
 
@@ -70,16 +95,18 @@ export async function POST(req: Request) {
   if (event.type === 'invoice.paid') {
     const invoice = event.data.object as Stripe.Invoice
     const customerId = invoice.customer as string
-    const subscriptionId =
-      typeof invoice.subscription === 'string' ? invoice.subscription : null
+    const subscriptionId = subscriptionIdOf(invoice)
 
     if (subscriptionId) {
       const expiresAt = await getExpiresAt(subscriptionId)
-      await supabase
+      const { error } = await supabase
         .from('subscriptions')
         .update({ status: 'active', expires_at: expiresAt })
         .eq('stripe_customer_id', customerId)
         .eq('plan', 'tracker')
+      if (error) {
+        return new Response(`DB write failed: ${error.message}`, { status: 500 })
+      }
     }
   }
 
@@ -103,7 +130,7 @@ export async function POST(req: Request) {
   if (event.type === 'customer.subscription.updated') {
     const sub = event.data.object as Stripe.Subscription
     const customerId = sub.customer as string
-    const expiresAt = new Date(sub.current_period_end * 1000).toISOString()
+    const expiresAt = periodEndOf(sub)
 
     // Map Stripe statuses to our three allowed values
     const status =
@@ -113,11 +140,18 @@ export async function POST(req: Request) {
         ? 'past_due'
         : 'canceled'
 
-    await supabase
+    // Don't overwrite a real expiry with null if the event payload had no items.
+    const update: { status: string; expires_at?: string } = { status }
+    if (expiresAt) update.expires_at = expiresAt
+
+    const { error } = await supabase
       .from('subscriptions')
-      .update({ status, expires_at: expiresAt })
+      .update(update)
       .eq('stripe_customer_id', customerId)
       .eq('plan', 'tracker')
+    if (error) {
+      return new Response(`DB write failed: ${error.message}`, { status: 500 })
+    }
   }
 
   // ── customer.subscription.deleted ────────────────────────────────────────
