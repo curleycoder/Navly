@@ -6,6 +6,105 @@ import { calculateScore, convertToCLB } from '@/lib/scoring'
 
 const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
+// ── Admin DB (service role — bypasses RLS for rate limit writes) ──────────────
+
+function adminDb() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
+
+// ── Server-side plan check ────────────────────────────────────────────────────
+// AI chat is a tracker-only feature. Verify against the DB, not client state.
+
+async function hasTrackerPlan(userId: string): Promise<boolean> {
+  const db = adminDb()
+  const { data } = await db
+    .from('subscriptions')
+    .select('plan, status, expires_at')
+    .eq('user_id', userId)
+    .eq('plan', 'tracker')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (!data) return false
+  // If expires_at is set, the subscription must not have lapsed.
+  if (data.expires_at && new Date(data.expires_at) < new Date()) return false
+  return true
+}
+
+// ── Supabase-based rate limiter ───────────────────────────────────────────────
+// Replaces the in-memory Map which resets on every serverless cold start.
+// Uses the chat_rate_limits table (migration 010_security.sql).
+// 20 messages per 60-second window per user.
+
+const RATE_LIMIT = 20
+const WINDOW_MS = 60_000
+
+async function isChatRateLimited(userId: string): Promise<boolean> {
+  const db = adminDb()
+  const now = new Date()
+  const windowCutoff = new Date(now.getTime() - WINDOW_MS)
+
+  const { data } = await db
+    .from('chat_rate_limits')
+    .select('count, window_start')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (!data || new Date(data.window_start) < windowCutoff) {
+    // No record yet, or window has expired — start a fresh window
+    await db.from('chat_rate_limits').upsert({
+      user_id: userId,
+      window_start: now.toISOString(),
+      count: 1,
+      updated_at: now.toISOString(),
+    })
+    return false
+  }
+
+  if (data.count >= RATE_LIMIT) return true
+
+  await db
+    .from('chat_rate_limits')
+    .update({ count: data.count + 1, updated_at: now.toISOString() })
+    .eq('user_id', userId)
+  return false
+}
+
+// ── Prompt injection sanitization ────────────────────────────────────────────
+// Profile fields injected into the system prompt are user-supplied strings.
+// Strip common injection patterns and control characters before injection.
+// This is a defence-in-depth measure alongside the system-prompt guardrails.
+
+const INJECTION_PATTERNS = [
+  /ignore\s+(all|previous|above|prior|the|your)\s+\w+/gi,
+  /you\s+are\s+(now|a|an)\s+/gi,
+  /disregard\s+(all|previous|above|the)/gi,
+  /new\s+instructions?/gi,
+  /system\s+prompt/gi,
+  /override\s+(all|the|your|previous)/gi,
+  /forget\s+(all|everything|previous|your)/gi,
+  /\[system\]/gi,
+  /<\/?system>/gi,
+  /act\s+as\s+(a|an|if)/gi,
+]
+
+function sanitizeField(value: string | undefined, maxLen = 120): string {
+  if (!value) return 'not provided'
+  let s = value
+    .slice(0, maxLen)
+    .replace(/[\r\n\t]/g, ' ')   // no newlines or tabs that could break prompt structure
+    .replace(/[<>]/g, '')        // strip angle brackets (XML/HTML injection)
+  for (const pattern of INJECTION_PATTERNS) {
+    s = s.replace(pattern, '[removed]')
+  }
+  return s.trim() || 'not provided'
+}
+
 // ── RAG: retrieve rule_snapshots relevant to the user's query ──────────────
 
 const KEYWORD_CATEGORY_MAP: [RegExp, string][] = [
@@ -26,13 +125,6 @@ function detectCategories(query: string): string[] {
   return [...cats]
 }
 
-function adminDb() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-}
-
 type RuleSnapshot = {
   rule_key: string
   category: string
@@ -51,7 +143,6 @@ async function fetchRuleContext(userQuery: string): Promise<string> {
     .eq('status', 'active')
 
   if (categories.length > 0) {
-    // Always include the latest EE draw when Express Entry is relevant
     const keys = categories.includes('express_entry') ? ['latest_ee_draw'] : []
     query = query.or(
       [
@@ -61,9 +152,6 @@ async function fetchRuleContext(userQuery: string): Promise<string> {
         .filter(Boolean)
         .join(',')
     )
-  } else {
-    // No specific match — pull all active rules (few enough to fit in context)
-    // (no additional filter)
   }
 
   const { data: rows } = await query.limit(10)
@@ -163,16 +251,16 @@ For simple factual questions (definitions, terminology), a shorter direct answer
 function buildProfileContext(profile: IntakeData): string {
   const lines: string[] = ['The user has provided the following profile data (for context only):']
 
-  lines.push(`- Current status: ${profile.status || 'not provided'}`)
-  lines.push(`- Country of origin: ${profile.originCountry || 'not provided'}`)
-  lines.push(`- Currently in: ${profile.currentCountry || 'not provided'}${profile.province ? `, ${profile.province}` : ''}`)
+  lines.push(`- Current status: ${sanitizeField(profile.status)}`)
+  lines.push(`- Country of origin: ${sanitizeField(profile.originCountry)}`)
+  lines.push(`- Currently in: ${sanitizeField(profile.currentCountry)}${profile.province ? `, ${sanitizeField(profile.province)}` : ''}`)
   if (profile.locationStatus) lines.push(`- Location: ${profile.locationStatus === 'inside' ? 'inside Canada' : 'outside Canada'}`)
-  if (profile.plannedEntry) lines.push(`- Planned entry route: ${profile.plannedEntry}`)
-  lines.push(`- Main goal: ${profile.goal || 'not provided'}`)
+  if (profile.plannedEntry) lines.push(`- Planned entry route: ${sanitizeField(profile.plannedEntry)}`)
+  lines.push(`- Main goal: ${sanitizeField(profile.goal)}`)
 
-  if (profile.age) lines.push(`- Age: ${profile.age}`)
+  if (profile.age) lines.push(`- Age: ${sanitizeField(profile.age)}`)
   if (profile.maritalStatus) {
-    lines.push(`- Marital status: ${profile.maritalStatus}${profile.spouseComing ? `, spouse coming: ${profile.spouseComing}` : ''}`)
+    lines.push(`- Marital status: ${sanitizeField(profile.maritalStatus)}${profile.spouseComing ? `, spouse coming: ${sanitizeField(profile.spouseComing)}` : ''}`)
   }
 
   if (profile.langTestType && profile.langTestType !== 'none') {
@@ -182,20 +270,20 @@ function buildProfileContext(profile: IntakeData): string {
     }
     const scores = { r: parseFloat(profile.langReading), w: parseFloat(profile.langWriting), l: parseFloat(profile.langListening), s: parseFloat(profile.langSpeaking) }
     const clb = convertToCLB(profile.langTestType, scores)
-    lines.push(`- Language test: ${testName[profile.langTestType] || profile.langTestType} — R:${profile.langReading} W:${profile.langWriting} L:${profile.langListening} S:${profile.langSpeaking}`)
+    lines.push(`- Language test: ${testName[profile.langTestType] || sanitizeField(profile.langTestType)} — R:${profile.langReading} W:${profile.langWriting} L:${profile.langListening} S:${profile.langSpeaking}`)
     if (clb) lines.push(`- Estimated CLB: R:${clb.r} W:${clb.w} L:${clb.l} S:${clb.s} (min: ${Math.min(clb.r, clb.w, clb.l, clb.s)})`)
   }
 
-  if (profile.educationLevel) lines.push(`- Highest education: ${profile.educationLevel}${profile.ecaCompleted ? `, ECA: ${profile.ecaCompleted}` : ''}`)
-  if (profile.teerLevel) lines.push(`- TEER level: ${profile.teerLevel}`)
-  if (profile.foreignWorkYears) lines.push(`- Foreign skilled work: ${profile.foreignWorkYears} year(s)`)
-  if (profile.canadianWorkMonths) lines.push(`- Canadian skilled work: ${profile.canadianWorkMonths} month(s)`)
-  if (profile.hasJobOffer) lines.push(`- Job offer: ${profile.hasJobOffer}`)
-  if (profile.intendedProvince) lines.push(`- Intended province: ${profile.intendedProvince}`)
-  if (profile.permitExpiry) lines.push(`- Permit expiry: ${profile.permitExpiry}`)
+  if (profile.educationLevel) lines.push(`- Highest education: ${sanitizeField(profile.educationLevel)}${profile.ecaCompleted ? `, ECA: ${sanitizeField(profile.ecaCompleted)}` : ''}`)
+  if (profile.teerLevel) lines.push(`- TEER level: ${sanitizeField(profile.teerLevel)}`)
+  if (profile.foreignWorkYears) lines.push(`- Foreign skilled work: ${sanitizeField(profile.foreignWorkYears)} year(s)`)
+  if (profile.canadianWorkMonths) lines.push(`- Canadian skilled work: ${sanitizeField(profile.canadianWorkMonths)} month(s)`)
+  if (profile.hasJobOffer) lines.push(`- Job offer: ${sanitizeField(profile.hasJobOffer)}`)
+  if (profile.intendedProvince) lines.push(`- Intended province: ${sanitizeField(profile.intendedProvince)}`)
+  if (profile.permitExpiry) lines.push(`- Permit expiry: ${sanitizeField(profile.permitExpiry)}`)
   if (profile.previousRefusals === 'yes') lines.push('- Has reported a previous refusal')
   if (profile.lostStatus === 'yes') lines.push('- Has reported previous loss of status or overstay')
-  if (profile.familySize) lines.push(`- Family size: ${profile.familySize}`)
+  if (profile.familySize) lines.push(`- Family size: ${sanitizeField(profile.familySize)}`)
 
   try {
     const score = calculateScore(profile)
@@ -253,20 +341,6 @@ async function fetchRecentNewsContext(): Promise<string> {
 
 const MAX_HISTORY = 14 // 7 turns
 
-// Per-user rate limit: 20 messages per minute (free, in-memory)
-const chatRateMap = new Map<string, { count: number; resetAt: number }>()
-function isChatRateLimited(userId: string): boolean {
-  const now = Date.now()
-  const entry = chatRateMap.get(userId)
-  if (!entry || entry.resetAt < now) {
-    chatRateMap.set(userId, { count: 1, resetAt: now + 60_000 })
-    return false
-  }
-  if (entry.count >= 20) return true
-  entry.count++
-  return false
-}
-
 export async function POST(request: Request) {
   const supabase = await createServerClient()
   const { data: { session } } = await supabase.auth.getSession()
@@ -274,7 +348,21 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (isChatRateLimited(session.user.id)) {
+  const userId = session.user.id
+
+  // ── Server-side plan gate ─────────────────────────────────────────────────
+  // AI chat is a tracker-only feature. Check against the DB, not client state.
+  const hasPlan = await hasTrackerPlan(userId)
+  if (!hasPlan) {
+    return Response.json(
+      { error: 'AI chat requires an active PR Tracker plan.' },
+      { status: 403 }
+    )
+  }
+
+  // ── Rate limit (Supabase-backed, survives serverless cold starts) ──────────
+  const limited = await isChatRateLimited(userId)
+  if (limited) {
     return Response.json({ error: 'Too many requests. Please wait a moment.' }, { status: 429 })
   }
 

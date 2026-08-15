@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft, CheckCircle2, AlertTriangle, ChevronDown, ChevronRight,
-  Eye, EyeOff, Loader2, Archive, Phone, Pencil,
+  Eye, EyeOff, Loader2, Archive, Phone, Pencil, Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -414,6 +415,7 @@ function PasswordChangeForm() {
 
 export default function ProfilePage() {
   const { t } = useLocale()
+  const router = useRouter()
   const [data, setData] = useState<IntakeData>({ ...EMPTY_PROFILE })
   const [editingAccount, setEditingAccount] = useState(false)
   const [savingAccount, setSavingAccount] = useState(false)
@@ -426,6 +428,9 @@ export default function ProfilePage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [pendingStatus, setPendingStatus] = useState<string | null>(null)
   const [pendingGoal, setPendingGoal] = useState<string | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -486,6 +491,28 @@ export default function ProfilePage() {
     setEditingProfile(false)
     setPendingStatus(null)
     setPendingGoal(null)
+  }
+
+  async function handleDeleteAccount() {
+    setDeleteLoading(true)
+    setDeleteError(null)
+    try {
+      const res = await fetch('/api/auth/delete-account', { method: 'POST' })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setDeleteError(body.error ?? 'Deletion failed. Please try again.')
+        setDeleteLoading(false)
+        return
+      }
+      // Clear local data then redirect to landing page
+      localStorage.removeItem('navly_profile')
+      localStorage.removeItem('navly_presence')
+      await supabase.auth.signOut()
+      router.replace('/')
+    } catch {
+      setDeleteError('Network error. Please try again.')
+      setDeleteLoading(false)
+    }
   }
 
 
@@ -1291,6 +1318,61 @@ export default function ProfilePage() {
 
         </div>{/* end immigration profile card */}
 
+        {/* Delete account */}
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 dark:border-red-900/40 dark:bg-red-950/20">
+          <p className="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400">
+            Danger zone
+          </p>
+          <p className="mt-1 text-sm text-muted-text">
+            Permanently delete your account and all associated data. This cannot be undone.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { setDeleteError(null); setShowDeleteModal(true) }}
+            className="mt-3 gap-1.5 border-red-300 text-red-600 hover:bg-red-100 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete my account
+          </Button>
+        </div>
+
+        {/* Delete confirmation modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+            <div className="w-full max-w-sm rounded-2xl bg-surface-card p-6 shadow-xl">
+              <h2 className="text-base font-semibold text-heading">Delete account?</h2>
+              <p className="mt-2 text-sm text-muted-text">
+                This will permanently delete your profile, presence data, and subscription. Your data cannot be recovered.
+              </p>
+              {deleteError && (
+                <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 dark:bg-red-950/30 dark:text-red-400">
+                  {deleteError}
+                </p>
+              )}
+              <div className="mt-5 flex gap-3">
+                <Button
+                  size="sm"
+                  onClick={handleDeleteAccount}
+                  disabled={deleteLoading}
+                  className="gap-1.5 bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+                >
+                  {deleteLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  {deleteLoading ? 'Deleting…' : 'Yes, delete everything'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={deleteLoading}
+                  className="border-subtle text-muted-text"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
