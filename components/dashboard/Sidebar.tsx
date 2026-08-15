@@ -21,11 +21,12 @@ import { supabase } from '@/lib/supabase/client'
 import { useLocale } from '@/lib/i18n'
 
 const NAV_HREFS = [
-  { href: '/dashboard',       key: 'home'  as const, icon: LayoutDashboard, outsideOk: true },
-  { href: '/dashboard/dates', key: 'dates' as const, icon: CalendarDays,    outsideOk: true },
-  { href: '/dashboard/days',  key: 'travel' as const, icon: MapPin,         outsideOk: false },
-  { href: '/dashboard/tasks', key: 'tasks' as const, icon: ListChecks,      outsideOk: true },
-  { href: '/dashboard/chat',  key: 'ask'   as const, icon: MessageSquare,   outsideOk: true },
+  { href: '/dashboard',            key: 'home'      as const, icon: LayoutDashboard, outsideOk: true },
+  { href: '/dashboard/pr-tracker', key: 'prTracker' as const, icon: TrendingUp,      outsideOk: true },
+  { href: '/dashboard/dates',      key: 'dates'     as const, icon: CalendarDays,    outsideOk: true },
+  { href: '/dashboard/days',       key: 'travel'    as const, icon: MapPin,          outsideOk: false },
+  { href: '/dashboard/tasks',      key: 'tasks'     as const, icon: ListChecks,      outsideOk: true },
+  { href: '/dashboard/chat',       key: 'ask'       as const, icon: MessageSquare,   outsideOk: true },
 ]
 
 // Keep this export for MobileNav
@@ -85,19 +86,6 @@ export function Sidebar() {
         >
           <UserCircle className="h-4 w-4 shrink-0" />
           {t('nav.myProfile')}
-        </Link>
-        <Link
-          href="/dashboard/pr-tracker"
-          aria-current={pathname === '/dashboard/pr-tracker' ? 'page' : undefined}
-          className={cn(
-            'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors',
-            pathname === '/dashboard/pr-tracker'
-              ? 'bg-navly-navy text-white'
-              : 'text-muted-text hover:bg-subtle hover:text-heading'
-          )}
-        >
-          <TrendingUp className="h-4 w-4 shrink-0" />
-          {t('nav.prTracker')}
         </Link>
         <Link
           href="/dashboard/report"
