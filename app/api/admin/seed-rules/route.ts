@@ -139,19 +139,19 @@ const RULE_SNAPSHOTS = [
     category: 'express_entry',
     data: {
       currency: 'CAD',
-      note_year: 2024,
+      note_year: 2025,
       amounts_by_family_size: {
-        1: 13757,
-        2: 17127,
-        3: 21055,
-        4: 25564,
-        5: 28994,
-        6: 32700,
-        7: 36407,
+        1: 15263,
+        2: 19001,
+        3: 23360,
+        4: 28362,
+        5: 32168,
+        6: 36280,
+        7: 40392,
       },
       exemptions: [
-        'Applicants with a valid Canadian job offer.',
-        'Applicants currently authorized to work in Canada.',
+        'Applicants who are currently authorized to work in Canada AND have a valid job offer (both conditions required).',
+        'Canadian Experience Class applicants (proof of funds not required).',
       ],
       notes: [
         'Required for Federal Skilled Worker (FSW) and Federal Skilled Trades (FST) applicants.',
@@ -161,7 +161,7 @@ const RULE_SNAPSHOTS = [
       ],
     },
     source_url: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/proof-funds.html',
-    effective_date: '2024-01-01',
+    effective_date: '2025-07-01',
     status: 'active',
   },
   {

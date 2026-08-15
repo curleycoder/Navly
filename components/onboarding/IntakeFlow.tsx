@@ -162,6 +162,11 @@ export function IntakeFlow() {
       visaExpiryDate: '',
       province: '',
       canadianWorkMonths: '',
+      // Clear the other inside-only dates too — otherwise a user who switches
+      // from "inside" to "outside" keeps a phantom permit/PR deadline.
+      permitExpiry: '',
+      visitorRecordExpiry: '',
+      prDate: '',
     })
   }
 

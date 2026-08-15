@@ -437,15 +437,17 @@ export const educationLabels: Record<string, string> = {
   doctoral: 'Doctoral degree (PhD)',
 }
 
-// Settlement funds required per family size (IRCC 2024)
+// Settlement funds required per family size.
+// IRCC update effective mid-2025 — verified against IRCC proof-of-funds page 2026-08-15.
+// KEEP IN SYNC with lib/settlement-funds.ts and the proof_of_funds rule snapshot.
 export const SETTLEMENT_FUNDS: Record<number, number> = {
-  1: 13757,
-  2: 17127,
-  3: 21055,
-  4: 25564,
-  5: 28994,
-  6: 32700,
-  7: 36407,
+  1: 15263,
+  2: 19001,
+  3: 23360,
+  4: 28362,
+  5: 32168,
+  6: 36280,
+  7: 40392,
 }
 
 export function getRequiredFunds(familySize: number): number {

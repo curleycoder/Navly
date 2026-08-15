@@ -14,6 +14,8 @@ export function getValidationHint(stepId: StepId, data: IntakeData): string {
       if (!data.educationLevel) return 'Select your education level to continue.'
       if (!data.selfReportedCLB) return 'Select your language level to continue.'
       if (!data.maritalStatus) return 'Select your marital status to continue.'
+      if ((data.maritalStatus === 'married' || data.maritalStatus === 'common-law') && !data.spouseComing)
+        return 'Tell us if your spouse is coming with you — it changes your score.'
       return ''
     }
     case 'plan-preview':  return ''
@@ -31,8 +33,11 @@ export function canContinue(stepId: StepId, data: IntakeData): boolean {
     case 'key-date':       return true   // date is optional — always continuable
     case 'quick-crs': {
       const age = parseInt(data.age)
+      const spouseOk =
+        data.maritalStatus === 'single' ||
+        ((data.maritalStatus === 'married' || data.maritalStatus === 'common-law') && !!data.spouseComing)
       return !isNaN(age) && age >= 18 && age <= 99 &&
-        !!data.educationLevel && !!data.selfReportedCLB && !!data.maritalStatus
+        !!data.educationLevel && !!data.selfReportedCLB && !!data.maritalStatus && spouseOk
     }
     case 'plan-preview':  return false   // custom nav (onSave button) handles progression
     case 'early-signup':  return false   // custom nav handles progression

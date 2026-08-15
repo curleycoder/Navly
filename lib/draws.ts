@@ -24,11 +24,26 @@ export const DRAW_CATEGORIES: DrawCategory[] = [
 // ─── Staleness tracking ───────────────────────────────────────────────────────
 // Run scripts/add-draw.ts after each IRCC draw — it updates this date automatically.
 // IRCC source: canada.ca/.../express-entry/submit-profile/rounds-invitations.html
-export const DRAWS_LAST_UPDATED = '2026-05-28'
+export const DRAWS_LAST_UPDATED = '2026-08-07'
 
 // Update this array by running: npx ts-node scripts/add-draw.ts --type "..." --date "..." --cutoff N --invited N
 // Always prepend the newest draw — the first entry is treated as the latest.
 export const recentDraws: EEDraw[] = [
+  { date: 'Aug 7, 2026',  type: 'Transport Occupations',         cutoff: 470, invited: 300  },
+  { date: 'Aug 6, 2026',  type: 'French Language Proficiency',   cutoff: 391, invited: 5000 },
+  { date: 'Aug 5, 2026',  type: 'Canadian Experience Class',     cutoff: 516, invited: 3000 },
+  { date: 'Aug 4, 2026',  type: 'Provincial Nominee Program',    cutoff: 768, invited: 507  },
+  { date: 'Jul 22, 2026', type: 'French Language Proficiency',   cutoff: 399, invited: 5000 },
+  { date: 'Jul 21, 2026', type: 'Canadian Experience Class',     cutoff: 516, invited: 2000 },
+  { date: 'Jul 20, 2026', type: 'Provincial Nominee Program',    cutoff: 744, invited: 511  },
+  { date: 'Jul 10, 2026', type: 'Senior Managers (Canadian Work Experience)', cutoff: 392, invited: 500 },
+  { date: 'Jul 9, 2026',  type: 'French Language Proficiency',   cutoff: 420, invited: 5000 },
+  { date: 'Jul 7, 2026',  type: 'Canadian Experience Class',     cutoff: 517, invited: 2000 },
+  { date: 'Jul 6, 2026',  type: 'Provincial Nominee Program',    cutoff: 708, invited: 534  },
+  { date: 'Jun 25, 2026', type: 'Healthcare and Social Services', cutoff: 475, invited: 4000 },
+  { date: 'Jun 24, 2026', type: 'Physicians (Canadian Work Experience)', cutoff: 223, invited: 271 },
+  { date: 'Jun 23, 2026', type: 'Canadian Experience Class',     cutoff: 516, invited: 4000 },
+  { date: 'Jun 22, 2026', type: 'Provincial Nominee Program',    cutoff: 730, invited: 955  },
   { date: 'May 28, 2026', type: 'French Language Proficiency',   cutoff: 409, invited: 4500 },
   { date: 'May 27, 2026', type: 'Canadian Experience Class',     cutoff: 518, invited: 3000 },
   { date: 'May 25, 2026', type: 'Provincial Nominee Program',    cutoff: 805, invited: 334  },

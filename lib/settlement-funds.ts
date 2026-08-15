@@ -5,17 +5,18 @@
 // TO UPDATE: change `byFamilySize` values and set `lastCheckedAt` to today's date.
 
 export const SETTLEMENT_FUNDS = {
-  lastCheckedAt: '2024-04-01',
+  lastCheckedAt: '2026-08-15',
   sourceUrl:
     'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/proof-funds.html',
+  // IRCC update effective mid-2025. KEEP IN SYNC with lib/profile.ts SETTLEMENT_FUNDS.
   byFamilySize: {
-    1: 13757,
-    2: 17127,
-    3: 21055,
-    4: 25564,
-    5: 28994,
-    6: 32700,
-    7: 36407,
+    1: 15263,
+    2: 19001,
+    3: 23360,
+    4: 28362,
+    5: 32168,
+    6: 36280,
+    7: 40392,
   } as Record<number, number>,
 }
 

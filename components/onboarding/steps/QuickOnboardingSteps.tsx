@@ -7,7 +7,6 @@ import type { IntakeData } from '@/lib/profile'
 import { computeDeadlines, formatDeadlineDate } from '@/lib/deadlines'
 import { roughCRS } from '@/lib/rough-crs'
 import { track } from '@/lib/analytics'
-import { supabase } from '@/lib/supabase/client'
 
 // ─── Step: Quick CRS inputs ───────────────────────────────────────────────────
 
@@ -71,7 +70,11 @@ export function StepQuickCRS({ data, onChange }: QuickCRSProps) {
               type="button"
               role="radio"
               aria-checked={data.maritalStatus === opt.value || (opt.value === 'married' && data.maritalStatus === 'common-law')}
-              onClick={() => onChange({ maritalStatus: opt.value })}
+              onClick={() => onChange(
+                opt.value === 'single'
+                  ? { maritalStatus: 'single', spouseComing: '' }
+                  : { maritalStatus: 'married' }
+              )}
               className={`rounded-xl border px-3 py-3 text-sm font-semibold text-left transition ${
                 (data.maritalStatus === opt.value || (opt.value === 'married' && data.maritalStatus === 'common-law'))
                   ? 'border-navly-red bg-navly-red/5 text-navly-red'
@@ -83,6 +86,37 @@ export function StepQuickCRS({ data, onChange }: QuickCRSProps) {
           ))}
         </div>
       </div>
+
+      {/* Spouse coming — CRS uses different (lower) point tables when a spouse
+          accompanies the applicant, so this cannot be assumed either way. */}
+      {(data.maritalStatus === 'married' || data.maritalStatus === 'common-law') && (
+        <div className="mt-6">
+          <p className="mb-3 text-sm font-semibold text-heading">
+            Is your spouse or partner coming to Canada with you?
+          </p>
+          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Spouse coming to Canada">
+            {[
+              { value: 'yes', label: 'Yes, coming with me' },
+              { value: 'no',  label: 'No / already a citizen or PR' },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={data.spouseComing === opt.value}
+                onClick={() => onChange({ spouseComing: opt.value })}
+                className={`rounded-xl border px-3 py-3 text-sm font-semibold text-left transition ${
+                  data.spouseComing === opt.value
+                    ? 'border-navly-red bg-navly-red/5 text-navly-red'
+                    : 'border-subtle bg-surface-card text-heading hover:border-navly-red/40'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Age */}
       <div className="mt-8">
@@ -161,22 +195,35 @@ export function StepQuickCRS({ data, onChange }: QuickCRSProps) {
             : 'Inside or outside Canada, in a skilled occupation (TEER 0–3).'}
         </p>
         <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Years of skilled work">
-          {WORK_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              role="radio"
-              aria-checked={data.foreignWorkYears === opt.value}
-              onClick={() => onChange({ foreignWorkYears: opt.value })}
-              className={`rounded-xl border px-3 py-3 text-sm font-semibold text-center transition ${
-                data.foreignWorkYears === opt.value
-                  ? 'border-navly-red bg-navly-red/5 text-navly-red'
-                  : 'border-subtle bg-surface-card text-heading hover:border-navly-red/40'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
+          {WORK_OPTIONS.map((opt) => {
+            // Inside-Canada workers answer about CANADIAN work — store it in
+            // canadianWorkMonths so the dashboard's CRS/CEC math sees it as
+            // Canadian experience, not foreign work.
+            const selected = isInsideWorker
+              ? String(Math.round((parseFloat(data.canadianWorkMonths) || 0) / 12)) === opt.value &&
+                data.canadianWorkMonths !== ''
+              : data.foreignWorkYears === opt.value
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => onChange(
+                  isInsideWorker
+                    ? { canadianWorkMonths: String(parseInt(opt.value) * 12), foreignWorkYears: '' }
+                    : { foreignWorkYears: opt.value }
+                )}
+                className={`rounded-xl border px-3 py-3 text-sm font-semibold text-center transition ${
+                  selected
+                    ? 'border-navly-red bg-navly-red/5 text-navly-red'
+                    : 'border-subtle bg-surface-card text-heading hover:border-navly-red/40'
+                }`}
+              >
+                {opt.label}
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>
@@ -523,12 +570,17 @@ function ConsultantCTA({
     e.preventDefault()
     if (!email.trim()) return
     setSubmitting(true)
-    const { error } = await supabase
-      .from('waitlist')
-      .insert({ email: email.trim(), source: formSource })
-    // 23505 = unique_violation — email already on the list, treat as success
-    if (error && error.code !== '23505') {
-      console.error('waitlist insert error', error)
+    // Must go through the API route (service role) — the waitlist table has RLS
+    // enabled with no public policies, so a direct browser insert always fails.
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), interest: formSource }),
+      })
+      if (!res.ok) console.error('waitlist submit failed', res.status)
+    } catch (err) {
+      console.error('waitlist submit error', err)
     }
     setSubmitting(false)
     setPhase('email-done')

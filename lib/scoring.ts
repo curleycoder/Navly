@@ -505,7 +505,7 @@ function assessPGWP(profile: IntakeData): PathwayStatus | null {
     return {
       id: 'pgwp', name: 'Post-Graduation Work Permit',
       status: 'not-yet',
-      reason: `Most PGWP applicants who applied for a study permit after November 1, 2024 must provide proof of English or French language results. ${verifiedNote}`,
+      reason: `All PGWP applications since November 1, 2024 require language proof: CLB/NCLC 7 for university degree programs, CLB/NCLC 5 for college programs (test taken within 2 years). ${verifiedNote}`,
     }
   }
 
@@ -595,70 +595,74 @@ function assessMaintainedStatus(profile: IntakeData): PathwayStatus | null {
   }
 }
 
-// ─── Rural Community Immigration Class ───────────────────────────────────────
-// Permanent program launched March 2024; replaced RNIP for participating communities.
-// Requirements: job offer from designated employer, 1yr TEER 0-3 experience,
-// CLB 4 (TEER 2-3), CLB 5 (TEER 1), CLB 6 (TEER 0), high school diploma minimum.
+// ─── Rural Community Immigration Pilot (RCIP) ────────────────────────────────
+// Pilot program (successor to RNIP), launched 2025 with 14 participating
+// communities. Requirements: job offer from a designated employer in a
+// participating community, 1yr (1,560h) related work experience in the last
+// 3 years, language by TEER — CLB 6 (TEER 0/1), CLB 5 (TEER 2/3), CLB 4
+// (TEER 4/5) — and at least a high school diploma (ECA for foreign education).
+const RCIP_DATA_VERIFIED = 'August 2026'
 
-function assessRCIC(profile: IntakeData, clb: CLBScores | null, canMonths: number): PathwayStatus {
+function assessRCIP(profile: IntakeData, clb: CLBScores | null, canMonths: number): PathwayStatus {
   const teer = profile.teerLevel
   const hasJobOffer = profile.hasJobOffer === 'yes'
   const foreignYears = parseFloat(profile.foreignWorkYears) || 0
   const totalWorkYears = foreignYears + (canMonths / 12)
-  const hasWorkExp = totalWorkYears >= 1 && teer && ['0', '1', '2', '3'].includes(teer)
+  // RCIP accepts TEER 0–5 occupations (unlike Express Entry).
+  const hasWorkExp = totalWorkYears >= 1 && !!teer
   const hasEducation = profile.educationLevel && profile.educationLevel !== 'none' && profile.educationLevel !== ''
   const notQuebec = profile.intendedProvince !== 'QC'
+  const verifiedNote = `RCIP details last verified: ${RCIP_DATA_VERIFIED}. Confirm current rules at canada.ca.`
 
-  // CLB minimums: TEER 0 → 6, TEER 1 → 5, TEER 2-3 → 4
-  const minCLBRequired = teer === '0' ? 6 : teer === '1' ? 5 : 4
+  // CLB minimums by TEER: 0/1 → 6, 2/3 → 5, 4/5 → 4
+  const minCLBRequired = teer === '0' || teer === '1' ? 6 : teer === '2' || teer === '3' ? 5 : 4
   const minCLB = clb ? Math.min(clb.r, clb.w, clb.l, clb.s) : 0
   const meetsLanguage = clb !== null && minCLB >= minCLBRequired
 
   if (!notQuebec) {
     return {
-      id: 'rcic', name: 'Rural Community Immigration Class',
+      id: 'rcip', name: 'Rural Community Immigration Pilot (RCIP)',
       status: 'not-applicable',
-      reason: 'RCIC communities are outside Quebec. Quebec has its own rural immigration streams.',
+      reason: 'RCIP communities are outside Quebec. Quebec has its own rural immigration streams.',
     }
   }
 
   if (!hasJobOffer) {
     return {
-      id: 'rcic', name: 'Rural Community Immigration Class',
+      id: 'rcip', name: 'Rural Community Immigration Pilot (RCIP)',
       status: 'not-yet',
-      reason: 'RCIC requires a full-time permanent job offer from a designated employer in a participating rural community. Without one, you cannot apply.',
+      reason: `RCIP requires a full-time job offer from a designated employer in one of the participating rural communities. Without one, you cannot apply. ${verifiedNote}`,
     }
   }
 
   if (!hasWorkExp) {
     return {
-      id: 'rcic', name: 'Rural Community Immigration Class',
+      id: 'rcip', name: 'Rural Community Immigration Pilot (RCIP)',
       status: 'not-yet',
-      reason: `RCIC requires at least 1 year of skilled work experience (TEER 0–3) in the last 3 years. ${teer && ['4','5'].includes(teer) ? 'TEER 4–5 occupations do not qualify.' : 'Accumulate the required experience before applying.'}`,
+      reason: `RCIP requires at least 1 year (1,560 hours) of work experience related to your job offer, gained within the last 3 years. ${verifiedNote}`,
     }
   }
 
   if (!meetsLanguage) {
-    const needed = minCLBRequired
     return {
-      id: 'rcic', name: 'Rural Community Immigration Class',
+      id: 'rcip', name: 'Rural Community Immigration Pilot (RCIP)',
       status: 'not-yet',
-      reason: `Your TEER ${teer} occupation requires CLB ${needed} in all 4 language skills for RCIC. ${clb ? `Your current minimum is CLB ${minCLB}.` : 'Take a recognised language test first.'}`,
+      reason: `Your TEER ${teer} occupation requires CLB ${minCLBRequired} in all 4 language skills for RCIP. ${clb ? `Your current minimum is CLB ${minCLB}.` : 'Take a recognised language test first.'} ${verifiedNote}`,
     }
   }
 
   if (!hasEducation) {
     return {
-      id: 'rcic', name: 'Rural Community Immigration Class',
+      id: 'rcip', name: 'Rural Community Immigration Pilot (RCIP)',
       status: 'not-yet',
-      reason: 'RCIC requires at minimum a Canadian high school diploma or foreign equivalent. Complete your education or obtain an ECA.',
+      reason: 'RCIP requires at minimum a Canadian high school diploma or foreign equivalent (with ECA). Complete your education or obtain an ECA.',
     }
   }
 
   return {
-    id: 'rcic', name: 'Rural Community Immigration Class',
+    id: 'rcip', name: 'Rural Community Immigration Pilot (RCIP)',
     status: 'eligible',
-    reason: 'You appear to meet the core RCIC requirements: job offer, work experience, language, and education. Confirm the community is on the official IRCC participating-communities list and that your employer is designated before applying.',
+    reason: `You appear to meet the core RCIP screening factors: job offer, related work experience, language, and education. Confirm the community is on the official participating-communities list and that your employer is designated before applying. ${verifiedNote}`,
   }
 }
 
@@ -685,7 +689,7 @@ function buildWorkerPathways(profile: IntakeData, cecEligible: boolean, canMonth
     pathways.push({
       id: 'bridging-owp', name: 'Bridging Open Work Permit (BOWP)',
       status: 'possible',
-      reason: 'If you have applied for PR and your work permit expires before a decision, you may qualify for a Bridging OWP. You must have applied for PR under CEC/FSW/FST and your permit must expire within 4 months.',
+      reason: 'If you have applied for PR and your work permit expires before a decision, you may qualify for a Bridging OWP. You must be in Canada with valid (or maintained) status, and have received your Acknowledgement of Receipt (AOR) for a PR application under CEC/FSW/FST or an eligible PNP. The old "expires within 4 months" rule no longer applies.',
     })
   }
 
@@ -873,8 +877,8 @@ export function calculateScore(profile: IntakeData): ScoreResult {
       : 'PNP eligibility depends on target province, occupation, work history, education, and status. A job offer may strengthen some PNP streams.',
   })
 
-  // Rural Community Immigration Class (permanent program since March 2024)
-  pathways.push(assessRCIC(profile, clb, canMonths))
+  // Rural Community Immigration Pilot (successor to RNIP, launched 2025)
+  pathways.push(assessRCIP(profile, clb, canMonths))
 
   // Student pathways
   const pgwpResult = assessPGWP(profile)

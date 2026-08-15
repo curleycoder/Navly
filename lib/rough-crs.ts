@@ -22,17 +22,24 @@ export function roughCRS(data: IntakeData): { low: number; high: number } | null
   const clb = parseInt(data.selfReportedCLB)
   if (!data.educationLevel || isNaN(clb) || clb < 4 || isNaN(age) || age < 18) return null
 
-  const hasSpouse = data.maritalStatus === 'married' || data.maritalStatus === 'common-law'
+  // Match calculateScore(): spouse tables apply only when the spouse is coming.
+  const hasSpouse =
+    (data.maritalStatus === 'married' || data.maritalStatus === 'common-law') &&
+    data.spouseComing === 'yes'
 
   const agePts  = crsAgePts(age, hasSpouse)
   const eduPts  = crsEducationPts(data.educationLevel, hasSpouse)
   const langPts = crsFirstLangSkillPts(clb, hasSpouse) * 4  // same CLB for all 4 skills
 
-  // For inside workers, treat their reported work years as Canadian months
+  // Inside workers answered about CANADIAN work (stored in canadianWorkMonths by
+  // the quick-crs step). Their foreign years are unknown → 0, so the same
+  // experience is never double-counted as both foreign and Canadian.
   const isInsideWorker = data.locationStatus === 'inside' &&
     ['work-permit', 'pgwp', 'open-work-permit', 'employer-specific-work-permit'].includes(data.status)
-  const workYears = parseFloat(data.foreignWorkYears) || 0
-  const canMonths = isInsideWorker ? workYears * 12 : parseFloat(data.canadianWorkMonths) || 0
+  const workYears = isInsideWorker ? 0 : parseFloat(data.foreignWorkYears) || 0
+  const canMonths = isInsideWorker
+    ? parseFloat(data.canadianWorkMonths) || (parseFloat(data.foreignWorkYears) || 0) * 12 // fallback: old saved profiles
+    : parseFloat(data.canadianWorkMonths) || 0
   const workPts  = crsCanadianWorkPts(canMonths, hasSpouse)
 
   const skillPts = crsSkillTransferabilityPts(data.educationLevel, clb, workYears, canMonths)
