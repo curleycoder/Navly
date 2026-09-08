@@ -23,6 +23,7 @@ import { recentDraws } from "@/lib/draws";
 import { FAQAccordion } from "@/components/ui/FAQAccordion";
 import { createClient } from "@/lib/supabase/server";
 import type { ConsultantListing } from "@/lib/consultants";
+import { PLANS, featuresFor } from "@/lib/plans";
 
 const userTypes = [
   { title: "International students", icon: GraduationCap },
@@ -83,66 +84,9 @@ const notDoItems = [
 ];
 
 const pricingPlans = [
-  {
-    name: "Free Check",
-    price: "$0",
-    priceNote: "forever",
-    desc: "Find out if you're on the right track.",
-    points: [
-      "Inside/outside Canada intake",
-      "Basic CRS score estimate",
-      "FSW 67-point grid check",
-      "Basic pathway overview",
-      "Gap summary — what's missing",
-      "Certified consultant directory",
-    ],
-    href: "/onboarding",
-    featured: false,
-    cta: "Start Free",
-    badge: null,
-  },
-  {
-    name: "Readiness Report",
-    price: "$69.99",
-    priceNote: "one-time",
-    desc: "A deep-dive PDF snapshot of your PR readiness — ready to share with a consultant.",
-    points: [
-      "Full CRS + FSW score breakdown",
-      "Top 3 PR pathways ranked",
-      "Gap analysis with risk flags",
-      "Province-by-province PNP match",
-      "Timeline estimate to eligibility",
-      "Best next actions — personalized",
-      "Downloadable PDF (consultant-ready)",
-    ],
-    href: "/pricing",
-    featured: false,
-    cta: "Get My Report",
-    badge: null,
-  },
-  {
-    name: "PR Tracker",
-    price: "$119.99",
-    priceNote: "/ year",
-    monthlyNote: "or $14.99/month, billed monthly",
-    desc: "Full breakdown, daily tracking, permit alerts, and AI assistant — everything in one plan.",
-    points: [
-      "Full CRS + FSW score breakdown",
-      "Top 3 PR pathways ranked for your profile",
-      "Score improvement roadmap",
-      "Province-by-province PNP match",
-      "Consultant-ready PDF summary",
-      "Canada physical presence days tracker",
-      "Permit expiry reminders",
-      "Express Entry draw alerts",
-      "Monthly CRS recalculation",
-      "AI immigration assistant",
-    ],
-    href: "/pricing",
-    featured: true,
-    cta: "Start Free 7-Day Trial",
-    badge: "Best value",
-  },
+  { ...PLANS.free,    points: featuresFor('free'),    featured: false, badge: null },
+  { ...PLANS.report,  points: featuresFor('report'),  featured: false, badge: null },
+  { ...PLANS.tracker, points: featuresFor('tracker'), featured: true },
 ];
 
 const DRAW_TYPE_SHORT: Record<string, string> = {
@@ -163,6 +107,7 @@ export default async function Home() {
         "id, name, business_name, city, province, languages, services, booking_link, avatar_url, certification_type, agency_code, license_number, contact_email, sponsored, verified, active"
       )
       .eq("active", true)
+      .eq("verified", true)
       .eq("sponsored", true)
       .limit(1)
       .maybeSingle();
@@ -461,9 +406,9 @@ export default async function Home() {
               )}
             </div>
             <p className="mt-3 text-xs text-(--page-body)/50">
-              Independent professional. Navly does not provide immigration
-              consulting services and is not responsible for services offered by
-              listed consultants.
+              Sponsored listing. Independent professional, licence verified by
+              Navly. Navly does not provide immigration consulting services and
+              is not responsible for services offered by listed consultants.
             </p>
           </div>
         </section>
@@ -480,9 +425,10 @@ export default async function Home() {
               Clear planning. No fake promises.
             </h2>
             <p className="mt-4 max-w-lg text-sm leading-7 text-white/70">
-              Immigration decisions are serious. Navly is designed to organize
-              your information, track deadlines, and explain general pathways —
-              not to replace professional legal advice.
+              Immigration decisions are serious. Navly shows which Canadian PR
+              pathways you qualify for, what&apos;s missing, and tracks your days and
+              deadlines while you get there — it does not replace professional
+              legal advice.
             </p>
             <Link
               href="/onboarding"

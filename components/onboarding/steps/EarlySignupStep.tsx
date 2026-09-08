@@ -16,6 +16,7 @@ type Pathway = {
 type AccountPayload = {
   fullName: string
   email: string
+  emailOptIn: boolean
 }
 
 type StepEarlySignupProps = {

@@ -24,6 +24,7 @@ export async function fetchConsultants(): Promise<ConsultantListing[]> {
     .from('consultants')
     .select('*')
     .eq('active', true)
+    .eq('verified', true)
     .order('sponsored', { ascending: false })
     .order('name')
 

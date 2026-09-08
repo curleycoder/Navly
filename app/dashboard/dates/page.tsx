@@ -233,12 +233,12 @@ export default function DatesPage() {
               </div>
               <div className="flex-1">
                 <p className="text-sm font-bold text-heading">
-                  {reminderOptIn ? 'Email reminders on' : 'Get email reminders'}
+                  {reminderOptIn ? 'Email notifications on' : 'Email me about my PR path'}
                 </p>
                 <p className="text-xs text-muted-text">
                   {reminderOptIn
-                    ? "We'll email you before each deadline — 180, 90, 60, 30, and 7 days out."
-                    : 'Tap to receive deadline alerts by email before they lapse.'}
+                    ? "Expiry reminders (180, 90, 60, 30 and 7 days out), new Express Entry draws with how your score compares, and daily check-in nudges."
+                    : 'Tap to get expiry reminders, new Express Entry draw alerts, and check-in nudges by email.'}
                 </p>
               </div>
               <div className={`h-5 w-9 shrink-0 rounded-full transition-colors ${

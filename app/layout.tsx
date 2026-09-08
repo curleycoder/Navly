@@ -17,12 +17,12 @@ export const metadata: Metadata = {
     template: '%s | Navly',
   },
   description:
-    'Estimate your CRS score, track days in Canada, and understand your best path to permanent residence. Free PR pathway screening for immigrants.',
+    "Navly shows which Canadian PR pathways you qualify for, what's missing, and tracks your days and deadlines while you get there. Free to start.",
   keywords: ['Canada PR', 'Express Entry', 'CRS score', 'immigration', 'permanent residence', 'Canada days tracker', 'IRCC'],
   authors: [{ name: 'Navly' }],
   openGraph: {
     title: 'Navly — Canadian PR Pathway Planner',
-    description: 'Estimate your CRS score, track days in Canada, and understand your best path to permanent residence.',
+    description: "Navly shows which Canadian PR pathways you qualify for, what's missing, and tracks your days and deadlines while you get there.",
     url: 'https://navly.ca',
     siteName: 'Navly',
     images: [
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Navly — Canadian PR Pathway Planner',
-    description: 'Estimate your CRS score, track days in Canada, and understand your best path to permanent residence.',
+    description: "Navly shows which Canadian PR pathways you qualify for, what's missing, and tracks your days and deadlines while you get there.",
     images: ['/opengraph-image'],
   },
   robots: {

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { CheckCircle2, ArrowRight, CalendarCheck, Loader2 } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
+import { featuresFor } from '@/lib/plans'
 
 type ActivationState = 'verifying' | 'active' | 'timeout'
 
@@ -50,30 +51,7 @@ function SuccessContent() {
     check()
   }, [plan, isTracker])
 
-  const trackerFeatures = [
-    'Full CRS + FSW score breakdown',
-    'Top 3 PR pathways ranked for your profile',
-    'Score improvement roadmap',
-    'Province-by-province PNP match',
-    'Consultant-ready PDF summary',
-    'Canada physical presence days tracker',
-    'Permit expiry reminders',
-    'Express Entry draw alerts',
-    'Monthly CRS recalculation',
-    'AI immigration assistant',
-  ]
-
-  const reportFeatures = [
-    'Full CRS + FSW score breakdown',
-    'Top 3 PR pathways ranked',
-    'Gap analysis with risk flags',
-    'Province-by-province PNP match',
-    'Timeline estimate to eligibility',
-    'Best next actions — personalized',
-    'Downloadable PDF (consultant-ready)',
-  ]
-
-  const features = isTracker ? trackerFeatures : reportFeatures
+  const features = featuresFor(isTracker ? 'tracker' : 'report')
 
   return (
     <div className="mx-auto w-full max-w-lg px-6 py-16 text-center">

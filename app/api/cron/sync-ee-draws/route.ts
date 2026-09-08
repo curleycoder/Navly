@@ -12,6 +12,9 @@
  * Source: https://www.canada.ca/content/dam/ircc/documents/json/ee_rounds_123_en.json
  */
 import { createClient } from '@supabase/supabase-js'
+import { sendEmail } from '@/lib/email'
+import { calculateScore } from '@/lib/scoring'
+import { EMPTY_PROFILE, type IntakeData } from '@/lib/profile'
 
 const EE_DRAWS_JSON =
   'https://www.canada.ca/content/dam/ircc/documents/json/ee_rounds_123_en.json'
@@ -70,6 +73,143 @@ function toDrawRow(r: IRCCRound): DrawRow | null {
     invitations,
     tie_break_rule: parseTieBreak(r.drawCutOff),
   }
+}
+
+// ── Draw alerts ───────────────────────────────────────────────────────────────
+
+/**
+ * Only alert on genuinely recent rounds. Without this window the very first run
+ * after deploy would email every subscriber about ~300 historical draws.
+ */
+const ALERT_WINDOW_DAYS = 14
+
+function drawAlertHtml(draw: DrawRow, score: number | null): string {
+  const gap = score === null ? null : score - draw.crs_cutoff
+  const standing =
+    score === null
+      ? `<p style="margin:0 0 16px;color:#475569">Complete your profile in Navly to see how your score compares to this round.</p>`
+      : gap !== null && gap >= 0
+        ? `<p style="margin:0 0 16px;color:#475569">Your estimated score is <strong>${score}</strong> — <strong style="color:#059669">${gap} point${gap === 1 ? '' : 's'} above</strong> this cut-off.</p>`
+        : `<p style="margin:0 0 16px;color:#475569">Your estimated score is <strong>${score}</strong> — <strong>${Math.abs(gap as number)} point${Math.abs(gap as number) === 1 ? '' : 's'} below</strong> this cut-off.</p>`
+
+  return `
+    <div style="font-family:system-ui,-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:24px">
+      <h2 style="color:#0B1F3A;margin:0 0 8px">A new Express Entry round was published</h2>
+      <p style="margin:0 0 16px;color:#475569">${draw.draw_type} &middot; ${draw.draw_date}</p>
+      <table style="width:100%;border-collapse:collapse;margin:0 0 20px">
+        <tr>
+          <td style="padding:10px 12px;background:#F1F5F9;border-radius:8px 0 0 8px;color:#475569;font-size:14px">CRS cut-off</td>
+          <td style="padding:10px 12px;background:#F1F5F9;border-radius:0 8px 8px 0;text-align:right;font-weight:700;color:#0B1F3A">${draw.crs_cutoff}</td>
+        </tr>
+        <tr><td colspan="2" style="height:6px"></td></tr>
+        <tr>
+          <td style="padding:10px 12px;background:#F1F5F9;border-radius:8px 0 0 8px;color:#475569;font-size:14px">Invitations issued</td>
+          <td style="padding:10px 12px;background:#F1F5F9;border-radius:0 8px 8px 0;text-align:right;font-weight:700;color:#0B1F3A">${draw.invitations.toLocaleString()}</td>
+        </tr>
+      </table>
+      ${standing}
+      <a href="https://navly.ca/dashboard/news"
+         style="display:inline-block;background:#0B1F3A;color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none;font-weight:600">
+        See your standing
+      </a>
+      <p style="margin:24px 0 0;color:#94A3B8;font-size:12px;line-height:1.6">
+        Estimates only — Navly is not an immigration consultant and this is not advice.
+        Always confirm with IRCC or a licensed representative.<br>
+        Manage email preferences in your Navly profile settings.
+      </p>
+    </div>`
+}
+
+/**
+ * Emails tracker subscribers who opted in about draws published in the last
+ * ALERT_WINDOW_DAYS and not already sent to them.
+ * Never throws — a failed alert must not fail the sync itself.
+ */
+async function sendDrawAlerts(
+  db: ReturnType<typeof adminDb>,
+  draws: DrawRow[],
+): Promise<{ alertsSent: number; alertErrors: string[] }> {
+  const alertErrors: string[] = []
+  let alertsSent = 0
+
+  const cutoffDate = new Date()
+  cutoffDate.setDate(cutoffDate.getDate() - ALERT_WINDOW_DAYS)
+  const recent = draws.filter(d => new Date(d.draw_date + 'T12:00:00') >= cutoffDate)
+  if (recent.length === 0) return { alertsSent, alertErrors }
+
+  // Paid tracker subscribers only — draw alerts are a PR Tracker feature.
+  const { data: subs, error: subErr } = await db
+    .from('subscriptions')
+    .select('user_id, expires_at')
+    .eq('plan', 'tracker')
+    .eq('status', 'active')
+  if (subErr) return { alertsSent, alertErrors: [`subscriptions: ${subErr.message}`] }
+
+  const nowMs = Date.now()
+  const paidUserIds = [...new Set(
+    (subs ?? [])
+      .filter(s => !s.expires_at || new Date(s.expires_at).getTime() > nowMs)
+      .map(s => s.user_id),
+  )]
+  if (paidUserIds.length === 0) return { alertsSent, alertErrors }
+
+  const { data: profileRows, error: profErr } = await db
+    .from('profiles')
+    .select('id, profile_data')
+    .in('id', paidUserIds)
+  if (profErr) return { alertsSent, alertErrors: [`profiles: ${profErr.message}`] }
+
+  // Already-sent pairs, so a re-run never double-emails.
+  const { data: sentRows } = await db
+    .from('draw_notifications')
+    .select('user_id, draw_number')
+    .in('user_id', paidUserIds)
+  const alreadySent = new Set((sentRows ?? []).map(r => `${r.user_id}:${r.draw_number}`))
+
+  const emailById: Record<string, string> = {}
+  let authPage = 1
+  while (true) {
+    const { data: { users }, error } = await db.auth.admin.listUsers({ page: authPage, perPage: 1000 })
+    if (error) { alertErrors.push(`auth: ${error.message}`); break }
+    if (!users || users.length === 0) break
+    for (const u of users) if (u.email) emailById[u.id] = u.email
+    if (users.length < 1000) break
+    authPage++
+  }
+
+  for (const row of profileRows ?? []) {
+    const email = emailById[row.id]
+    if (!email) continue
+
+    const profile: IntakeData = { ...EMPTY_PROFILE, ...(row.profile_data as Partial<IntakeData>) }
+    if (profile.reminderOptIn !== 'yes') continue   // explicit email consent required
+
+    let score: number | null = null
+    try {
+      score = calculateScore(profile).crs?.total ?? null
+    } catch {
+      score = null   // incomplete profile — still worth telling them a draw happened
+    }
+
+    for (const draw of recent) {
+      if (alreadySent.has(`${row.id}:${draw.draw_number}`)) continue
+      try {
+        // Subject carries no score or program — these land on lock screens.
+        await sendEmail(
+          email,
+          'Navly: a new Express Entry round was published',
+          drawAlertHtml(draw, score),
+          'draw-alerts',
+        )
+        await db.from('draw_notifications').insert({ user_id: row.id, draw_number: draw.draw_number })
+        alertsSent++
+      } catch (e) {
+        alertErrors.push(`draw ${draw.draw_number} for ${row.id}: ${(e as Error).message}`)
+      }
+    }
+  }
+
+  return { alertsSent, alertErrors }
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
@@ -144,10 +284,16 @@ export async function GET(req: Request) {
     )
   }
 
+  // Alerts run after the upsert so the dashboard is already consistent with
+  // whatever the email says. Failures here are reported, never fatal.
+  const { alertsSent, alertErrors } = await sendDrawAlerts(db, draws)
+  errors.push(...alertErrors)
+
   return Response.json({
     ok: errors.length === 0,
     parsed: draws.length,
     upserted,
+    alertsSent,
     latest: latest ?? null,
     errors: errors.length > 0 ? errors : undefined,
   })

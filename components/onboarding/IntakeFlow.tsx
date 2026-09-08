@@ -173,11 +173,14 @@ export function IntakeFlow() {
   async function handleEarlySignupComplete(account: {
     fullName: string
     email: string
+    emailOptIn: boolean
   }) {
     const nextData = saveProfile({
       ...data,
       fullName: account.fullName,
       email: account.email,
+      // Consent captured at signup. The Important Dates toggle edits the same field.
+      reminderOptIn: account.emailOptIn ? 'yes' : '',
     })
 
     setData(nextData)

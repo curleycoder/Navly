@@ -1,8 +1,8 @@
 # Navly
 
-Canadian permanent residency pathway tracker and planning tool.
+Navly shows which Canadian PR pathways you qualify for, what's missing, and tracks your days and deadlines while you get there.
 
-Navly helps users understand possible Canadian PR pathways, estimate CRS scores, track physical presence in Canada, and identify missing requirements — without providing legal advice.
+Not immigration advice — Navly is a planning and tracking tool, not a licensed representative.
 
 ---
 

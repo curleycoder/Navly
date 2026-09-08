@@ -72,9 +72,9 @@ export const fr: LocaleDict = {
   },
 
   landing: {
-    headline: 'Votre parcours de RP canadienne commence ici',
+    headline: 'Vos voies de RP, votre score, votre prochaine étape',
     subheadline:
-      'Comprenez votre meilleure voie vers la résidence permanente — basé sur votre profil réel, pas sur des suppositions.',
+      'Répondez à quelques questions une seule fois. Navly vous montre les voies auxquelles vous êtes admissible, ce qui vous manque, et suit vos jours et vos échéances en cours de route.',
     cta: 'Vérifier mon éligibilité — gratuit',
     featureScore: 'Estimation du score CRS',
     featureTracker: 'Compteur de jours au Canada',

@@ -13,6 +13,7 @@
  */
 import { createClient } from '@supabase/supabase-js'
 import { fetchNewsFromRSS } from '@/lib/ircc-rss'
+import { sendEmail } from '@/lib/email'
 
 function adminDb() {
   return createClient(
@@ -23,26 +24,6 @@ function adminDb() {
 
 // ── Email helpers ─────────────────────────────────────────────────────────────
 
-async function sendEmail(to: string, subject: string, html: string): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) {
-    console.log(`[news-notify] (no RESEND_API_KEY) Would send to ${to}: ${subject}`)
-    return
-  }
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: process.env.RESEND_FROM_EMAIL ?? 'Navly <no-reply@navly.ca>',
-      to,
-      subject,
-      html,
-    }),
-  })
-}
 
 type NewsItem = { id: string; title: string; summary: string; source_url: string; source_name: string; importance: string }
 

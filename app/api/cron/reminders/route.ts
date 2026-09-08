@@ -12,6 +12,7 @@
  */
 import { createClient } from '@supabase/supabase-js'
 import { EMPTY_PROFILE, type IntakeData } from '@/lib/profile'
+import { sendEmail } from '@/lib/email'
 import { computeDeadlines, ALERT_DAYS, formatDeadlineDate } from '@/lib/deadlines'
 
 function adminDb() {
@@ -21,30 +22,6 @@ function adminDb() {
   )
 }
 
-async function sendEmail(to: string, subject: string, html: string): Promise<void> {
-  const apiKey = process.env.BREVO_API_KEY
-  if (!apiKey) {
-    console.log(`[reminders] (no BREVO_API_KEY) Would send to ${to}: ${subject}`)
-    return
-  }
-  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: {
-      'api-key': apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      sender: { name: 'Navly', email: process.env.BREVO_FROM_EMAIL ?? 'no-reply@navly.ca' },
-      to: [{ email: to }],
-      subject,
-      htmlContent: html,
-    }),
-  })
-  if (!res.ok) {
-    const body = await res.text()
-    throw new Error(`Brevo ${res.status}: ${body}`)
-  }
-}
 
 // ─── Email templates ──────────────────────────────────────────────────────────
 

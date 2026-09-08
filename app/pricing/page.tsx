@@ -7,45 +7,7 @@ import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
 
-type Billing = 'monthly' | 'annual'
-
-const TRACKER_FEATURES = [
-  'Full CRS + FSW score breakdown',
-  'Top 3 PR pathways ranked for your profile',
-  'Score improvement roadmap',
-  'Province-by-province PNP match',
-  'Consultant-ready PDF summary',
-  'Canada physical presence days tracker',
-  'Permit expiry reminders',
-  'Express Entry draw alerts',
-  'Monthly CRS recalculation',
-  'AI immigration assistant',
-]
-
-const REPORT_FEATURES = [
-  'Full CRS + FSW score breakdown',
-  'Top 3 PR pathways ranked',
-  'Gap analysis with risk flags',
-  'Province-by-province PNP match',
-  'Timeline estimate to eligibility',
-  'Best next actions — personalized',
-  'Downloadable PDF (consultant-ready)',
-]
-
-const REPORT_EXCLUSIONS = [
-  'No live updates or alerts',
-  'No Canada days tracker',
-  'No AI assistant',
-]
-
-const FREE_FEATURES = [
-  'Inside/outside Canada intake',
-  'Basic CRS score estimate',
-  'FSW 67-point grid check',
-  'Basic pathway overview',
-  'Gap summary — what\'s missing',
-  'Certified consultant directory',
-]
+import { PLAN_FEATURES, featuresFor, REPORT_EXCLUSIONS, PLANS, type Billing } from '@/lib/plans'
 
 function ReportCheckoutButton() {
   const [loading, setLoading] = useState(false)
@@ -204,7 +166,7 @@ export default function PricingPage() {
             </div>
             <p className="mt-2 text-sm text-muted-text">Find out if you're on the right track.</p>
             <ul className="my-6 flex flex-1 flex-col gap-2.5">
-              {FREE_FEATURES.map((f) => (
+              {featuresFor('free').map((f) => (
                 <li key={f} className="flex items-start gap-2 text-sm text-muted-text">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   {f}
@@ -231,7 +193,7 @@ export default function PricingPage() {
             </div>
             <p className="mt-2 text-sm text-muted-text">A deep-dive snapshot of your PR readiness — delivered as a PDF you can share with a consultant.</p>
             <ul className="my-5 flex flex-1 flex-col gap-2.5">
-              {REPORT_FEATURES.map((f) => (
+              {featuresFor('report').map((f) => (
                 <li key={f} className="flex items-start gap-2 text-sm text-muted-text">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   {f}
@@ -300,7 +262,7 @@ export default function PricingPage() {
             </p>
 
             <ul className="my-6 flex flex-1 flex-col gap-2.5">
-              {TRACKER_FEATURES.map((f) => (
+              {featuresFor('tracker').map((f) => (
                 <li key={f} className="flex items-start gap-2 text-sm text-muted-text">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   {f}
@@ -333,31 +295,14 @@ export default function PricingPage() {
               ))}
             </div>
 
-            {[
-              { feature: 'Basic CRS estimate',              free: 'check', report: 'check', tracker: 'check' },
-              { feature: 'FSW 67-point check',              free: 'check', report: 'check', tracker: 'check' },
-              { feature: 'Basic pathway overview',          free: 'check', report: 'check', tracker: 'check' },
-              { feature: 'Gap summary',                     free: 'check', report: 'check', tracker: 'check' },
-              { feature: 'Consultant directory',            free: 'check', report: 'check', tracker: 'check' },
-              { feature: 'Full CRS + FSW breakdown',        free: 'x',     report: 'check', tracker: 'check' },
-              { feature: 'Top 3 PR pathways ranked',        free: 'x',     report: 'check', tracker: 'check' },
-              { feature: 'Gap analysis + risk flags',       free: 'x',     report: 'check', tracker: 'check' },
-              { feature: 'PNP province match',              free: 'x',     report: 'check', tracker: 'check' },
-              { feature: 'Consultant-ready PDF',            free: 'x',     report: 'check', tracker: 'check' },
-              { feature: 'Score improvement roadmap',       free: 'x',     report: 'check', tracker: 'check' },
-              { feature: 'Canada days tracker',             free: 'x',     report: 'x',     tracker: 'check' },
-              { feature: 'Permit expiry reminders',         free: 'x',     report: 'x',     tracker: 'check' },
-              { feature: 'Express Entry draw alerts',       free: 'x',     report: 'x',     tracker: 'check' },
-              { feature: 'Monthly CRS recalculation',       free: 'x',     report: 'x',     tracker: 'check' },
-              { feature: 'Progress history',                free: 'x',     report: 'x',     tracker: 'check' },
-              { feature: 'AI immigration assistant',        free: 'x',     report: 'x',     tracker: 'check' },
-            ].map((row, i) => (
-              <div key={row.feature} className={`grid grid-cols-4 border-b border-subtle/50 last:border-0 ${i % 2 === 1 ? 'bg-surface-alt' : 'bg-surface-card'}`}>
-                <div className="flex items-center px-5 py-4 text-sm font-medium text-heading">{row.feature}</div>
+            {PLAN_FEATURES.map((row, i) => (
+              <div key={row.label} className={`grid grid-cols-4 border-b border-subtle/50 last:border-0 ${i % 2 === 1 ? 'bg-surface-alt' : 'bg-surface-card'}`}>
+                <div className="flex items-center px-5 py-4 text-sm font-medium text-heading">{row.short ?? row.label}</div>
                 {[row.free, row.report, row.tracker].map((val, j) => (
                   <div key={j} className="flex items-center justify-center px-4 py-4">
-                    {val === 'check' && <Check className="h-5 w-5 text-emerald-500" strokeWidth={2.5} />}
-                    {val === 'x' && <X className="h-4 w-4 text-muted-text/50" strokeWidth={2.5} />}
+                    {val
+                      ? <Check className="h-5 w-5 text-emerald-500" strokeWidth={2.5} />
+                      : <X className="h-4 w-4 text-muted-text/50" strokeWidth={2.5} />}
                   </div>
                 ))}
               </div>

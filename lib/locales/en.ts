@@ -67,9 +67,9 @@ export const en = {
   },
 
   landing: {
-    headline: 'Your Canadian PR journey starts here',
+    headline: 'Your PR pathways, your score, your next step',
     subheadline:
-      'Understand your best pathway to permanent residence — based on your real profile, not guesswork.',
+      'Answer a few questions once. Navly shows the routes you qualify for, what\'s missing, and tracks your days and deadlines while you get there.',
     cta: 'Check my eligibility — free',
     featureScore: 'CRS score estimate',
     featureTracker: 'Days in Canada tracker',

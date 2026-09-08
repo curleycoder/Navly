@@ -22,6 +22,8 @@ type StepSignUpProps = {
   onComplete: (account: {
     fullName: string
     email: string
+    /** Opt-in to Navly notification emails. Separate from the required terms box. */
+    emailOptIn: boolean
   }) => void
 }
 
@@ -35,6 +37,7 @@ export function StepSignUp({
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [consent, setConsent] = useState(false)
+  const [emailOptIn, setEmailOptIn] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [alreadyExists, setAlreadyExists] = useState(false)
@@ -107,7 +110,7 @@ export function StepSignUp({
     if (signUpData?.session) {
       identify(signUpData.user!.id)
       track('account_created', { authenticated: true })
-      onComplete({ fullName: trimmedName, email: trimmedEmail })
+      onComplete({ fullName: trimmedName, email: trimmedEmail, emailOptIn })
       setLoading(false)
       return
     }
@@ -128,6 +131,7 @@ export function StepSignUp({
     }
 
     onComplete({
+      emailOptIn,
       fullName: trimmedName,
       email: trimmedEmail,
     })
@@ -308,6 +312,22 @@ export function StepSignUp({
                 Privacy Policy
               </a>
               .
+            </p>
+          </label>
+
+          <label className="mt-4 flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={emailOptIn}
+              onChange={(event) => setEmailOptIn(event.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-subtle accent-navly-red"
+            />
+
+            <p className="text-sm leading-6 text-muted-text">
+              <span className="font-semibold text-heading">Email me about my PR path.</span>{' '}
+              Permit and document expiry reminders, new Express Entry draws with
+              how your score compares, and daily check-in nudges. Optional — you
+              can turn this on or off any time in Important Dates.
             </p>
           </label>
         </div>
