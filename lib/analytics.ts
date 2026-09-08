@@ -43,6 +43,9 @@ export type AnalyticsEvent =
   // Trackers
   | 'citizenship_tracker_viewed'
   | 'residency_tracker_viewed'
+  // Beta feedback
+  | 'feedback_opened'
+  | 'feedback_submitted'
   // General
   | 'app_opened'
   | 'dashboard_viewed'
@@ -57,6 +60,8 @@ export type AnalyticsProps = {
   cta_variant?: 'low_score' | 'high_score'
   cta_type?: 'waitlist' | 'consultant' | 'connect'
   reminder_channel?: 'email'
+  // Feedback category only — never the message body (may contain personal details)
+  feedback_category?: 'bug' | 'confusing' | 'wrong_info' | 'idea' | 'other'
 }
 
 // ─── Mapping helpers ──────────────────────────────────────────────────────────

@@ -1,0 +1,43 @@
+name: CI
+
+# Runs on every push and pull request. This is the gate that stops broken
+# code reaching main — the other workflows only watch IRCC for data changes.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A new push to the same branch cancels the previous run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      # Blocking. Catches undefined variables, wrong types, bad imports.
+      # This is the step that would have caught `session.user.id`.
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      # Blocking. The CRS / CLB / residency scoring rules.
+      - name: Tests
+        run: npm test
+
+      # NOT blocking yet — there is an existing backlog of 38 errors.
+      # Clear them (`npx eslint . --fix` handles some), then delete the
+      # continue-on-error line below so lint becomes a real gate.
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true

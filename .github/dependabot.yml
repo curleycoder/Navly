@@ -1,0 +1,12 @@
+version: 2
+updates:
+  # Keeps actions/checkout, actions/setup-node, actions/github-script pinned to
+  # current majors. Dependabot opens a PR when a new major ships, so Node runtime
+  # deprecation warnings get fixed automatically instead of by hand.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
+    labels: [maintenance]
