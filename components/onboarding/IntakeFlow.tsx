@@ -246,7 +246,13 @@ export function IntakeFlow() {
         </div>
       </div>
 
-      <main className="flex flex-1 items-start justify-center px-6 py-6 pb-28">
+      <main
+        className="flex flex-1 items-start justify-center px-6 py-6"
+        // The fixed footer is buttons + helper text + padding, and on iPhone the
+        // home-indicator inset on top of that. pb-28 was too short, so the last
+        // option on a step could sit hidden underneath it.
+        style={{ paddingBottom: 'calc(9rem + env(safe-area-inset-bottom))' }}
+      >
         <div className="w-full max-w-2xl">
           {currentStep === 'goal-first' && (
             <StepGoalFirst

@@ -131,21 +131,21 @@ export default async function Home() {
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_1fr]">
           <div className="max-w-2xl">
             {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/70">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/70 sm:text-xs">
               <ShieldCheck className="h-3.5 w-3.5 text-navly-red" />
               Educational planning — not legal advice
             </div>
 
             {/* Headline */}
-            <h1 className="mt-5 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Your Canadian PR pathway,{" "}
-              <span className="text-navly-red">made clear.</span>
+            <h1 className="mt-5 text-3xl font-bold leading-[1.15] tracking-tight text-white sm:text-5xl sm:leading-tight lg:text-6xl">
+              Your PR pathways, your score,{" "}
+              <span className="text-navly-red">your next step.</span>
             </h1>
 
-            <p className="mt-5 max-w-lg text-base leading-7 text-white/70">
-              Answer a few questions and get your estimated PR pathway, CRS
-              score gaps, Canada presence tracking, permit deadlines, and next
-              steps — without uploading documents.
+            <p className="mt-4 max-w-lg text-[15px] leading-6 text-white/70 sm:mt-5 sm:text-base sm:leading-7">
+              Answer a few questions once. Navly shows the routes you qualify
+              for, what&apos;s missing, and tracks your days and deadlines while you
+              get there.
             </p>
 
             {/* CTAs */}

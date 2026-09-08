@@ -70,7 +70,7 @@ function ReportContent({ profile, score, pnp }: {
         <h2 className="mb-4 text-base font-bold text-gray-900 border-b border-gray-100 pb-2">Express Entry Scores</h2>
 
         {score.crs && score.crs.total > 0 ? (
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 print:grid-cols-2">
             {/* CRS breakdown */}
             <div>
               <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">CRS Breakdown</p>

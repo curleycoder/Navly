@@ -281,25 +281,25 @@ export default function PricingPage() {
         <div className="mt-16">
           <h2 className="mb-6 text-center text-xl font-bold text-heading">What's included</h2>
           <div className="overflow-hidden rounded-2xl border border-subtle bg-surface-card shadow-sm">
-            <div className="grid grid-cols-4 border-b-2 border-subtle bg-navly-navy">
-              <div className="px-5 py-4 text-s font-bold uppercase tracking-wide text-white">Feature</div>
+            <div className="sticky top-0 z-10 grid grid-cols-[1.6fr_repeat(3,minmax(0,1fr))] sm:grid-cols-4 border-b-2 border-subtle bg-navly-navy">
+              <div className="px-3 py-3 text-xs font-bold uppercase tracking-wide text-white sm:px-5 sm:py-4">Feature</div>
               {[
                 { label: 'Free Check', sub: '$0', accent: 'text-white' },
                 { label: 'Report', sub: '$69.99 one-time', accent: 'text-white' },
                 { label: 'PR Tracker', sub: billing === 'annual' ? '$119.99/yr' : '$14.99/mo', accent: 'text-navly-red' },
               ].map((h) => (
-                <div key={h.label} className="px-4 py-4 text-center">
-                  <p className={`text-sm font-bold ${h.accent}`}>{h.label}</p>
-                  <p className="text-[11px] text-white">{h.sub}</p>
+                <div key={h.label} className="px-1.5 py-3 text-center sm:px-4 sm:py-4">
+                  <p className={`text-[11px] font-bold leading-tight sm:text-sm ${h.accent}`}>{h.label}</p>
+                  <p className="text-[10px] leading-tight text-white/80 sm:text-[11px]">{h.sub}</p>
                 </div>
               ))}
             </div>
 
             {PLAN_FEATURES.map((row, i) => (
-              <div key={row.label} className={`grid grid-cols-4 border-b border-subtle/50 last:border-0 ${i % 2 === 1 ? 'bg-surface-alt' : 'bg-surface-card'}`}>
-                <div className="flex items-center px-5 py-4 text-sm font-medium text-heading">{row.short ?? row.label}</div>
+              <div key={row.label} className={`grid grid-cols-[1.6fr_repeat(3,minmax(0,1fr))] sm:grid-cols-4 border-b border-subtle/50 last:border-0 ${i % 2 === 1 ? 'bg-surface-alt' : 'bg-surface-card'}`}>
+                <div className="flex items-center px-3 py-3 text-[13px] font-medium leading-snug text-heading sm:px-5 sm:py-4 sm:text-sm">{row.short ?? row.label}</div>
                 {[row.free, row.report, row.tracker].map((val, j) => (
-                  <div key={j} className="flex items-center justify-center px-4 py-4">
+                  <div key={j} className="flex items-center justify-center px-1 py-3 sm:px-4 sm:py-4">
                     {val
                       ? <Check className="h-5 w-5 text-emerald-500" strokeWidth={2.5} />
                       : <X className="h-4 w-4 text-muted-text/50" strokeWidth={2.5} />}
