@@ -2,7 +2,10 @@
  * Cron route — fetches latest IRCC news from RSS feeds and upserts into immigration_news.
  * Also sends email digest for new high/medium importance items.
  *
- * Called by Vercel Cron (see vercel.json) twice daily, or manually via:
+ * Called twice daily: Vercel Cron at 08:00 UTC (see vercel.json) and a GitHub
+ * Actions job at 20:00 UTC (.github/workflows/news-evening.yml). The Hobby plan
+ * allows only one Vercel cron run per day, so the evening run lives in Actions.
+ * Manually via:
  *   GET /api/cron/news  (Authorization: Bearer <CRON_SECRET>)
  *
  * Note: /api/news already fetches live from RSS on every request.
