@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     .from('profiles')
     .select('id')
     .eq('profile_data->>phone', phone.trim())
-    .neq('id', session.user.id)
+    .neq('id', user.id)
     .limit(1)
     .maybeSingle()
 
