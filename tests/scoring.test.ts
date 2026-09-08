@@ -138,7 +138,7 @@ test('transferability: each category capped at 50, total capped at 100', () => {
 
 test('French CLB 7 + English CLB 5+ = 50; French CLB 7 alone = 25; French CLB 6 = 0', () => {
   const en = { langTestType: 'ielts-general', langReading: '4.0', langWriting: '5.0', langListening: '5.0', langSpeaking: '5.0' } // CLB 5 across
-  const fr7 = { frenchTestType: 'tef', frenchReading: '121', frenchWriting: '271', frenchListening: '249', frenchSpeaking: '271' } // CLB 7 across
+  const fr7 = { frenchTestType: 'tef', frenchReading: '207', frenchWriting: '310', frenchListening: '249', frenchSpeaking: '310' } // CLB 7 across
 
   const both = calculateScore(baseProfile({ ...en, ...fr7 }))
   assert.equal(both.crs!.secondLanguage, 50)
@@ -146,7 +146,7 @@ test('French CLB 7 + English CLB 5+ = 50; French CLB 7 alone = 25; French CLB 6 
   // French only — no English test
   const frOnly = calculateScore(baseProfile({
     langTestType: 'tef',
-    langReading: '121', langWriting: '271', langListening: '249', langSpeaking: '271',
+    langReading: '207', langWriting: '310', langListening: '249', langSpeaking: '310',
     frenchTestType: '', frenchReading: '', frenchWriting: '', frenchListening: '', frenchSpeaking: '',
   }))
   // primary test is TEF → French IS the first language; no separate French bonus fields set
@@ -154,7 +154,7 @@ test('French CLB 7 + English CLB 5+ = 50; French CLB 7 alone = 25; French CLB 6 
 
   const fr6 = calculateScore(baseProfile({
     frenchTestType: 'tef',
-    frenchReading: '91', frenchWriting: '226', frenchListening: '217', frenchSpeaking: '226', // CLB 6 across
+    frenchReading: '181', frenchWriting: '271', frenchListening: '217', frenchSpeaking: '271', // CLB 6 across
   }))
   assert.equal(fr6.crs!.secondLanguage, 0)
 })
@@ -167,7 +167,7 @@ test('additional points: PNP 600 + sibling + Canadian edu + French must cap at 6
     canadianSibling: 'yes',
     canadianEducation: '3-plus-year',
     frenchTestType: 'tef',
-    frenchReading: '121', frenchWriting: '271', frenchListening: '249', frenchSpeaking: '271', // CLB 7
+    frenchReading: '207', frenchWriting: '310', frenchListening: '249', frenchSpeaking: '310', // CLB 7
   }))
   const additionalCombined = r.crs!.additional + r.crs!.secondLanguage
   assert.ok(
@@ -190,7 +190,7 @@ test('CRS total never exceeds 1,346 for a maxed single applicant', () => {
     canadianSibling: 'yes',
     canadianEducation: '3-plus-year',
     frenchTestType: 'tef',
-    frenchReading: '206', frenchWriting: '393', frenchListening: '316', frenchSpeaking: '393',
+    frenchReading: '263', frenchWriting: '393', frenchListening: '316', frenchSpeaking: '393',
   }))
   // core max (no spouse): age 110 + edu 128 (two-credentials) + lang 136 + canWork 80 + transfer 100 = 554
   // additional section max 600 → ceiling 1,154 for this profile shape

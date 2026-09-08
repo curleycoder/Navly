@@ -94,7 +94,7 @@ export const englishTestOptions = [
 ]
 
 export const frenchTestOptions = [
-  { value: 'tef', label: 'TEF Canada', desc: 'French test for Express Entry — CO / EO / CE / EE scores' },
+  { value: 'tef', label: 'TEF Canada', desc: 'French test for Express Entry — enter your "ancien score" equivalence' },
   { value: 'tcf', label: 'TCF Canada', desc: 'French test for Express Entry — scores 0–699 / 0–20' },
 ]
 
@@ -114,9 +114,9 @@ export const langConfig: Record<string, { min: number; max: number; step: number
   tcf: { min: 0, max: 699, step: 1 },
 }
 
-const tefLabels = { r: 'CE — Reading (0–248)', w: 'EE — Writing (0–450)', l: 'CO — Listening (0–360)', s: 'EO — Speaking (0–450)' }
+const tefLabels = { r: 'CE — Reading (0–300)', w: 'EE — Writing (0–450)', l: 'CO — Listening (0–360)', s: 'EO — Speaking (0–450)' }
 const tcfLabels = { r: 'CE — Reading (0–699)', w: 'EE — Writing (0–20)', l: 'CO — Listening (0–699)', s: 'EO — Speaking (0–20)' }
-const frenchMax = { tef: { r: 248, w: 450, l: 360, s: 450 }, tcf: { r: 699, w: 20, l: 699, s: 20 } }
+const frenchMax = { tef: { r: 300, w: 450, l: 360, s: 450 }, tcf: { r: 699, w: 20, l: 699, s: 20 } }
 
 export function LanguageScoreFields({ testType, values, onChange }: {
   testType: string
@@ -148,6 +148,23 @@ export function LanguageScoreFields({ testType, values, onChange }: {
           )
         })}
       </div>
+
+      {testType === 'tef' && (
+        <p className="mt-3 rounded-xl border border-subtle bg-surface-card px-4 py-3 text-xs leading-relaxed text-muted-text">
+          <span className="font-semibold text-heading">Enter your &ldquo;Equivalence ancien score&rdquo;.</span>{' '}
+          Express Entry converts TEF Canada using the older scale &mdash; reading 0&ndash;300, listening
+          0&ndash;360, writing and speaking 0&ndash;450. If your results sheet shows a score out of 699,
+          use the &ldquo;ancien score&rdquo; equivalence instead, or your CRS estimate will be wrong.{' '}
+          <a
+            href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/language-requirements/language-testing.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-navly-red underline underline-offset-2"
+          >
+            IRCC conversion chart
+          </a>
+        </p>
+      )}
     </div>
   )
 }

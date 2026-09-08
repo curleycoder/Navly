@@ -11,7 +11,7 @@ import { crsBase2024 } from './2024-01-01'
  */
 export const crsJobOfferRemoved2025: VersionedRule<CRSTableData> = {
   effectiveDate: '2025-03-25',
-  verifiedDate:  '2026-06-01',
+  verifiedDate:  '2026-09-08',
   // The March 25, 2025 change is documented inline on the CRS criteria page — no separate notice URL exists.
   sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/check-score/crs-criteria.html',
   supersedes: 'crs-base@2024-01-01',

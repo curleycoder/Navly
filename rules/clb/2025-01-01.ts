@@ -7,12 +7,16 @@ import type { CLBTableData } from './types'
  * Sources: IRCC language requirements pages and official test-provider equivalency charts.
  *
  * PTE Core tables reflect the corrected IRCC equivalency (updated ~2025).
- * TEF/TCF tables reflect IRCC official equivalency for Express Entry.
+ * TEF: Express Entry uses the pre-2019 chart. IRCC: "For applications received
+ * through the Express Entry (EE) system, language level will be based on the
+ * 'Equivalence ancien score'" — i.e. the "test taken before September 30, 2019"
+ * table, NOT the /699 scales used for tests after Oct 2019 / Dec 2023.
+ * TCF tables reflect IRCC official equivalency for Express Entry.
  */
 export const clbConversion2025: VersionedRule<CLBTableData> = {
   effectiveDate: '2025-01-01',
-  verifiedDate:  '2026-06-01',
-  sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/language-requirements/language-testing.html',
+  verifiedDate:  '2026-09-08',
+  sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/operational-bulletins-manuals/standard-requirements/language-requirements/test-equivalency-charts.html',
   supersedes: null,
   data: {
     ieltsGeneral: {
@@ -30,10 +34,11 @@ export const clbConversion2025: VersionedRule<CLBTableData> = {
     },
 
     tef: {
-      r: [[206,10],[181,9],[151,8],[121,7],[91,6],[71,5],[60,4]],
-      w: [[393,10],[349,9],[310,8],[271,7],[226,6],[181,5],[151,4]],
+      // 'Equivalence ancien score' chart (max: r 300, w 450, l 360, s 450).
+      r: [[263,10],[248,9],[233,8],[207,7],[181,6],[151,5],[121,4]],
+      w: [[393,10],[371,9],[349,8],[310,7],[271,6],[226,5],[181,4]],
       l: [[316,10],[298,9],[280,8],[249,7],[217,6],[181,5],[145,4]],
-      s: [[393,10],[349,9],[310,8],[271,7],[226,6],[181,5],[151,4]],
+      s: [[393,10],[371,9],[349,8],[310,7],[271,6],[226,5],[181,4]],
     },
 
     tcf: {

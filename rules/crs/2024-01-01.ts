@@ -8,7 +8,7 @@ import type { CRSTableData } from './types'
  */
 export const crsBase2024: VersionedRule<CRSTableData> = {
   effectiveDate: '2024-01-01',
-  verifiedDate:  '2026-06-01',
+  verifiedDate:  '2026-09-08',
   sourceUrl: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/check-score/crs-criteria.html',
   supersedes: null,
   data: {
