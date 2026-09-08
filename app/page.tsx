@@ -128,8 +128,8 @@ export default async function Home() {
           <div className="absolute bottom-[-20%] right-[-10%] h-96 w-96 rounded-full bg-white/8 blur-3xl" />
         </div>
 
-        <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_1fr]">
-          <div className="max-w-2xl">
+        <div className="relative mx-auto grid min-w-0 max-w-7xl items-center gap-12 lg:grid-cols-[1fr_1fr]">
+          <div className="min-w-0 max-w-2xl">
             {/* Eyebrow */}
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/70 sm:text-xs">
               <ShieldCheck className="h-3.5 w-3.5 text-navly-red" />
@@ -207,15 +207,22 @@ export default async function Home() {
       </section>
 
       {/* ── EE Draw Ticker ───────────────────────────────────────────────── */}
-      <section className="border-b border-(--page-border) bg-(--page-card) px-4 py-3 sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 overflow-x-auto no-scrollbar">
+      <section className="relative border-b border-(--page-border) bg-(--page-card) px-4 py-3 sm:px-6">
+        {/* The row scrolls sideways on phones and the scrollbar is hidden, so a
+            chip sliced at the edge otherwise just looks broken. This fade makes
+            the cut read as "there is more — swipe". */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-(--page-card) to-transparent sm:hidden"
+        />
+        <div className="mx-auto flex min-w-0 max-w-7xl items-center gap-4 overflow-x-auto no-scrollbar">
           <div className="flex shrink-0 items-center gap-2">
             <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
             <span className="whitespace-nowrap text-xs font-bold uppercase tracking-wider text-(--page-body)">
               Latest EE Draws
             </span>
           </div>
-          <div className="flex gap-2">
+          <div className="flex shrink-0 gap-2">
             {recentDraws.slice(0, 4).map((draw, i) => (
               <div
                 key={i}

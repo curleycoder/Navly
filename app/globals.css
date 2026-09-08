@@ -253,6 +253,15 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Nothing may scroll the page sideways on a phone. Any single element that
+     misbehaves gets clipped instead of shifting every section off-screen and
+     cutting headings mid-word. Horizontal scrolling is opt-in, per component,
+     via an explicit overflow-x-auto container (see the EE draws ticker). */
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
   html {
     @apply font-sans;
     scroll-behavior: smooth;
