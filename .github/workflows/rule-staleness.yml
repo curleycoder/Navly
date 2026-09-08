@@ -38,7 +38,7 @@ jobs:
 
       - name: Open staleness issue
         if: steps.check.outputs.stale != '0'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           REPORT: ${{ steps.check.outputs.report }}
         with:
