@@ -117,7 +117,7 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-(--page-bg) pt-20 text-(--page-heading)">
+    <main className="min-h-screen overflow-x-hidden bg-(--page-bg) pt-20 text-(--page-heading)">
       <Navbar />
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
