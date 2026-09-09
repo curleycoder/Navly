@@ -22,7 +22,7 @@ jobs:
             exit 1
           fi
 
-          CODE=$(curl -sS -o /tmp/out.json -w '%{http_code}' \
+          CODE=$(curl -sS -L -o /tmp/out.json -w '%{http_code}' \
             --max-time 120 --retry 2 --retry-delay 10 \
             -H "Authorization: Bearer $CRON_SECRET" \
             "$SITE_URL/api/cron/news")
