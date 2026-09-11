@@ -82,44 +82,47 @@ export async function GET(req: Request) {
   const errors: string[] = []
   let totalUpserted = 0
 
-  // Fetch from all RSS feeds using shared lib
-  const rssItems = await fetchNewsFromRSS(15000).catch((e) => {
+  // Fetch from all RSS feeds using shared lib.
+  // Keep timeout well under Vercel Hobby's 10-second function limit.
+  const rssItems = await fetchNewsFromRSS(6000).catch((e) => {
     errors.push(`RSS fetch failed: ${(e as Error).message}`)
     return []
   })
 
-  for (const item of rssItems) {
-    const { error } = await db.from('immigration_news').upsert(
-      {
-        id:             item.id,
-        title:          item.title,
-        summary:        item.summary,
-        source_url:     item.sourceUrl,
-        source_name:    item.sourceName,
-        published_at:   item.publishedAt,
-        category:       item.category,
-        importance:     item.importance,
-        affected_users: item.affectedUsers,
-        // notified_at omitted — existing value preserved on conflict
-      },
-      { onConflict: 'id' }
-    )
-    if (error) errors.push(`Upsert ${item.id}: ${error.message}`)
-    else totalUpserted++
+  if (rssItems.length > 0) {
+    const rows = rssItems.map((item) => ({
+      id:             item.id,
+      title:          item.title,
+      summary:        item.summary,
+      source_url:     item.sourceUrl,
+      source_name:    item.sourceName,
+      published_at:   item.publishedAt,
+      category:       item.category,
+      importance:     item.importance,
+      affected_users: item.affectedUsers,
+      // notified_at omitted — existing value preserved on conflict
+    }))
+    const { error } = await db.from('immigration_news').upsert(rows, { onConflict: 'id' })
+    if (error) errors.push(`Upsert batch: ${error.message}`)
+    else totalUpserted = rssItems.length
   }
 
   // ── Email digest for new high/medium items not yet notified ─────────────────
-  let emailsSent = 0
+  // Run in the background so the response returns well within Vercel Hobby's
+  // 10-second function limit. Emails may arrive a few seconds after the cron
+  // responds — that is fine.
+  const emailPromise = (async () => {
+    let sent = 0
+    const { data: newItems } = await db
+      .from('immigration_news')
+      .select('id, title, summary, source_url, source_name, importance')
+      .in('importance', ['high', 'medium'])
+      .is('notified_at', null)
+      .order('published_at', { ascending: false })
+      .limit(10)
 
-  const { data: newItems } = await db
-    .from('immigration_news')
-    .select('id, title, summary, source_url, source_name, importance')
-    .in('importance', ['high', 'medium'])
-    .is('notified_at', null)
-    .order('published_at', { ascending: false })
-    .limit(10)
+    if (!newItems || newItems.length === 0) return sent
 
-  if (newItems && newItems.length > 0) {
     const { data: { users } } = await db.auth.admin.listUsers({ perPage: 1000 })
 
     const subject = newItems.length === 1
@@ -131,9 +134,9 @@ export async function GET(req: Request) {
       if (!user.email) continue
       try {
         await sendEmail(user.email, subject, html)
-        emailsSent++
-      } catch (e) {
-        errors.push(`Email to ${user.id}: ${(e as Error).message}`)
+        sent++
+      } catch {
+        // best-effort
       }
     }
 
@@ -141,12 +144,17 @@ export async function GET(req: Request) {
       .from('immigration_news')
       .update({ notified_at: new Date().toISOString() })
       .in('id', newItems.map((n: NewsItem) => n.id))
-  }
+
+    return sent
+  })()
+
+  // Respond immediately so we stay inside the 10-second Hobby limit.
+  // The email loop continues in the background.
+  void emailPromise
 
   return Response.json({
     ok: errors.length === 0,
     upserted: totalUpserted,
-    emailsSent,
     errors: errors.length > 0 ? errors : undefined,
   })
 }

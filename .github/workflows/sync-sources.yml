@@ -1,0 +1,37 @@
+name: Sync official sources (daily)
+
+# Replaces the vercel.json cron for /api/cron/sync-sources.
+# Vercel Hobby allows only 2 crons total; this moves the overflow here.
+# Remove this workflow if the project ever moves to Vercel Pro.
+on:
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger /api/cron/sync-sources
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://navly.ca' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET repo secret is not set — add it in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+          CODE=$(curl -sS -L -o /tmp/out.json -w '%{http_code}' \
+            --max-time 120 --retry 2 --retry-delay 10 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$SITE_URL/api/cron/sync-sources")
+
+          echo "HTTP $CODE"
+          cat /tmp/out.json
+          echo
+
+          if [ "$CODE" != "200" ]; then
+            echo "::error::sync-sources returned HTTP $CODE"
+            exit 1
+          fi
