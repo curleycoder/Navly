@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Download, AlertTriangle, CheckCircle2, XCircle, Clock, ArrowRight, Lock } from 'lucide-react'
+import { Download, AlertTriangle, CheckCircle2, XCircle, Clock, ArrowRight, Lock, Loader2 } from 'lucide-react'
 import { loadProfile, statusLabels, type IntakeData } from '@/lib/profile'
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
 import { matchPNPStreams, type PNPStream } from '@/lib/pnp'
 import { getLatestCutoff } from '@/lib/draws'
 import { usePlan, hasReport } from '@/lib/subscription'
+import { supabase } from '@/lib/supabase/client'
 
 const CUTOFF = getLatestCutoff().cutoff
 const CUTOFF_DATE = getLatestCutoff().date
@@ -24,6 +25,71 @@ function timelineEstimate(crs: number, hasData: boolean): string {
 function clbLabel(n: number | null): string {
   if (!n) return '—'
   return `CLB ${n}`
+}
+
+// ─── Upgrade overlay ──────────────────────────────────────────────────────────
+
+function UpgradeOverlay() {
+  const [loadingPlan, setLoadingPlan] = useState<'report' | 'tracker' | null>(null)
+
+  async function startCheckout(plan: 'report' | 'tracker') {
+    setLoadingPlan(plan)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      window.location.href = '/login?redirect=/dashboard/report'
+      return
+    }
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan, billing: 'monthly' }),
+    })
+    const { url, error } = await res.json()
+    if (url) {
+      window.location.href = url
+    } else {
+      console.error('Checkout error:', error)
+      setLoadingPlan(null)
+    }
+  }
+
+  return (
+    <div className="w-full max-w-md rounded-2xl border border-subtle bg-surface-card p-8 shadow-2xl">
+      <div className="mb-4 flex justify-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-navly-navy/10">
+          <Lock className="h-6 w-6 text-navly-navy" />
+        </div>
+      </div>
+      <h1 className="mb-2 text-center text-xl font-bold text-heading">Your full PR snapshot</h1>
+      <p className="mb-6 text-center text-sm text-muted-text">
+        CRS breakdown, top pathways, PNP province match, gap analysis, and a personalized improvement roadmap.
+      </p>
+      <div className="space-y-3">
+        <button
+          onClick={() => startCheckout('report')}
+          disabled={loadingPlan !== null}
+          className="flex w-full items-center justify-between rounded-2xl border border-navly-navy bg-navly-navy px-5 py-4 text-left transition hover:bg-navly-navy/90 disabled:opacity-60"
+        >
+          <div>
+            <p className="font-bold text-white">Readiness Report — $69.99</p>
+            <p className="mt-0.5 text-xs text-white/60">One-time PDF · no subscription</p>
+          </div>
+          {loadingPlan === 'report' ? <Loader2 className="h-5 w-5 shrink-0 animate-spin text-white/60" /> : <ArrowRight className="h-5 w-5 shrink-0 text-white/60" />}
+        </button>
+        <button
+          onClick={() => startCheckout('tracker')}
+          disabled={loadingPlan !== null}
+          className="flex w-full items-center justify-between rounded-2xl border border-navly-red/30 bg-surface-card px-5 py-4 text-left transition hover:border-navly-red/60 disabled:opacity-60"
+        >
+          <div>
+            <p className="font-bold text-heading">PR Tracker — $14.99/mo</p>
+            <p className="mt-0.5 text-xs text-muted-text">Report + live tracking + AI assistant</p>
+          </div>
+          {loadingPlan === 'tracker' ? <Loader2 className="h-5 w-5 shrink-0 animate-spin text-muted-text/40" /> : <ArrowRight className="h-5 w-5 shrink-0 text-muted-text/40" />}
+        </button>
+      </div>
+    </div>
+  )
 }
 
 // ─── Report content ───────────────────────────────────────────────────────────
@@ -350,39 +416,7 @@ export default function ReportPage() {
 
         {/* Upgrade overlay */}
         <div className="absolute inset-0 flex items-start justify-center pt-12 px-6">
-          <div className="w-full max-w-md rounded-2xl border border-subtle bg-surface-card p-8 shadow-2xl">
-            <div className="mb-4 flex justify-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-navly-navy/10">
-                <Lock className="h-6 w-6 text-navly-navy" />
-              </div>
-            </div>
-            <h1 className="mb-2 text-center text-xl font-bold text-heading">Your full PR snapshot</h1>
-            <p className="mb-6 text-center text-sm text-muted-text">
-              CRS breakdown, top pathways, PNP province match, gap analysis, and a personalized improvement roadmap.
-            </p>
-            <div className="space-y-3">
-              <a
-                href="/pricing"
-                className="flex w-full items-center justify-between rounded-2xl border border-navly-navy bg-navly-navy px-5 py-4 text-left transition hover:bg-navly-navy/90"
-              >
-                <div>
-                  <p className="font-bold text-white">Readiness Report — $69.99</p>
-                  <p className="mt-0.5 text-xs text-white/60">One-time PDF · no subscription</p>
-                </div>
-                <ArrowRight className="h-5 w-5 shrink-0 text-white/60" />
-              </a>
-              <a
-                href="/pricing"
-                className="flex w-full items-center justify-between rounded-2xl border border-navly-red/30 bg-surface-card px-5 py-4 text-left transition hover:border-navly-red/60"
-              >
-                <div>
-                  <p className="font-bold text-heading">PR Tracker — $14.99/mo</p>
-                  <p className="mt-0.5 text-xs text-muted-text">Report + live tracking + AI assistant</p>
-                </div>
-                <ArrowRight className="h-5 w-5 shrink-0 text-muted-text/40" />
-              </a>
-            </div>
-          </div>
+          <UpgradeOverlay />
         </div>
       </div>
     )
