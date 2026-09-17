@@ -15,7 +15,12 @@ jobs:
       - name: Trigger /api/cron/news
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          SITE_URL: ${{ vars.SITE_URL || 'https://navly.ca' }}
+          # IMPORTANT: must be https://www.navly.ca (with www), not navly.ca.
+          # navly.ca → www.navly.ca (307 redirect) causes curl to drop the
+          # Authorization header, resulting in a 401. Set SITE_URL repo variable
+          # to https://www.navly.ca — the bare-domain fallback below is kept
+          # only as a last resort and will fail if the redirect is still active.
+          SITE_URL: ${{ vars.SITE_URL || 'https://www.navly.ca' }}
         run: |
           if [ -z "$CRON_SECRET" ]; then
             echo "::error::CRON_SECRET repo secret is not set — add it in Settings > Secrets and variables > Actions."

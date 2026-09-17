@@ -49,6 +49,7 @@ export const en = {
     dates: 'Important Dates',
     travel: 'Travel',
     ask: 'Ask',
+    report: 'Report',
     prTracker: 'Tracker',
     daysInCanada: 'Days in Canada',
     immigrationNews: 'Immigration News',

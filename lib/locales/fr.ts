@@ -54,6 +54,7 @@ export const fr: LocaleDict = {
     dates: 'Dates importantes',
     travel: 'Voyages',
     ask: 'Demander',
+    report: 'Rapport',
     prTracker: 'Suivi',
     daysInCanada: 'Jours au Canada',
     immigrationNews: 'Actualités immigration',
