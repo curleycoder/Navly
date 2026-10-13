@@ -174,7 +174,6 @@ export type IntakeData = {
   // PR / Citizenship tracking
   prDate: string              // 'YYYY-MM-DD' — date became PR
   prCardExpiry: string        // 'YYYY-MM' — PR card expiry
-  prPreStatus: string         // status before PR: 'student' | 'worker' | 'visitor' | 'protected' | 'other'
   hasTraveledSincePR: string  // 'yes' | 'no' | ''
   taxFilingComplete: string   // 'yes' | 'no' | 'partial' | ''
   citizenshipLangProof: string // 'yes' | 'no' | '' — language proof for citizenship (age 18–54)
@@ -342,7 +341,6 @@ export const EMPTY_PROFILE: IntakeData = {
   citizenship: '',
   prDate: '',
   prCardExpiry: '',
-  prPreStatus: '',
   hasTraveledSincePR: '',
   taxFilingComplete: '',
   citizenshipLangProof: '',

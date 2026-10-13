@@ -107,15 +107,6 @@ const programLevelOptions = [
   { value: 'doctoral',    label: 'Doctoral / PhD' },
   { value: 'other',       label: 'Other' },
 ]
-const prPreStatusOptions = [
-  { value: 'student',   label: 'International student' },
-  { value: 'worker',    label: 'Worker (work permit / PGWP)' },
-  { value: 'visitor',   label: 'Visitor' },
-  { value: 'protected', label: 'Refugee / protected person' },
-  { value: 'outside',   label: 'Outside Canada' },
-  { value: 'other',     label: 'Other' },
-]
-
 const otherCountries = ALL_COUNTRIES.filter((c) => !TOP_COUNTRIES.includes(c))
 
 // ─── Display helpers ──────────────────────────────────────────────────────────
@@ -1205,15 +1196,6 @@ export default function ProfilePage() {
               <SettingsRow label="PR card expiry" value={data.prCardExpiry || null} editing={ep}>
                 <Input type="month" value={data.prCardExpiry} onChange={(e) => update({ prCardExpiry: e.target.value })}
                   className="block w-full rounded-xl border-subtle focus-visible:ring-navly-red" />
-              </SettingsRow>
-              <SettingsRow label="Status before becoming PR" value={dv(data.prPreStatus, prPreStatusOptions)} editing={ep}>
-                <SelectWrapper>
-                  <select value={data.prPreStatus} onChange={(e) => update({ prPreStatus: e.target.value })}
-                    className={cn(selectCls, !data.prPreStatus && 'text-muted-text/70')}>
-                    <option value="" disabled>Select…</option>
-                    {prPreStatusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
-                </SelectWrapper>
               </SettingsRow>
               <SettingsRow label="Travelled outside Canada since PR?" value={yn(data.hasTraveledSincePR)} editing={ep}>
                 <SelectWrapper>
