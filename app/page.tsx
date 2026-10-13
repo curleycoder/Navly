@@ -363,9 +363,12 @@ export default async function Home() {
             </div>
             <div className="flex flex-col gap-5 rounded-2xl border border-(--page-border) bg-(--page-card) p-6 shadow-sm sm:flex-row sm:items-center">
               {featuredConsultant.avatar_url ? (
-                <img
+                <Image
                   src={featuredConsultant.avatar_url}
                   alt={featuredConsultant.name}
+                  width={64}
+                  height={64}
+                  unoptimized
                   className="h-16 w-16 shrink-0 rounded-full object-cover"
                 />
               ) : (

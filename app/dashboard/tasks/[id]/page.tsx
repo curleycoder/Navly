@@ -53,11 +53,6 @@ export default function TaskDetailPage() {
     )
   }
 
-  // Relevant province info: exact match first, then fallback to all provinces entry
-  const provinceMatch = guide?.provinceInfo?.find(
-    (p) => userProvince && p.provinces.includes(userProvince)
-  ) ?? guide?.provinceInfo?.find((p) => p.provinces.length > 3)
-
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10 animate-fade-in">
       <Link href="/dashboard/tasks" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-text hover:text-heading">

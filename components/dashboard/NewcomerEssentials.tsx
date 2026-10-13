@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { ExternalLink, Building2, Smartphone, Home, ArrowLeftRight, BookOpen } from 'lucide-react'
 import {
   fetchPartners,
@@ -44,9 +45,12 @@ function PartnerTile({ partner }: { partner: PartnerListing }) {
       {/* Logo */}
       <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-subtle bg-white">
         {partner.logo_url && !imgError ? (
-          <img
+          <Image
             src={partner.logo_url}
             alt={partner.name}
+            width={32}
+            height={32}
+            unoptimized
             className="h-8 w-8 object-contain"
             onError={() => setImgError(true)}
           />
