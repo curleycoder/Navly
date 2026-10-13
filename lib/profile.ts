@@ -174,15 +174,9 @@ export type IntakeData = {
   // PR / Citizenship tracking
   prDate: string              // 'YYYY-MM-DD' — date became PR
   prCardExpiry: string        // 'YYYY-MM' — PR card expiry
-  hasTraveledSincePR: string  // 'yes' | 'no' | ''
   taxFilingComplete: string   // 'yes' | 'no' | 'partial' | ''
   citizenshipLangProof: string // 'yes' | 'no' | '' — language proof for citizenship (age 18–54)
   citizenshipProhibitions: string // 'yes' | 'no' | '' — criminal, removal order, probation
-
-  // PR residency obligation tracking (730 days in Canada per 5-year period)
-  daysOutsideCanada5yr: string          // numeric string — days outside Canada in last 5 years
-  accompanyingCitizenSpouseAbroad: string // 'yes' | 'no' | '' — time abroad counts if accompanying citizen spouse
-  workingAbroadForCanadianEmployer: string // 'yes' | 'no' | '' — time abroad counts if employed by Canadian gov/business
 
   // Work authorization checks (CEC / FSW accuracy)
   canadianWorkAuthorized: string           // 'yes' | 'no' | '' — was Canadian work legally authorized?
@@ -341,13 +335,9 @@ export const EMPTY_PROFILE: IntakeData = {
   citizenship: '',
   prDate: '',
   prCardExpiry: '',
-  hasTraveledSincePR: '',
   taxFilingComplete: '',
   citizenshipLangProof: '',
   citizenshipProhibitions: '',
-  daysOutsideCanada5yr: '',
-  accompanyingCitizenSpouseAbroad: '',
-  workingAbroadForCanadianEmployer: '',
   canadianWorkAuthorized: '',
   canadianWorkWhileFullTimeStudent: '',
   currentlyAuthorizedToWorkCanada: '',

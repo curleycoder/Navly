@@ -1197,44 +1197,6 @@ export default function ProfilePage() {
                 <Input type="month" value={data.prCardExpiry} onChange={(e) => update({ prCardExpiry: e.target.value })}
                   className="block w-full rounded-xl border-subtle focus-visible:ring-navly-red" />
               </SettingsRow>
-              <SettingsRow label="Travelled outside Canada since PR?" value={yn(data.hasTraveledSincePR)} editing={ep}>
-                <SelectWrapper>
-                  <select value={data.hasTraveledSincePR}
-                    onChange={(e) => update({
-                      hasTraveledSincePR: e.target.value,
-                      ...(e.target.value === 'no'
-                        ? { daysOutsideCanada5yr: '', accompanyingCitizenSpouseAbroad: '', workingAbroadForCanadianEmployer: '' }
-                        : {}),
-                    })}
-                    className={cn(selectCls, !data.hasTraveledSincePR && 'text-muted-text/70')}>
-                    <option value="" disabled>Select…</option>
-                    <option value="no">No — stayed in Canada</option>
-                    <option value="yes">Yes — trips outside Canada</option>
-                  </select>
-                </SelectWrapper>
-              </SettingsRow>
-              {data.hasTraveledSincePR === 'yes' && (
-                <SettingsRow label="Days outside Canada (last 5 yrs)" note="min 730 days inside required"
-                  value={data.daysOutsideCanada5yr ? `${data.daysOutsideCanada5yr} days outside` : null}
-                  editing={ep}>
-                  <div className="flex flex-col gap-1.5">
-                    <Input type="number" min={0} max={1825} placeholder="e.g. 120"
-                      value={data.daysOutsideCanada5yr}
-                      onChange={(e) => update({ daysOutsideCanada5yr: e.target.value })}
-                      className="w-full max-w-xs rounded-xl border-subtle focus-visible:ring-navly-red" />
-                    {data.daysOutsideCanada5yr && (() => {
-                      const outside = parseInt(data.daysOutsideCanada5yr) || 0
-                      const inside  = 1825 - outside
-                      const ok = inside >= 730
-                      return (
-                        <p className={cn('text-xs font-semibold', ok ? 'text-green-700' : 'text-red-600')}>
-                          {inside.toLocaleString()} days in Canada — {ok ? 'obligation met' : 'below 730-day minimum'}
-                        </p>
-                      )
-                    })()}
-                  </div>
-                </SettingsRow>
-              )}
               <SettingsRow label="Filed taxes for required years?" value={data.taxFilingComplete === 'yes' ? 'Yes' : data.taxFilingComplete === 'partial' ? 'Partial' : data.taxFilingComplete === 'no' ? 'No' : null} editing={ep}>
                 <SelectWrapper>
                   <select value={data.taxFilingComplete} onChange={(e) => update({ taxFilingComplete: e.target.value })}
