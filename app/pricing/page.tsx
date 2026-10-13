@@ -7,7 +7,7 @@ import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
 
-import { PLAN_FEATURES, featuresFor, REPORT_EXCLUSIONS, PLANS, type Billing } from '@/lib/plans'
+import { PLAN_FEATURES, featuresFor, REPORT_EXCLUSIONS, type Billing } from '@/lib/plans'
 
 function ReportCheckoutButton() {
   const [loading, setLoading] = useState(false)
@@ -164,7 +164,7 @@ export default function PricingPage() {
               <span className="text-4xl font-bold text-heading">$0</span>
               <span className="mb-1 text-sm text-muted-text">forever</span>
             </div>
-            <p className="mt-2 text-sm text-muted-text">Find out if you're on the right track.</p>
+            <p className="mt-2 text-sm text-muted-text">Find out if you&apos;re on the right track.</p>
             <ul className="my-6 flex flex-1 flex-col gap-2.5">
               {featuresFor('free').map((f) => (
                 <li key={f} className="flex items-start gap-2 text-sm text-muted-text">
@@ -258,7 +258,7 @@ export default function PricingPage() {
             )}
 
             <p className="mt-3 text-sm text-muted-text">
-              Full clarity + we watch your journey so you don't miss anything.
+              Full clarity + we watch your journey so you don&apos;t miss anything.
             </p>
 
             <ul className="my-6 flex flex-1 flex-col gap-2.5">
@@ -279,7 +279,7 @@ export default function PricingPage() {
 
         {/* Comparison table */}
         <div className="mt-16">
-          <h2 className="mb-6 text-center text-xl font-bold text-heading">What's included</h2>
+          <h2 className="mb-6 text-center text-xl font-bold text-heading">What&apos;s included</h2>
           <div className="overflow-hidden rounded-2xl border border-subtle bg-surface-card shadow-sm">
             <div className="sticky top-0 z-10 grid grid-cols-[1.6fr_repeat(3,minmax(0,1fr))] sm:grid-cols-4 border-b-2 border-subtle bg-navly-navy">
               <div className="px-3 py-3 text-xs font-bold uppercase tracking-wide text-white sm:px-5 sm:py-4">Feature</div>

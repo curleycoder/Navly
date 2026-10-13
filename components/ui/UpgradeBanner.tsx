@@ -38,7 +38,7 @@ export function UpgradeBanner({ className }: { className?: string }) {
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <p className="font-bold text-heading">We watch your immigration journey so you don't miss anything</p>
+              <p className="font-bold text-heading">We watch your immigration journey so you don&apos;t miss anything</p>
             </div>
             <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
               {[

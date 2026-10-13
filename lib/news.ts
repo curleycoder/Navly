@@ -13,6 +13,8 @@
  *   Canada Gazette:https://gazette.gc.ca/rss/sc-rb-eng.html
  */
 
+import { createClient } from '@supabase/supabase-js'
+
 export type NewsCategory =
   | 'study'
   | 'work'
@@ -354,7 +356,6 @@ function rowToUpdate(row: Record<string, unknown>): NewsUpdate {
 }
 
 function anonDb() {
-  const { createClient } = require('@supabase/supabase-js')
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -368,7 +369,7 @@ export async function getUpdates(opts?: { limit?: number; category?: NewsCategor
   try {
     const db = anonDb()
 
-    let query = db
+    const query = db
       .from('immigration_news')
       .select('*')
       .order('published_at', { ascending: false })

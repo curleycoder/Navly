@@ -19,6 +19,8 @@
 import { calculateScore, convertToCLB } from '../lib/scoring'
 import type { IntakeData } from '../lib/profile'
 import { EMPTY_PROFILE } from '../lib/profile'
+import { getActiveRule } from '../rules/loader'
+import { crsVersions } from '../rules/crs'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -239,9 +241,6 @@ console.log('\nCRS totals')
 console.log('\nVersion-selection boundary (job-offer rule change 2025-03-25)')
 
 ;(() => {
-  const { getActiveRule } = require('../rules/loader')
-  const { crsVersions } = require('../rules/crs')
-
   const before = getActiveRule(crsVersions, '2025-03-24')
   const after  = getActiveRule(crsVersions, '2025-03-25')
 

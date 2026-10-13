@@ -35,7 +35,8 @@ export function usePlan(): { plan: Plan; loading: boolean } {
   return { plan, loading }
 }
 
-/** Check whether a user has an active tracker plan. */
+/** Check whether a user has an active tracker plan. The second arg is unused but kept so call sites read as `hasPlan(plan, 'tracker')` instead of the ambiguous `hasPlan(plan)`. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function hasPlan(userPlan: Plan, _required: 'tracker'): boolean {
   return userPlan === 'tracker'
 }

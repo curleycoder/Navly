@@ -8,6 +8,8 @@ export function ScoreTimelineChart() {
   const [history, setHistory] = useState<ScoreSnapshot[]>([])
 
   useEffect(() => {
+    // localStorage is unavailable during SSR, so this can't be a lazy useState initializer without a hydration mismatch
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHistory(getScoreHistory())
   }, [])
 
@@ -34,7 +36,7 @@ export function ScoreTimelineChart() {
     return (
       <div className="mt-6 w-full text-center px-4">
         <p className="text-xs text-muted-text/70 font-medium">
-          Update your score simulating "What-Ifs" to build your progress timeline.
+          Update your score simulating &quot;What-Ifs&quot; to build your progress timeline.
         </p>
       </div>
     );

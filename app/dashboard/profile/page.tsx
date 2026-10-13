@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  ArrowLeft, CheckCircle2, AlertTriangle, ChevronDown, ChevronRight,
-  Eye, EyeOff, Loader2, Archive, Phone, Pencil, Trash2,
+  ArrowLeft, CheckCircle2, AlertTriangle, ChevronDown,
+  Eye, EyeOff, Loader2, Phone, Pencil, Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,9 +19,7 @@ import { TOP_COUNTRIES, ALL_COUNTRIES, CA_PROVINCES } from '@/lib/geo'
 import { supabase } from '@/lib/supabase/client'
 import { getRequiredFunds } from '@/lib/settlement-funds'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { LanguageToggle } from '@/components/ui/LanguageToggle'
 import { useLocale } from '@/lib/i18n'
-import { DocumentStorage } from '@/components/dashboard/DocumentStorage'
 import { PageTour } from '@/components/dashboard/PageTour'
 
 // ─── Options ─────────────────────────────────────────────────────────────────
@@ -416,7 +414,6 @@ export default function ProfilePage() {
   const [savedProfile, setSavedProfile] = useState(false)
   const [originalData, setOriginalData] = useState<IntakeData | null>(null)
   const [loaded, setLoaded] = useState(false)
-  const [userId, setUserId] = useState<string | null>(null)
   const [pendingStatus, setPendingStatus] = useState<string | null>(null)
   const [pendingGoal, setPendingGoal] = useState<string | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -429,7 +426,6 @@ export default function ProfilePage() {
       if (local) setData(local)
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
-        setUserId(session.user.id)
         const remote = await loadProfileFromSupabase(session.user.id)
         if (remote) setData(remote)
       }

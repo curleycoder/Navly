@@ -7,8 +7,10 @@ export function ThemeToggle() {
   const [dark, setDark] = useState(false)
 
   useEffect(() => {
+    // localStorage is unavailable during SSR, so this can't be a lazy useState initializer without a hydration mismatch
     if (localStorage.getItem('theme') === 'dark') {
       document.documentElement.classList.add('dark')
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDark(true)
     }
   }, [])

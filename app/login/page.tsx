@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react'
@@ -20,12 +21,13 @@ function LoginContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [unconfirmed, setUnconfirmed] = useState(false)
-  const [resentAt, setResentAt] = useState<number | null>(null)
+  const [resendCooldown, setResendCooldown] = useState(false)
   const [resetSent, setResetSent] = useState(false)
 
   async function handleResendVerification() {
     await supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin}/dashboard` } })
-    setResentAt(Date.now())
+    setResendCooldown(true)
+    setTimeout(() => setResendCooldown(false), 60000)
   }
 
   async function handleLogin() {
@@ -79,10 +81,12 @@ function LoginContent() {
       {/* ── Left panel — brand (desktop only) ── */}
       <div className="relative hidden flex-col justify-start overflow-hidden p-12 lg:flex lg:w-5/10">
         {/* Background image */}
-        <img
+        <Image
           src="/images/hero-group.jpg"
           alt=""
-          className="absolute inset-0 h-full w-full object-cover object-center"
+          fill
+          priority
+          className="object-cover object-center"
         />
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-navly-navy/75" />
@@ -199,10 +203,10 @@ function LoginContent() {
                   <button
                     type="button"
                     onClick={handleResendVerification}
-                    disabled={!!resentAt && Date.now() - resentAt < 60000}
+                    disabled={resendCooldown}
                     className="mt-2 text-sm font-semibold text-amber-800 underline disabled:opacity-50"
                   >
-                    {resentAt && Date.now() - resentAt < 60000 ? 'Verification email sent ✓' : 'Resend verification email'}
+                    {resendCooldown ? 'Verification email sent ✓' : 'Resend verification email'}
                   </button>
                 </div>
               )}

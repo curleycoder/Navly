@@ -169,8 +169,10 @@ export default function ChatPage() {
   const { plan } = usePlan()
   const isPaid = hasPlan(plan, 'tracker')
 
-  // Load profile and persisted messages
+  // Load profile and persisted messages — localStorage is unavailable during SSR,
+  // so this can't be a lazy useState initializer without a hydration mismatch
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setProfile(loadProfile())
     try {
       const saved = localStorage.getItem(CHAT_KEY)
@@ -178,9 +180,11 @@ export default function ChatPage() {
     } catch { /* ignore */ }
   }, [])
 
-  // Auto-show upgrade modal for free users
+  // Auto-show upgrade modal once the (async-loaded) plan resolves to free — stays
+  // dismissible afterward, so it can't be derived directly from plan/isPaid in render
   useEffect(() => {
     if (plan !== null && !isPaid) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowUpgradeModal(true)
     }
   }, [plan, isPaid])

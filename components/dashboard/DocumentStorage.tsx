@@ -11,10 +11,6 @@ import {
 } from '@/lib/documents'
 import { useLocale } from '@/lib/i18n'
 
-const UPLOAD_CATEGORIES = (
-  Object.entries(DOC_CATEGORY_LABELS) as [DocCategory, string][]
-).filter(([k]) => k !== 'navly-report')
-
 const MAX_SIZE = 10 * 1024 * 1024 // 10 MB
 
 function fmtSize(bytes: number): string {

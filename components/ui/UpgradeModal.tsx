@@ -89,7 +89,7 @@ export function UpgradeModal({ onClose }: UpgradeModalProps) {
             </div>
             <div>
               <p className="font-bold text-heading leading-snug">PR Tracker</p>
-              <p className="text-sm text-muted-text">We watch your immigration journey so you don't miss anything</p>
+              <p className="text-sm text-muted-text">We watch your immigration journey so you don&apos;t miss anything</p>
             </div>
           </div>
 

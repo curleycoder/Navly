@@ -87,8 +87,10 @@ export default function PrepPage() {
   const [copied, setCopied] = useState(false)
   const [shared, setShared] = useState(false)
 
+  // localStorage is unavailable during SSR, so this can't be a lazy useState initializer without a hydration mismatch
   useEffect(() => {
     const p = loadProfile()
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setProfile(p)
     if (p) setScore(calculateScore(p))
     setPresence(loadPresence())

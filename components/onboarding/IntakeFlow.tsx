@@ -44,7 +44,9 @@ export function IntakeFlow() {
 
   useEffect(() => {
     track('onboarding_started', { authenticated: false })
+    // localStorage is unavailable during SSR, so this can't be a lazy useState initializer without a hydration mismatch
     const saved = loadProfile()
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (saved) setData(saved)
   }, [])
 

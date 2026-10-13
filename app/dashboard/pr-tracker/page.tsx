@@ -106,11 +106,16 @@ function StatusRoadmap({ status, score }: { status: string; score: ScoreResult }
 
 function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) {
   const [simulatedProfile, setSimulatedProfile] = useState<IntakeData>(profile)
+  const [prevProfile, setPrevProfile] = useState(profile)
   const [activeCategory, setActiveCategory] = useState<CategoryKey>(null)
 
-  useEffect(() => {
+  // Reset the simulated "what-if" profile whenever the underlying profile changes.
+  // Adjusting state during render (React's documented pattern) instead of an effect
+  // avoids an extra render pass.
+  if (profile !== prevProfile) {
+    setPrevProfile(profile)
     setSimulatedProfile(profile)
-  }, [profile])
+  }
 
   const currentScore = calculateScore(simulatedProfile)
 
@@ -183,7 +188,7 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
       { label: 'Citizenship', value: '1,095 days' },
       { label: 'Tax filings', value: simulatedProfile.taxFilingComplete === 'yes' ? 'On track' : 'Check' },
     ],
-    status: 'In Progress' as 'In Progress',
+    status: 'In Progress' as const,
     progress: 50,
   } : {
     title: 'Work experience',
@@ -218,7 +223,7 @@ function ScoreTracker({ profile }: { profile: IntakeData; score: ScoreResult }) 
       { label: 'Language', value: simulatedProfile.langTestType ? 'Recorded' : 'Enter scores' },
       { label: 'Tax proof', value: 'Required' },
     ],
-    status: 'In Progress' as 'In Progress',
+    status: 'In Progress' as const,
     progress: 40,
   } : {
     title: 'Pathway eligibility',

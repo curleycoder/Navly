@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -189,11 +190,12 @@ export default async function Home() {
           {/* Hero image */}
           <div className="relative hidden lg:block">
             <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 p-3 shadow-2xl">
-              <div className="overflow-hidden rounded-[1.5rem]">
-                <img
+              <div className="relative h-[520px] w-full overflow-hidden rounded-[1.5rem]">
+                <Image
                   src="/images/hero-group.jpg"
                   alt="People in Canada"
-                  className="h-[520px] w-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               </div>
             </div>

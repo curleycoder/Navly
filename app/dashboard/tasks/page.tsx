@@ -28,11 +28,13 @@ export default function TasksPage() {
   // Track if we've initialized so we don't flash empty state
   const [isLoaded, setIsLoaded] = useState(false)
 
+  // localStorage is unavailable during SSR, so this can't be a lazy useState initializer without a hydration mismatch
   useEffect(() => {
     const profile = loadProfile()
 
     // Arrival tasks — generated fresh, completion stored separately
     if (profile) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setArrivalTasks(generateArrivalTasks(profile))
     }
     try {

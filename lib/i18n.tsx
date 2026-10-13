@@ -86,6 +86,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (isLocaleCode(stored)) setLocaleState(stored)
     } catch {
       // localStorage unavailable (SSR / private mode) — use default

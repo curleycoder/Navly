@@ -1,18 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { ConsultantListing } from '@/lib/consultants'
 import { loadProfile, statusLabels, goalLabels, type IntakeData } from '@/lib/profile'
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
 import { EMPTY_PRESENCE, loadPresence, type PresenceData } from '@/lib/presence'
 import { loadTasks, type Task } from '@/lib/tasks'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import {
-  ShieldCheck, MapPin, Globe, Briefcase, ExternalLink, Star, Loader2,
+  ShieldCheck, Briefcase,
   Copy, Check, Mail, Download, Printer, AlertTriangle, TrendingUp, Target, Lock,
   Scale, DollarSign,
 } from 'lucide-react'
@@ -92,8 +90,10 @@ export default function ConsultantsPage() {
   const { plan } = usePlan()
   const isPaid = hasPlan(plan, 'tracker')
 
+  // localStorage is unavailable during SSR, so this can't be a lazy useState initializer without a hydration mismatch
   useEffect(() => {
     const p = loadProfile()
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setProfile(p)
     if (p) setScore(calculateScore(p))
     setPresence(loadPresence())

@@ -386,8 +386,10 @@ export default function ReportPage() {
   const [pnp, setPnp] = useState<PNPStream[]>([])
   const [dataLoaded, setDataLoaded] = useState(false)
 
+  // localStorage is unavailable during SSR, so this can't be a lazy useState initializer without a hydration mismatch
   useEffect(() => {
     const p = loadProfile()
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setProfile(p)
     if (p) {
       setScore(calculateScore(p))

@@ -27,9 +27,11 @@ export default function TaskDetailPage() {
   const [guide, setGuide] = useState<TaskGuide | null>(null)
   const [userProvince, setUserProvince] = useState<string | null>(null)
 
+  // localStorage is unavailable during SSR, so this can't be a lazy useState initializer without a hydration mismatch
   useEffect(() => {
     const tasks = loadTasks()
     const found = tasks.find((t) => t.id === id)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTask(found ?? null)
 
     const g = TASK_GUIDES[id]

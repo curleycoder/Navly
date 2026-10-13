@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { type ConsultantListing } from '@/lib/consultants'
@@ -111,6 +111,14 @@ export default function AdminConsultantsPage() {
   const [editing, setEditing] = useState<Partial<ConsultantListing> | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
 
+  const load = useCallback(async () => {
+    setLoading(true)
+    const res = await fetch('/api/admin/consultants')
+    if (res.status === 403) { router.replace('/dashboard'); return }
+    setConsultants(await res.json())
+    setLoading(false)
+  }, [router])
+
   useEffect(() => {
     async function init() {
       const { data: { session } } = await supabase.auth.getSession()
@@ -118,15 +126,7 @@ export default function AdminConsultantsPage() {
       load()
     }
     init()
-  }, [router])
-
-  async function load() {
-    setLoading(true)
-    const res = await fetch('/api/admin/consultants')
-    if (res.status === 403) { router.replace('/dashboard'); return }
-    setConsultants(await res.json())
-    setLoading(false)
-  }
+  }, [router, load])
 
   async function handleSave(data: Partial<ConsultantListing>) {
     if (data.id) {

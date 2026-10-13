@@ -16,6 +16,26 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
+function ErrorBanner({ msg }: { msg: string }) {
+  return (
+    <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3">
+      <AlertTriangle
+        className="mt-0.5 h-4 w-4 shrink-0 text-red-500"
+        aria-hidden="true"
+      />
+
+      <p className="text-sm text-red-700">
+        {msg}{' '}
+        {msg.includes('already exists') && (
+          <Link href="/login" className="font-semibold underline">
+            Log in →
+          </Link>
+        )}
+      </p>
+    </div>
+  )
+}
+
 type StepSignUpProps = {
   defaultFullName?: string
   defaultEmail?: string
@@ -137,26 +157,6 @@ export function StepSignUp({
     })
 
     setLoading(false)
-  }
-
-  function ErrorBanner({ msg }: { msg: string }) {
-    return (
-      <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3">
-        <AlertTriangle
-          className="mt-0.5 h-4 w-4 shrink-0 text-red-500"
-          aria-hidden="true"
-        />
-
-        <p className="text-sm text-red-700">
-          {msg}{' '}
-          {msg.includes('already exists') && (
-            <Link href="/login" className="font-semibold underline">
-              Log in →
-            </Link>
-          )}
-        </p>
-      </div>
-    )
   }
 
   if (alreadyExists) {

@@ -30,12 +30,12 @@ export function StepSpouseLanguage({ data, onChange }: {
 }) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-heading">Your spouse / partner's details</h1>
+      <h1 className="text-3xl font-bold text-heading">Your spouse / partner&apos;s details</h1>
       <p className="mt-2 text-muted-text">Their language, education, and Canadian experience add up to 40 bonus CRS points.</p>
       <div className="mt-8 flex flex-col gap-8">
         <div className="flex flex-col gap-3">
           <Label className="text-sm font-semibold text-heading">
-            Spouse's language test
+            Spouse&apos;s language test
             <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">Skip if no test taken — they will contribute 0 language points.</span>
           </Label>
           {langTestOptions.map((opt) => (
@@ -59,7 +59,7 @@ export function StepSpouseLanguage({ data, onChange }: {
         )}
 
         <div className="flex flex-col gap-3">
-          <Label className="text-sm font-semibold text-heading">Spouse's highest education</Label>
+          <Label className="text-sm font-semibold text-heading">Spouse&apos;s highest education</Label>
           {educationOptions.map((opt) => (
             <OptionCard key={opt.value} label={opt.label} desc={opt.desc} selected={data.spouseEducationLevel === opt.value} onClick={() => onChange({ spouseEducationLevel: opt.value })} />
           ))}
@@ -67,7 +67,7 @@ export function StepSpouseLanguage({ data, onChange }: {
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="spouseCanWork" className="text-sm font-semibold text-heading">
-            Spouse's skilled Canadian work experience (months)
+            Spouse&apos;s skilled Canadian work experience (months)
             <span className="ml-1.5 block text-xs font-normal text-muted-text mt-0.5">TEER 0–3 only. Enter 0 if none.</span>
           </Label>
           <Input id="spouseCanWork" type="number" min={0} max={120} placeholder="e.g. 0"

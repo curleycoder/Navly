@@ -92,9 +92,9 @@ export function ActionableScoreSheet({ category, onClose, profile, setProfile, o
                       <SelectItem value="secondary">High School</SelectItem>
                       <SelectItem value="1-year">1-Year Program</SelectItem>
                       <SelectItem value="2-year">2-Year Program</SelectItem>
-                      <SelectItem value="bachelors">Bachelor's Degree</SelectItem>
+                      <SelectItem value="bachelors">Bachelor&apos;s Degree</SelectItem>
                       <SelectItem value="two-credentials">Two or more certificates (one 3+ years)</SelectItem>
-                      <SelectItem value="masters">Master's Degree</SelectItem>
+                      <SelectItem value="masters">Master&apos;s Degree</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

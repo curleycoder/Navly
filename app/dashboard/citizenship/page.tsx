@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { CheckCircle2, Clock, ExternalLink, Info } from 'lucide-react'
 import { PlanGate } from '@/components/ui/PlanGate'
 import { syncProfile, type IntakeData } from '@/lib/profile'
-import { syncPresence, EMPTY_PRESENCE } from '@/lib/presence'
+import { syncPresence } from '@/lib/presence'
 import { computeCitizenshipPresence, type CitizenshipResult } from '@/lib/pr-math'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import { track } from '@/lib/analytics'
@@ -51,7 +51,7 @@ function CitizenshipPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setLoaded(true); return }
       const [profile, presence] = await Promise.all([
-        import('@/lib/profile').then(m => m.syncProfile(user.id)) as Promise<IntakeData | null>,
+        syncProfile(user.id) as Promise<IntakeData | null>,
         syncPresence(user.id),
       ])
       if (profile) setResult(computeCitizenshipPresence(profile, presence))

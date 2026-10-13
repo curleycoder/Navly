@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { AlertTriangle, CheckCircle2, Clock, ExternalLink } from 'lucide-react'
 import { PlanGate } from '@/components/ui/PlanGate'
 import { syncProfile, type IntakeData } from '@/lib/profile'
-import { syncPresence, type PresenceData, EMPTY_PRESENCE } from '@/lib/presence'
+import { syncPresence } from '@/lib/presence'
 import { computePRResidency, type PRResidencyResult } from '@/lib/pr-math'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
 import { track } from '@/lib/analytics'
@@ -162,7 +162,7 @@ function ResidencyPage() {
               <div className="rounded-xl bg-white/60 p-3">
                 <p className="text-xs text-muted-text">If you stay in Canada</p>
                 <p className="mt-0.5 text-sm font-bold text-heading">{fmtDate(estimatedMeetDate)}</p>
-                <p className="text-xs text-muted-text">estimated date you'd meet 730 days</p>
+                <p className="text-xs text-muted-text">estimated date you&apos;d meet 730 days</p>
               </div>
             )}
           </div>

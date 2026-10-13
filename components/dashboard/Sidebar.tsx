@@ -38,7 +38,9 @@ export function Sidebar() {
   const { t } = useLocale()
   const [isOutside, setIsOutside] = useState(false)
   useEffect(() => {
+    // localStorage is unavailable during SSR, so this can't be a lazy useState initializer without a hydration mismatch
     const profile = loadProfile()
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsOutside(profile?.locationStatus === 'outside')
   }, [])
 
