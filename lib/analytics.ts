@@ -20,7 +20,6 @@ export type AnalyticsEvent =
   | 'onboarding_location_selected'
   | 'onboarding_status_selected'
   | 'onboarding_key_date_added'
-  | 'plan_preview_completed'   // user clicked "Save my plan" — committed before signup
   | 'onboarding_completed'     // user finished signup and landed on dashboard
   | 'onboarding_step_viewed'
   | 'onboarding_step_completed'
@@ -56,7 +55,7 @@ export type AnalyticsProps = {
   status_type?: 'work_permit' | 'study_permit' | 'pr' | 'visitor' | 'unknown'
   goal?: 'deadlines' | 'pr_planning' | 'citizenship' | 'pr_residency' | 'explore'
   authenticated?: boolean
-  step?: 'goal' | 'location' | 'status' | 'key_date' | 'quick_crs' | 'save_plan' | 'signup'
+  step?: 'goal' | 'location' | 'status' | 'key_date' | 'quick_crs' | 'signup'
   cta_variant?: 'low_score' | 'high_score'
   cta_type?: 'waitlist' | 'consultant' | 'connect'
   reminder_channel?: 'email'

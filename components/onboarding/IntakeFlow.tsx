@@ -29,12 +29,11 @@ import {
   StepPlannedEntry,
 } from './steps/LocationSteps'
 
-import { StepEarlySignup } from './steps/EarlySignupStep'
 import {
   StepGoalFirst,
   StepKeyDate,
   StepQuickCRS,
-  StepPlanPreview,
+  StepEarlySignup,
 } from './steps/QuickOnboardingSteps'
 
 export function IntakeFlow() {
@@ -59,7 +58,7 @@ export function IntakeFlow() {
   const currentStep = steps[safeStepIndex]
 
   // Fire a step_viewed event on every step change so PostHog can build a
-  // drop-off funnel: goal → location → status → key_date → quick_crs → save_plan → signup
+  // drop-off funnel: goal → location → status → key_date → quick_crs → signup
   useEffect(() => {
     const stepMap: Partial<Record<StepId, AnalyticsProps['step']>> = {
       'goal-first':     'goal',
@@ -68,7 +67,6 @@ export function IntakeFlow() {
       'planned-entry':  'status',
       'key-date':       'key_date',
       'quick-crs':      'quick_crs',
-      'plan-preview':   'save_plan',
       'early-signup':   'signup',
     }
     track('onboarding_step_viewed', { step: stepMap[currentStep] })
@@ -77,8 +75,7 @@ export function IntakeFlow() {
   const progress = ((safeStepIndex + 1) / steps.length) * 100
 
   const isAccountStep = currentStep === 'early-signup'
-  const isPlanPreviewStep = currentStep === 'plan-preview'
-  const usesCustomNav = isAccountStep || isPlanPreviewStep
+  const usesCustomNav = isAccountStep
 
   const ok = canContinue(currentStep, data)
   const hint = !ok ? getValidationHint(currentStep, data) : ''
@@ -124,9 +121,6 @@ export function IntakeFlow() {
       const hasDate = !!(data.permitExpiry || data.visaExpiryDate || data.visitorRecordExpiry || data.prDate)
       if (hasDate) track('onboarding_key_date_added', props)
     }
-    // plan-preview exit = user committed to saving their plan (before signup friction)
-    if (currentStep === 'plan-preview') track('plan_preview_completed', props)
-
     const currentSteps = getSteps(data)
     const isFinalStep = safeStepIndex >= currentSteps.length - 1
 
@@ -265,10 +259,6 @@ export function IntakeFlow() {
 
           {currentStep === 'key-date' && (
             <StepKeyDate data={data} onChange={update} />
-          )}
-
-          {currentStep === 'plan-preview' && (
-            <StepPlanPreview data={data} onSave={next} />
           )}
 
           {currentStep === 'location-split' && (

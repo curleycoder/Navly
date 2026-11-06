@@ -39,6 +39,8 @@ function ErrorBanner({ msg }: { msg: string }) {
 type StepSignUpProps = {
   defaultFullName?: string
   defaultEmail?: string
+  /** Skip the "Save your result" heading — for when a parent screen already has its own. */
+  hideIntro?: boolean
   onComplete: (account: {
     fullName: string
     email: string
@@ -50,6 +52,7 @@ type StepSignUpProps = {
 export function StepSignUp({
   defaultFullName = '',
   defaultEmail = '',
+  hideIntro = false,
   onComplete,
 }: StepSignUpProps) {
   const [fullName, setFullName] = useState(defaultFullName)
@@ -188,16 +191,20 @@ export function StepSignUp({
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-heading">
-        Save your result
-      </h1>
+      {!hideIntro && (
+        <>
+          <h1 className="text-3xl font-bold text-heading">
+            Save your result
+          </h1>
 
-      <p className="mt-2 text-muted-text">
-        Create your free account so Navly can save your answers and build your
-        immigration roadmap.
-      </p>
+          <p className="mt-2 text-muted-text">
+            Create your free account so Navly can save your answers and build your
+            immigration roadmap.
+          </p>
+        </>
+      )}
 
-      <div className="mt-8 flex flex-col gap-6">
+      <div className={hideIntro ? 'flex flex-col gap-6' : 'mt-8 flex flex-col gap-6'}>
         <div className="flex flex-col gap-2">
           <Label
             htmlFor="su-full-name"

@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ArrowRight, Bell, CalendarDays, CheckCircle2, MapPin, TrendingUp, Zap } from 'lucide-react'
+import { Bell, CalendarDays, CheckCircle2, MapPin, TrendingUp, Zap } from 'lucide-react'
 import { OptionCard } from '../shared'
 import type { IntakeData } from '@/lib/profile'
 import { computeDeadlines, formatDeadlineDate } from '@/lib/deadlines'
 import { roughCRS } from '@/lib/rough-crs'
 import { track } from '@/lib/analytics'
+import { StepSignUp } from './SignUpStep'
 
 // ─── Step: Quick CRS inputs ───────────────────────────────────────────────────
 
@@ -737,12 +738,22 @@ function ConsultantCTA({
   )
 }
 
-export function StepPlanPreview({
+type AccountPayload = {
+  fullName: string
+  email: string
+  emailOptIn: boolean
+}
+
+// The reveal (CRS estimate / deadline / PR tracker preview) and the signup form
+// used to be two separate steps. Every screen between "the user sees value" and
+// "the user types their email" is a chance to bounce, so they're now one screen:
+// the reveal flows straight into the account form, no extra tap in between.
+export function StepEarlySignup({
   data,
-  onSave,
+  onComplete,
 }: {
   data: IntakeData
-  onSave: () => void
+  onComplete: (account: AccountPayload) => void
 }) {
   const isOutside = data.locationStatus === 'outside'
   const isPR = data.status === 'pr'
@@ -753,7 +764,7 @@ export function StepPlanPreview({
     <div>
       <p className="text-xs font-bold uppercase tracking-wider text-navly-red">Your plan is ready</p>
       <h1 className="mt-1 text-3xl font-bold text-heading">Here is what Navly will track</h1>
-      <p className="mt-2 text-muted-text">Save your plan to start getting reminders and updates.</p>
+      <p className="mt-2 text-muted-text">Create your free account to save it and start getting reminders.</p>
 
       <div className="mt-6 space-y-4">
         {/* CRS estimate + action CTA — shown for all non-PR users */}
@@ -783,22 +794,32 @@ export function StepPlanPreview({
         )}
 
         <p className="text-xs text-muted-text/70">
-          You can add more dates and profile details any time after signing up.
-          Navly is a planning tool only — not legal advice.
+          This is only an early estimate — your full result depends on your language score,
+          education, work experience, and background details. Navly is a planning tool only,
+          not legal advice.
         </p>
       </div>
 
-      <button
-        type="button"
-        onClick={onSave}
-        className="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-navly-red px-6 py-4 text-base font-bold text-white transition hover:bg-navly-red/80"
-      >
-        Save my plan with email
-        <ArrowRight className="h-5 w-5" aria-hidden="true" />
-      </button>
+      <div className="relative my-8">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-subtle" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-surface-card px-4 text-sm font-semibold text-heading">
+            Save your progress
+          </span>
+        </div>
+      </div>
+
+      <StepSignUp
+        hideIntro
+        defaultFullName={data.fullName}
+        defaultEmail={data.email}
+        onComplete={onComplete}
+      />
 
       <p className="mt-3 text-center text-xs text-muted-text/70">
-        Free account · No credit card · Takes under 30 seconds
+        Free account · No credit card
       </p>
     </div>
   )

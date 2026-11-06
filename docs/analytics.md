@@ -78,7 +78,7 @@ All events accept these optional properties. Never add properties outside this l
   status_type?: 'work_permit' | 'study_permit' | 'pr' | 'visitor' | 'unknown'
   goal?: 'deadlines' | 'pr_planning' | 'citizenship' | 'pr_residency' | 'explore'
   authenticated?: boolean
-  step?: 'goal' | 'location' | 'status' | 'key_date' | 'save_plan'
+  step?: 'goal' | 'location' | 'status' | 'key_date' | 'quick_crs' | 'signup'
   reminder_channel?: 'email'
 }
 ```
@@ -93,7 +93,7 @@ All events accept these optional properties. Never add properties outside this l
 
 Steps: `onboarding_started → onboarding_goal_selected → onboarding_status_selected → onboarding_key_date_added → onboarding_completed → account_created`
 
-`onboarding_completed` fires when the user clicks "Save my plan with email" on the plan preview screen — meaning they committed to the path. `account_created` fires only after Supabase signup succeeds. The gap between the two is email/password friction.
+The plan reveal (CRS estimate, deadlines) and the signup form are one screen — `account_created` fires when Supabase signup succeeds, and `onboarding_completed` fires right after, once the profile is saved and the flow reaches its final step.
 
 **Primary question:** Of everyone who starts onboarding, what % saves one key date?
 **Target:** 55% select a goal, 40% add a key date, 35% reach `onboarding_completed`.

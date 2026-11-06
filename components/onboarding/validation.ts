@@ -18,7 +18,6 @@ export function getValidationHint(stepId: StepId, data: IntakeData): string {
         return 'Tell us if your spouse is coming with you — it changes your score.'
       return ''
     }
-    case 'plan-preview':  return ''
     case 'early-signup':  return ''
     default: return ''
   }
@@ -39,8 +38,7 @@ export function canContinue(stepId: StepId, data: IntakeData): boolean {
       return !isNaN(age) && age >= 18 && age <= 99 &&
         !!data.educationLevel && !!data.selfReportedCLB && !!data.maritalStatus && spouseOk
     }
-    case 'plan-preview':  return false   // custom nav (onSave button) handles progression
-    case 'early-signup':  return false   // custom nav handles progression
+    case 'early-signup':  return false   // custom nav (signup form) handles progression
     default: return false
   }
 }

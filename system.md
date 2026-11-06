@@ -170,9 +170,8 @@ key-date           One key date relevant to their status
 quick-crs          Quick scoring inputs: age (birth year + month), education level,
                    self-reported CLB, Canadian work months, foreign work years
 
-plan-preview       Shows rough CRS estimate + what Navly will track for them
-
-early-signup       Account creation: email, password, phone verification
+early-signup       Rough CRS estimate + what Navly will track, then account
+                   creation on the same screen: email, password, phone verification
 ```
 
 The step list is recalculated dynamically after every field change. Steps are added or removed based on `data.locationStatus`, `data.status`, and other answers.

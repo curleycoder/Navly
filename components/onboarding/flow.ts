@@ -7,8 +7,7 @@ export type StepId =
   | 'planned-entry'    // planned route (outside Canada)
   | 'key-date'         // one key date relevant to their situation
   | 'quick-crs'        // age + education + CLB + work → rough CRS estimate
-  | 'plan-preview'     // CRS estimate reveal + what Navly tracks
-  | 'early-signup'     // account creation
+  | 'early-signup'     // CRS/plan reveal + account creation, on one screen
 
 // STATUS VALUES THAT NEED A KEY DATE
 const KEY_DATE_STATUSES = new Set([
@@ -46,8 +45,8 @@ export function getSteps(data: IntakeData): StepId[] {
     steps.push('quick-crs')
   }
 
-  // ── Step 6: plan preview (shows CRS estimate) → account creation ─────────────
-  steps.push('plan-preview', 'early-signup')
+  // ── Step 6: plan reveal (CRS estimate) + account creation, one screen ───────
+  steps.push('early-signup')
 
   return steps
 }
@@ -59,6 +58,5 @@ export const stepTitles: Record<StepId, string> = {
   'planned-entry':  'Your plan',
   'key-date':       'Key date',
   'quick-crs':      'Score check',
-  'plan-preview':   'Your plan',
-  'early-signup':   'Save your plan',
+  'early-signup':   'Your plan',
 }
