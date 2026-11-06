@@ -372,12 +372,16 @@ export function StepKeyDate({
       <h1 className="text-3xl font-bold text-heading">{cfg.label}</h1>
       <p className="mt-2 text-muted-text">{cfg.description}</p>
 
-      <div className="mt-6">
+      <div className="mt-6 w-full max-w-full overflow-hidden rounded-2xl border-2 border-subtle bg-surface-card focus-within:border-navly-red">
+        {/* iOS Safari's native date/month control can render wider than its box when given
+            generous horizontal padding, pushing past the viewport edge. Keep padding modest
+            and let the wrapper (not the input) own the border, so any overflow gets clipped
+            instead of bleeding off-screen. */}
         <input
           type={cfg.inputType}
           value={currentValue}
           onChange={(e) => handleChange(e.target.value)}
-          className="w-full rounded-2xl border-2 border-subtle bg-surface-card px-5 py-4 text-lg font-semibold text-heading focus:border-navly-red focus:outline-none"
+          className="w-full min-w-0 box-border bg-transparent px-3 py-4 text-base font-semibold text-heading focus:outline-none sm:px-5 sm:text-lg"
           aria-label={cfg.label}
         />
       </div>
