@@ -256,11 +256,17 @@
   /* Nothing may scroll the page sideways on a phone. Any single element that
      misbehaves gets clipped instead of shifting every section off-screen and
      cutting headings mid-word. Horizontal scrolling is opt-in, per component,
-     via an explicit overflow-x-auto container (see the EE draws ticker). */
+     via an explicit overflow-x-auto container (see the EE draws ticker).
+     Uses `clip`, not `hidden` — the CSS overflow spec forces overflow-y to
+     compute as `auto` whenever overflow-x is anything but visible/clip, which
+     turns html/body into scroll containers and silently breaks every
+     `position: sticky` descendant (e.g. the onboarding header). `clip` is
+     exempted from that pairing rule, so it blocks the x-scroll without
+     taking sticky down with it. */
   html,
   body {
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
   html {
     @apply font-sans;

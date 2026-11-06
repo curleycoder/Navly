@@ -351,6 +351,17 @@ const DATE_CONFIG: Partial<Record<string, DateConfig>> = {
   },
 }
 
+function formatKeyDateDisplay(value: string, inputType: 'date' | 'month'): string {
+  if (inputType === 'month') {
+    const [year, month] = value.split('-').map(Number)
+    if (!year || !month) return value
+    return new Date(year, month - 1, 1).toLocaleDateString('en-CA', {
+      year: 'numeric', month: 'long',
+    })
+  }
+  return formatDeadlineDate(value)
+}
+
 export function StepKeyDate({
   data,
   onChange,
@@ -372,16 +383,25 @@ export function StepKeyDate({
       <h1 className="text-3xl font-bold text-heading">{cfg.label}</h1>
       <p className="mt-2 text-muted-text">{cfg.description}</p>
 
-      <div className="mt-6 w-full max-w-full overflow-hidden rounded-2xl border-2 border-subtle bg-surface-card focus-within:border-navly-red">
-        {/* iOS Safari's native date/month control can render wider than its box when given
-            generous horizontal padding, pushing past the viewport edge. Keep padding modest
-            and let the wrapper (not the input) own the border, so any overflow gets clipped
-            instead of bleeding off-screen. */}
+      {/* Mobile Safari renders the native date/month control's value (locale-formatted,
+          e.g. "March 31, 2027") through its own OS compositing, which can ignore a
+          parent's overflow-hidden and paint past the viewport edge — a CSS fix on the
+          input itself can't reliably contain it. So the real input stays functional
+          (focus, tap-to-open-picker, value storage) but fully invisible, positioned
+          absolutely so it can't inflate this box's layout size either; the text/icon
+          people actually see is an ordinary div we fully control. */}
+      <div className="relative mt-6 w-full max-w-full overflow-hidden rounded-2xl border-2 border-subtle bg-surface-card focus-within:border-navly-red">
+        <div className="pointer-events-none flex items-center justify-between gap-3 px-5 py-4 text-lg font-semibold text-heading">
+          <span className={currentValue ? '' : 'text-muted-text/50'}>
+            {currentValue ? formatKeyDateDisplay(currentValue, cfg.inputType) : cfg.placeholder}
+          </span>
+          <CalendarDays className="h-5 w-5 shrink-0 text-muted-text/60" aria-hidden="true" />
+        </div>
         <input
           type={cfg.inputType}
           value={currentValue}
           onChange={(e) => handleChange(e.target.value)}
-          className="w-full min-w-0 box-border bg-transparent px-3 py-4 text-base font-semibold text-heading focus:outline-none sm:px-5 sm:text-lg"
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           aria-label={cfg.label}
         />
       </div>
