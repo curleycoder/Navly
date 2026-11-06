@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Bell, CalendarDays, CheckCircle2, MapPin, TrendingUp, Zap } from 'lucide-react'
+import { Bell, CalendarDays, CheckCircle2, Lock, MapPin, TrendingUp, Zap } from 'lucide-react'
 import { OptionCard } from '../shared'
 import type { IntakeData } from '@/lib/profile'
 import { computeDeadlines, formatDeadlineDate } from '@/lib/deadlines'
@@ -513,6 +513,13 @@ function PRPreview() {
   )
 }
 
+// Masks each digit to the same length as the real number (e.g. 374 → "███") so the
+// card still looks personalized without putting the actual estimate in the DOM —
+// signing up is what reveals it, not inspecting the page.
+function maskDigits(n: number): string {
+  return '█'.repeat(String(n).length)
+}
+
 function RoughCRSCard({ data }: { data: IntakeData }) {
   const est = roughCRS(data)
   if (!est) return null
@@ -523,8 +530,12 @@ function RoughCRSCard({ data }: { data: IntakeData }) {
         <Zap className="h-4 w-4 text-navly-red" aria-hidden="true" />
         <p className="text-xs font-bold uppercase tracking-wider text-white/60">Rough CRS estimate</p>
       </div>
-      <p className="text-4xl font-bold text-white leading-none">
-        {est.low} – {est.high}
+      <p className="text-4xl font-bold tracking-widest text-white leading-none">
+        {maskDigits(est.low)} – {maskDigits(est.high)}
+      </p>
+      <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-navly-red">
+        <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+        Sign up to reveal your exact score
       </p>
       <p className="mt-2 text-sm text-white/60">
         Based on your age, education, language level, and work experience.
@@ -763,21 +774,60 @@ export function StepEarlySignup({
   return (
     <div>
       <p className="text-xs font-bold uppercase tracking-wider text-navly-red">Your plan is ready</p>
-      <h1 className="mt-1 text-3xl font-bold text-heading">Here is what Navly will track</h1>
-      <p className="mt-2 text-muted-text">Create your free account to save it and start getting reminders.</p>
+      {crsEstimate ? (
+        <>
+          <h1 className="mt-1 text-3xl font-bold text-heading">Your plan and CRS score are ready</h1>
+          <p className="mt-2 text-muted-text">Sign up to see your exact score and full plan.</p>
+        </>
+      ) : (
+        <>
+          <h1 className="mt-1 text-3xl font-bold text-heading">Here is what Navly will track</h1>
+          <p className="mt-2 text-muted-text">Sign up to see your full plan and save it.</p>
+        </>
+      )}
 
-      <div className="mt-6 space-y-4">
-        {/* CRS estimate + action CTA — shown for all non-PR users */}
-        {crsEstimate && <RoughCRSCard data={data} />}
+      {/* The headline card (or, for PR users with no CRS score, the residency/citizenship
+          tracker) sits directly above the signup form — no scrolling required to connect
+          "here's your result" to "save it." The exact CRS number is masked, not shown, until
+          they sign up — it's the curiosity gap that pulls people into the form below.
+          Everything else is supporting detail, demoted below the form. */}
+      <div className="mt-6">
+        {crsEstimate ? <RoughCRSCard data={data} /> : <PRPreview />}
+      </div>
+
+      <div className="mt-6">
+        <StepSignUp
+          hideIntro
+          defaultFullName={data.fullName}
+          defaultEmail={data.email}
+          onComplete={onComplete}
+        />
+      </div>
+
+      <p className="mt-3 text-center text-xs text-muted-text/70">
+        Free account · No credit card
+      </p>
+
+      <div className="relative my-8">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-subtle" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-surface-card px-4 text-sm font-semibold text-heading">
+            More about your plan
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {/* CRS estimate action CTA — shown for all non-PR users */}
         {crsEstimate && <ConsultantCTA estimate={crsEstimate} prefillEmail={data.email} />}
 
         {isOutside ? (
           <OutsideCanadaPreview />
-        ) : isPR ? (
-          <PRPreview />
-        ) : (
+        ) : !isPR ? (
           <DeadlinePreviewCard data={data} />
-        )}
+        ) : null}
 
         {/* Reminder schedule */}
         {!isOutside && !isPR && (
@@ -799,28 +849,6 @@ export function StepEarlySignup({
           not legal advice.
         </p>
       </div>
-
-      <div className="relative my-8">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-subtle" />
-        </div>
-        <div className="relative flex justify-center">
-          <span className="bg-surface-card px-4 text-sm font-semibold text-heading">
-            Save your progress
-          </span>
-        </div>
-      </div>
-
-      <StepSignUp
-        hideIntro
-        defaultFullName={data.fullName}
-        defaultEmail={data.email}
-        onComplete={onComplete}
-      />
-
-      <p className="mt-3 text-center text-xs text-muted-text/70">
-        Free account · No credit card
-      </p>
     </div>
   )
 }
