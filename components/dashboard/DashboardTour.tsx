@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { driver, type DriveStep } from 'driver.js'
 import 'driver.js/dist/driver.css'
+import { isNewAccount } from '@/lib/tour'
 
 const TOUR_KEY = 'navly_tour_seen'
 
@@ -57,80 +58,93 @@ export function DashboardTour() {
 
     if (localStorage.getItem(TOUR_KEY)) return
 
-    const bookmarkInstruction = isIOS
-      ? 'Tap the Share button at the bottom of Safari, then tap "Add to Home Screen" to use Navly like an app.'
-      : 'Tap the browser menu (⋮) and select "Add to Home screen" to use Navly like an app.'
-
-    const allSteps: DriveStep[] = [
-      ...STEPS,
-      {
-        popover: {
-          title: 'Save Navly to your phone',
-          description: bookmarkInstruction,
-          side: 'top',
-          align: 'center',
-        },
-      },
-    ]
-
     let cancelled = false
+    let pollTimer: ReturnType<typeof setTimeout> | undefined
+    let initialTimer: ReturnType<typeof setTimeout> | undefined
 
-    // The dashboard's own cards (profile/presence from Supabase) load asynchronously,
-    // and some — like "days" — only render once that resolves. A single fixed delay
-    // raced that fetch: on a slow connection it fired before the cards existed, silently
-    // dropping those steps, so which spots got highlighted varied run to run. Poll
-    // instead, so the tour waits for whatever's actually going to render (capped so it
-    // still starts even if a step's element genuinely never appears).
-    const start = Date.now()
-    const maxWaitMs = 5000
-    const pollMs = 150
+    function startTour() {
+      const bookmarkInstruction = isIOS
+        ? 'Tap the Share button at the bottom of Safari, then tap "Add to Home Screen" to use Navly like an app.'
+        : 'Tap the browser menu (⋮) and select "Add to Home screen" to use Navly like an app.'
 
-    function allTargetsSettled() {
-      return STEPS.every(
-        (step) => !step.element || document.querySelector(step.element as string) !== null
-      )
-    }
+      const allSteps: DriveStep[] = [
+        ...STEPS,
+        {
+          popover: {
+            title: 'Save Navly to your phone',
+            description: bookmarkInstruction,
+            side: 'top',
+            align: 'center',
+          },
+        },
+      ]
 
-    function tryStart() {
-      if (cancelled) return
-      if (!allTargetsSettled() && Date.now() - start < maxWaitMs) {
-        setTimeout(tryStart, pollMs)
-        return
+      // The dashboard's own cards (profile/presence from Supabase) load asynchronously,
+      // and some — like "days" — only render once that resolves. A single fixed delay
+      // raced that fetch: on a slow connection it fired before the cards existed, silently
+      // dropping those steps, so which spots got highlighted varied run to run. Poll
+      // instead, so the tour waits for whatever's actually going to render (capped so it
+      // still starts even if a step's element genuinely never appears).
+      const start = Date.now()
+      const maxWaitMs = 5000
+      const pollMs = 150
+
+      function allTargetsSettled() {
+        return STEPS.every(
+          (step) => !step.element || document.querySelector(step.element as string) !== null
+        )
       }
 
-      const validSteps = allSteps.filter(
-        (step) => !step.element || document.querySelector(step.element as string) !== null
-      )
-      if (validSteps.length === 0) return
+      function tryStart() {
+        if (cancelled) return
+        if (!allTargetsSettled() && Date.now() - start < maxWaitMs) {
+          pollTimer = setTimeout(tryStart, pollMs)
+          return
+        }
 
-      const driverObj = driver({
-        showProgress: true,
-        animate: true,
-        // Not navly-navy (#0B1F3A) — several highlighted cards (score, consultant CTA)
-        // use that exact color as their own background, so the "spotlight" cut-out and
-        // the dimmed overlay around it were the same color and barely visible. Pure
-        // black contrasts against every card regardless of its own background.
-        overlayColor: '#000000',
-        overlayOpacity: 0.7,
-        smoothScroll: true,
-        allowClose: true,
-        nextBtnText: 'Next',
-        prevBtnText: 'Back',
-        doneBtnText: 'Get started',
-        popoverClass: 'navly-tour-popover',
-        steps: validSteps,
-        onDestroyed: () => {
-          localStorage.setItem(TOUR_KEY, '1')
-        },
-      })
+        const validSteps = allSteps.filter(
+          (step) => !step.element || document.querySelector(step.element as string) !== null
+        )
+        if (validSteps.length === 0) return
 
-      driverObj.drive()
+        const driverObj = driver({
+          showProgress: true,
+          animate: true,
+          // Not navly-navy (#0B1F3A) — several highlighted cards (score, consultant CTA)
+          // use that exact color as their own background, so the "spotlight" cut-out and
+          // the dimmed overlay around it were the same color and barely visible. Pure
+          // black contrasts against every card regardless of its own background.
+          overlayColor: '#000000',
+          overlayOpacity: 0.7,
+          smoothScroll: true,
+          allowClose: true,
+          nextBtnText: 'Next',
+          prevBtnText: 'Back',
+          doneBtnText: 'Get started',
+          popoverClass: 'navly-tour-popover',
+          steps: validSteps,
+          onDestroyed: () => {
+            localStorage.setItem(TOUR_KEY, '1')
+          },
+        })
+
+        driverObj.drive()
+      }
+
+      initialTimer = setTimeout(tryStart, 400)
     }
 
-    const initialTimer = setTimeout(tryStart, 400)
+    // localStorage alone only proves "not seen on this browser" — a returning
+    // user who clears storage, reinstalls, or signs in on a new device would
+    // look identical to a brand-new one and see the tour again. Gating on
+    // account age as well makes sure it really is a new user.
+    isNewAccount().then((isNew) => {
+      if (!cancelled && isNew) startTour()
+    })
 
     return () => {
       cancelled = true
+      clearTimeout(pollTimer)
       clearTimeout(initialTimer)
     }
   }, [])

@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { driver, type DriveStep } from 'driver.js'
 import 'driver.js/dist/driver.css'
+import { isNewAccount } from '@/lib/tour'
 
 type PageTourProps = {
   tourKey: string
@@ -22,61 +23,74 @@ export function PageTour({ tourKey, steps }: PageTourProps) {
     if (localStorage.getItem(tourKey)) return
 
     let cancelled = false
+    let pollTimer: ReturnType<typeof setTimeout> | undefined
+    let initialTimer: ReturnType<typeof setTimeout> | undefined
 
-    // Page data often loads asynchronously, so a target's element may not exist yet
-    // when this effect first runs. Poll instead of firing on a fixed delay — without
-    // this, driver.js would try to highlight an element that isn't there, producing a
-    // broken-looking step with no spotlight (capped so the tour still starts even if a
-    // step's element genuinely never appears).
-    const start = Date.now()
-    const maxWaitMs = 5000
-    const pollMs = 150
+    function startTour() {
+      // Page data often loads asynchronously, so a target's element may not exist yet
+      // when this effect first runs. Poll instead of firing on a fixed delay — without
+      // this, driver.js would try to highlight an element that isn't there, producing a
+      // broken-looking step with no spotlight (capped so the tour still starts even if a
+      // step's element genuinely never appears).
+      const start = Date.now()
+      const maxWaitMs = 5000
+      const pollMs = 150
 
-    function allTargetsSettled() {
-      return steps.every(
-        (step) => !step.element || document.querySelector(step.element as string) !== null
-      )
-    }
-
-    function tryStart() {
-      if (cancelled) return
-      if (!allTargetsSettled() && Date.now() - start < maxWaitMs) {
-        setTimeout(tryStart, pollMs)
-        return
+      function allTargetsSettled() {
+        return steps.every(
+          (step) => !step.element || document.querySelector(step.element as string) !== null
+        )
       }
 
-      const validSteps = steps.filter(
-        (step) => !step.element || document.querySelector(step.element as string) !== null
-      )
-      if (validSteps.length === 0) return
+      function tryStart() {
+        if (cancelled) return
+        if (!allTargetsSettled() && Date.now() - start < maxWaitMs) {
+          pollTimer = setTimeout(tryStart, pollMs)
+          return
+        }
 
-      const driverObj = driver({
-        showProgress: true,
-        animate: true,
-        // Not navly-navy (#0B1F3A) — some highlighted cards (e.g. pr-improvements) use
-        // that exact color as their own background, so the overlay barely showed against
-        // them. Pure black contrasts against every card regardless of its own background.
-        overlayColor: '#000000',
-        overlayOpacity: 0.7,
-        smoothScroll: true,
-        allowClose: true,
-        nextBtnText: 'Next',
-        prevBtnText: 'Back',
-        doneBtnText: 'Got it',
-        popoverClass: 'navly-tour-popover',
-        steps: validSteps,
-        onDestroyed: () => {
-          localStorage.setItem(tourKey, '1')
-        },
-      })
+        const validSteps = steps.filter(
+          (step) => !step.element || document.querySelector(step.element as string) !== null
+        )
+        if (validSteps.length === 0) return
 
-      driverObj.drive()
+        const driverObj = driver({
+          showProgress: true,
+          animate: true,
+          // Not navly-navy (#0B1F3A) — some highlighted cards (e.g. pr-improvements) use
+          // that exact color as their own background, so the overlay barely showed against
+          // them. Pure black contrasts against every card regardless of its own background.
+          overlayColor: '#000000',
+          overlayOpacity: 0.7,
+          smoothScroll: true,
+          allowClose: true,
+          nextBtnText: 'Next',
+          prevBtnText: 'Back',
+          doneBtnText: 'Got it',
+          popoverClass: 'navly-tour-popover',
+          steps: validSteps,
+          onDestroyed: () => {
+            localStorage.setItem(tourKey, '1')
+          },
+        })
+
+        driverObj.drive()
+      }
+
+      initialTimer = setTimeout(tryStart, 400)
     }
 
-    const initialTimer = setTimeout(tryStart, 400)
+    // localStorage alone only proves "not seen on this browser" — a returning
+    // user who clears storage, reinstalls, or signs in on a new device would
+    // look identical to a brand-new one and see the tour again. Gating on
+    // account age as well makes sure it really is a new user.
+    isNewAccount().then((isNew) => {
+      if (!cancelled && isNew) startTour()
+    })
 
     return () => {
       cancelled = true
+      clearTimeout(pollTimer)
       clearTimeout(initialTimer)
     }
   }, [tourKey, steps])

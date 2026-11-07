@@ -8,6 +8,14 @@
 [data-tour] {
   scroll-margin-top: 72px;
 }
+/* Same idea for BottomNav (h-16 = 64px, mobile only) — a tour step near the bottom
+   of a page (e.g. the "add task" row, last on the tasks page) could otherwise land
+   partly behind it once scrolled into view. */
+@media (max-width: 767px) {
+  [data-tour] {
+    scroll-margin-bottom: 88px;
+  }
+}
 .navly-tour-popover.driver-popover {
   background: #0f2744;
   border: 1px solid rgba(255, 255, 255, 0.1);
