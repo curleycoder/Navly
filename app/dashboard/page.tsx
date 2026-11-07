@@ -77,6 +77,7 @@ export default function DashboardPage() {
   const isOutside = profile?.locationStatus === 'outside'
   const crs = score?.crs?.total ?? 0
   const hasData = score?.hasEnoughData ?? false
+  const clbIsEstimated = score?.clbIsEstimated ?? false
   const strength = getStrength(crs, hasData)
   const tasks = loadTasks()
   const nextTask = tasks.find((t) => !t.done)
@@ -218,7 +219,12 @@ export default function DashboardPage() {
                   {statusLabels[profile.status] ?? 'Immigration score'}
                 </p>
                 {crs > 0 ? (
-                  <p className="mt-1 text-5xl font-bold text-white leading-none">{crs}</p>
+                  <>
+                    <p className="mt-1 text-5xl font-bold text-white leading-none">{crs}</p>
+                    {clbIsEstimated && (
+                      <p className="mt-1 text-xs font-semibold text-white/50">Estimated from your self-reported level</p>
+                    )}
+                  </>
                 ) : (
                   <p className="mt-2 text-lg font-semibold text-white/50">{t('dashboard.noScoreYet')}</p>
                 )}
@@ -253,20 +259,20 @@ export default function DashboardPage() {
         )}
 
         {/* ── Refine estimate nudge ────────────────────────────────────── */}
-        {profile && !hasData && (
+        {profile && (!hasData || clbIsEstimated) && (
           <Link
             href="/dashboard/profile"
             className="flex items-start justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 transition hover:border-amber-300 hover:bg-amber-100"
           >
             <div className="min-w-0">
               <p className="text-sm font-bold text-amber-900">
-                {profile.selfReportedCLB
-                  ? 'Your estimate is rough — refine it'
+                {hasData
+                  ? 'Your score is a rough estimate — refine it'
                   : 'Complete your profile to unlock your score'}
               </p>
               <p className="mt-0.5 text-xs text-amber-700">
-                {profile.selfReportedCLB
-                  ? 'Add exact language scores, work history, and education details to get an accurate CRS number.'
+                {hasData
+                  ? 'This is based on your self-reported language level. Add your exact test scores to get an accurate CRS number.'
                   : 'Add your language score, education, and work experience to see your estimated CRS score.'}
               </p>
             </div>

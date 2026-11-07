@@ -513,13 +513,6 @@ function PRPreview() {
   )
 }
 
-// Masks each digit to the same length as the real number (e.g. 374 → "███") so the
-// card still looks personalized without putting the actual estimate in the DOM —
-// signing up is what reveals it, not inspecting the page.
-function maskDigits(n: number): string {
-  return '█'.repeat(String(n).length)
-}
-
 function RoughCRSCard({ data }: { data: IntakeData }) {
   const est = roughCRS(data)
   if (!est) return null
@@ -530,9 +523,15 @@ function RoughCRSCard({ data }: { data: IntakeData }) {
         <Zap className="h-4 w-4 text-navly-red" aria-hidden="true" />
         <p className="text-xs font-bold uppercase tracking-wider text-white/60">Rough CRS estimate</p>
       </div>
-      <p className="text-4xl font-bold tracking-widest text-white leading-none">
-        {maskDigits(est.low)} – {maskDigits(est.high)}
+
+      {/* The real number is still in the DOM (it's just a rough estimate, not
+          sensitive data) — only blurred, which reads as "hidden" without the
+          blocky, broken look of literal mask characters. */}
+      <p aria-hidden="true" className="select-none text-4xl font-bold text-white leading-none blur-[6px]">
+        {est.low} – {est.high}
       </p>
+      <span className="sr-only">Your CRS estimate has been calculated. Sign up to see the exact number.</span>
+
       <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-navly-red">
         <Lock className="h-3.5 w-3.5" aria-hidden="true" />
         Sign up to reveal your exact score

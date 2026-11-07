@@ -57,6 +57,8 @@ export type RiskFlag = {
 
 export type ScoreResult = {
   clb: CLBScores | null
+  /** True when `clb` came from the quick-onboarding self-reported band, not a real test score. */
+  clbIsEstimated: boolean
   crs: CRSBreakdown | null
   fsw: FSWResult | null
   pathways: PathwayStatus[]
@@ -779,7 +781,23 @@ export function calculateScore(profile: IntakeData): ScoreResult {
     l: parseFloat(profile.langListening),
     s: parseFloat(profile.langSpeaking),
   }
-  const clb = convertToCLB(profile.langTestType, rawLang)
+  let clb = convertToCLB(profile.langTestType, rawLang)
+  let clbIsEstimated = false
+
+  // Quick onboarding only ever collects a single self-reported CLB band, never a
+  // real test type + per-skill scores — so without this fallback, every user who
+  // signs up through that flow would permanently see "complete your profile" on
+  // the dashboard instead of a score, even right after being told their score was
+  // "ready." Mirrors roughCRS()'s own documented assumption: apply the
+  // self-reported level uniformly across all 4 skills until real scores replace it.
+  if (!clb) {
+    const selfReported = parseInt(profile.selfReportedCLB)
+    if (!isNaN(selfReported) && selfReported >= 4) {
+      clb = { r: selfReported, w: selfReported, l: selfReported, s: selfReported }
+      clbIsEstimated = true
+    }
+  }
+
   if (!clb) missing.push('Language test scores')
 
   const rawFrench: CLBScores = {
@@ -795,7 +813,7 @@ export function calculateScore(profile: IntakeData): ScoreResult {
   const riskFlags = buildRiskFlags(profile)
 
   if (missing.length > 0) {
-    return { clb, crs: null, fsw: null, pathways: [], improvements: [], riskFlags, hasEnoughData: false, missingFields: missing }
+    return { clb, clbIsEstimated, crs: null, fsw: null, pathways: [], improvements: [], riskFlags, hasEnoughData: false, missingFields: missing }
   }
 
   const foreignYears = parseFloat(profile.foreignWorkYears) || 0
@@ -977,5 +995,5 @@ export function calculateScore(profile: IntakeData): ScoreResult {
     })
   }
 
-  return { clb, crs: breakdown, fsw, pathways, improvements, riskFlags, hasEnoughData: true, missingFields: [] }
+  return { clb, clbIsEstimated, crs: breakdown, fsw, pathways, improvements, riskFlags, hasEnoughData: true, missingFields: [] }
 }
