@@ -48,6 +48,11 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: transparent;
   color: #94a3b8;
+  /* driver.js's base stylesheet puts a white text-shadow on every footer button,
+     meant for its default white-background theme. The Next button override already
+     neutralized it; this one didn't, so "Back" rendered with a stray white halo on
+     our dark popover — exactly the "ugly shadow, low contrast" look. */
+  text-shadow: none !important;
   font-size: 13px;
   font-weight: 600;
   padding: 6px 14px;

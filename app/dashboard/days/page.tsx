@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { PlanGate } from '@/components/ui/PlanGate'
-import { Flame, CalendarCheck, Target, Plane, PlusCircle, Trash2, MapPin, AlertTriangle, Info } from 'lucide-react'
+import { UpgradeModal } from '@/components/ui/UpgradeModal'
+import { Flame, CalendarCheck, Target, Plane, PlusCircle, Trash2, MapPin, AlertTriangle, Info, ArrowRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,6 +44,7 @@ function DaysPage() {
   const [checkedIn, setCheckedIn] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [newTrip, setNewTrip] = useState({ departureDate: '', returnDate: '', country: '', reason: '' })
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   useEffect(() => {
     async function init() {
@@ -125,41 +127,12 @@ function DaysPage() {
         <p className="mt-2 text-muted-text">{t('tracker.subtitleFull')}</p>
       </div>
 
-      {/* Streak + check-in */}
-      <Card className="mb-6 rounded-2xl border-subtle bg-surface-card">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Flame className={cn('h-4 w-4', streak > 0 ? 'text-orange-500' : 'text-muted-text/50')} />
-            <p className="text-sm font-semibold text-heading">{t('tracker.canadaStreak')}</p>
-            {streak > 0 && (
-              <span className="ml-auto text-2xl font-bold text-orange-500">{streak} day{streak !== 1 ? 's' : ''}</span>
-            )}
-          </div>
-          {presence.longestStreak > 1 && (
-            <p className="mb-3 text-xs text-muted-text/70">{t('tracker.personalBest')} {presence.longestStreak} days</p>
-          )}
-          {checkedIn ? (
-            <div className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 px-4 py-3">
-              <CalendarCheck className="h-5 w-5 shrink-0 text-green-600" />
-              <p className="text-sm font-semibold text-green-800">{t('tracker.checkedInConfirm')}</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3 rounded-xl border border-dashed border-subtle px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-muted-text">{t('tracker.areYouHereToday')}</p>
-              <Button onClick={handleCheckIn} size="sm" className="gap-1.5 bg-navly-red text-white hover:bg-navly-red/80 sm:shrink-0">
-                <CalendarCheck className="h-4 w-4" />
-                {t('tracker.yesImHere')}
-              </Button>
-            </div>
-          )}
-          <div className="mt-3 flex items-start gap-2 rounded-xl bg-surface-alt px-3 py-2">
-            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-text/70" />
-            <p className="text-xs text-muted-text/70">{t('tracker.streakNote')}</p>
-          </div>
-        </CardContent>
-      </Card>
-
-            {/* Primary stat — Days in Canada */}
+      {/* Primary stat — Days in Canada — a real, free preview before any paywall.
+          The daily tracking tools below (check-in streak, missed-day recovery,
+          travel log) are the paid "monthly tracking" service, but this number
+          itself is the thing that actually proves the app knows something
+          about you — gating it too meant free users saw nothing but a sales
+          banner with zero connection to what this page does. */}
       <Card className="mb-6 rounded-2xl border-2 border-navly-navy bg-navly-navy text-white">
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
@@ -211,156 +184,232 @@ function DaysPage() {
         </CardContent>
       </Card>
 
-      {/* Goal progress */}
-      {goal && daysInCanada > 0 && (
+      {/* Daily check-in, goal tracking, missed-day recovery, and the travel log
+          are the paid "monthly tracking" service. Free users still see their
+          real progress toward their goal above the paywall — not just a
+          generic sales pitch. */}
+      <PlanGate
+        fallback={
+          <div className="mb-6">
+            {goal && daysInCanada > 0 && (
+              <div className="mb-4 rounded-2xl border border-subtle bg-surface-card p-5 shadow-sm">
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Target className="h-4 w-4 text-navly-red" />
+                    <p className="text-sm font-semibold text-heading">{goal.label}</p>
+                  </div>
+                  <span className="text-sm font-bold text-navly-red">
+                    {daysInCanada} / {goal.days}
+                  </span>
+                </div>
+                <div className="h-2 w-full rounded-full bg-subtle">
+                  <div className="h-2 rounded-full bg-navly-red" style={{ width: `${progress}%` }} />
+                </div>
+              </div>
+            )}
+            <button
+              onClick={() => setShowUpgradeModal(true)}
+              className="flex w-full items-center justify-between rounded-2xl border border-dashed border-navly-red/40 bg-navly-red/5 p-5 text-left transition hover:bg-navly-red/10"
+            >
+              <div>
+                <p className="font-bold text-heading">Unlock daily tracking</p>
+                <p className="mt-0.5 text-sm text-muted-text">
+                  Confirm each day you&rsquo;re in Canada, recover missed days, and log trips
+                  abroad so this number stays accurate for PR and citizenship.
+                </p>
+              </div>
+              <ArrowRight className="ml-4 h-5 w-5 shrink-0 text-navly-red" />
+            </button>
+          </div>
+        }
+      >
+        {/* Streak + check-in */}
         <Card className="mb-6 rounded-2xl border-subtle bg-surface-card">
           <CardContent className="p-5">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-navly-red" />
-                <p className="text-sm font-semibold text-heading">{goal.label}</p>
+            <div className="flex items-center gap-2 mb-4">
+              <Flame className={cn('h-4 w-4', streak > 0 ? 'text-orange-500' : 'text-muted-text/50')} />
+              <p className="text-sm font-semibold text-heading">{t('tracker.canadaStreak')}</p>
+              {streak > 0 && (
+                <span className="ml-auto text-2xl font-bold text-orange-500">{streak} day{streak !== 1 ? 's' : ''}</span>
+              )}
+            </div>
+            {presence.longestStreak > 1 && (
+              <p className="mb-3 text-xs text-muted-text/70">{t('tracker.personalBest')} {presence.longestStreak} days</p>
+            )}
+            {checkedIn ? (
+              <div className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 px-4 py-3">
+                <CalendarCheck className="h-5 w-5 shrink-0 text-green-600" />
+                <p className="text-sm font-semibold text-green-800">{t('tracker.checkedInConfirm')}</p>
               </div>
-              <span className="text-sm font-bold text-navly-red">
-                {daysInCanada} / {goal.days}
-              </span>
+            ) : (
+              <div className="flex flex-col gap-3 rounded-xl border border-dashed border-subtle px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted-text">{t('tracker.areYouHereToday')}</p>
+                <Button onClick={handleCheckIn} size="sm" className="gap-1.5 bg-navly-red text-white hover:bg-navly-red/80 sm:shrink-0">
+                  <CalendarCheck className="h-4 w-4" />
+                  {t('tracker.yesImHere')}
+                </Button>
+              </div>
+            )}
+            <div className="mt-3 flex items-start gap-2 rounded-xl bg-surface-alt px-3 py-2">
+              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-text/70" />
+              <p className="text-xs text-muted-text/70">{t('tracker.streakNote')}</p>
             </div>
-            <div className="h-2 w-full rounded-full bg-subtle">
-              <div className="h-2 rounded-full bg-navly-red transition-all" style={{ width: `${progress}%` }} />
-            </div>
-            <p className="mt-2 text-xs text-muted-text">
-              {remaining > 0 ? `${remaining} ${t('tracker.moreNeededSuffix')}` : t('tracker.reachedTarget')}
-            </p>
           </CardContent>
         </Card>
-      )}
 
-      {/* Missed day recovery — shown one day at a time, oldest first */}
-      {currentMissedDay && (
-        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-            <div className="flex-1">
-              {missedDays.length > 1 && (
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-600">
-                  {missedDays.length} days to confirm
-                </p>
-              )}
-              <p className="font-semibold text-amber-900">
-                {t('tracker.wereYouInCanada')}{' '}
-                {new Date(currentMissedDay + 'T12:00:00').toLocaleDateString('en-CA', {
-                  weekday: 'long', month: 'long', day: 'numeric',
-                })}?
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button size="sm" onClick={() => handleConfirmDay(currentMissedDay)} className="bg-amber-600 text-white hover:bg-amber-700">
-                  {t('tracker.yesWasInCanada')}
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => handleDeclineDay(currentMissedDay)} className="border-amber-300 text-amber-700 hover:bg-amber-100">
-                  {t('tracker.noWasAway')}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Travel log — always visible, critical for accuracy */}
-      <Card className="rounded-2xl border-subtle bg-surface-card">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-2 mb-1">
-            <Plane className="h-4 w-4 text-navly-red" />
-            <p className="text-sm font-semibold text-heading">
-              {t('tracker.tripsOutsideCanada')}
-              {presence.travelLog.length > 0 && (
-                <span className="ml-2 rounded-full bg-navly-red/10 px-2 py-0.5 text-xs text-navly-red">
-                  {presence.travelLog.length} trip{presence.travelLog.length !== 1 ? 's' : ''}
+        {/* Goal progress */}
+        {goal && daysInCanada > 0 && (
+          <Card className="mb-6 rounded-2xl border-subtle bg-surface-card">
+            <CardContent className="p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Target className="h-4 w-4 text-navly-red" />
+                  <p className="text-sm font-semibold text-heading">{goal.label}</p>
+                </div>
+                <span className="text-sm font-bold text-navly-red">
+                  {daysInCanada} / {goal.days}
                 </span>
-              )}
-            </p>
-          </div>
-          <p className="mb-5 text-xs text-muted-text">{t('tracker.everyTripSubtracted')}</p>
+              </div>
+              <div className="h-2 w-full rounded-full bg-subtle">
+                <div className="h-2 rounded-full bg-navly-red transition-all" style={{ width: `${progress}%` }} />
+              </div>
+              <p className="mt-2 text-xs text-muted-text">
+                {remaining > 0 ? `${remaining} ${t('tracker.moreNeededSuffix')}` : t('tracker.reachedTarget')}
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
-          {/* Existing trips */}
-          {presence.travelLog.length > 0 ? (
-            <div className="mb-5 flex flex-col gap-2">
-              {presence.travelLog.map((entry) => (
-                <TripRow key={entry.id} entry={entry} onRemove={handleRemoveTrip} stillAwayLabel={t('tracker.stillAway')} />
-              ))}
-            </div>
-          ) : (
-            <div className="mb-5 rounded-xl border border-dashed border-subtle p-4 text-center">
-              <p className="text-sm text-muted-text/70">{t('tracker.noTripsYet')}</p>
-              <p className="mt-1 text-xs text-muted-text/70">{t('tracker.logTripPromptDesc')}</p>
-            </div>
-          )}
-
-          {/* Add new trip */}
-          <div className="rounded-xl border border-subtle bg-surface-alt p-4">
-            <p className="mb-3 t-eyebrow text-muted-text/70">{t('tracker.logTripHeader')}</p>
-            <div className="grid grid-cols-1 gap-3 mb-3 sm:grid-cols-2">
-              <div>
-                <Label className="text-xs font-semibold text-muted-text">{t('tracker.travelFrom')}</Label>
-                <Input
-                  type="date"
-                  value={newTrip.departureDate}
-                  max={new Date().toISOString().slice(0, 10)}
-                  onChange={(e) => setNewTrip((t) => ({ ...t, departureDate: e.target.value }))}
-                  className="mt-1 rounded-xl border-subtle bg-surface-card text-sm focus-visible:ring-navly-red"
-                />
-              </div>
-              <div>
-                <Label className="text-xs font-semibold text-muted-text">{t('tracker.travelTo')} <span className="font-normal text-muted-text/70">{t('tracker.returnDateOptional')}</span></Label>
-                <Input
-                  type="date"
-                  value={newTrip.returnDate}
-                  min={newTrip.departureDate}
-                  max={new Date().toISOString().slice(0, 10)}
-                  onChange={(e) => setNewTrip((t) => ({ ...t, returnDate: e.target.value }))}
-                  className="mt-1 rounded-xl border-subtle bg-surface-card text-sm focus-visible:ring-navly-red"
-                />
+        {/* Missed day recovery — shown one day at a time, oldest first */}
+        {currentMissedDay && (
+          <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+              <div className="flex-1">
+                {missedDays.length > 1 && (
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-600">
+                    {missedDays.length} days to confirm
+                  </p>
+                )}
+                <p className="font-semibold text-amber-900">
+                  {t('tracker.wereYouInCanada')}{' '}
+                  {new Date(currentMissedDay + 'T12:00:00').toLocaleDateString('en-CA', {
+                    weekday: 'long', month: 'long', day: 'numeric',
+                  })}?
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button size="sm" onClick={() => handleConfirmDay(currentMissedDay)} className="bg-amber-600 text-white hover:bg-amber-700">
+                    {t('tracker.yesWasInCanada')}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => handleDeclineDay(currentMissedDay)} className="border-amber-300 text-amber-700 hover:bg-amber-100">
+                    {t('tracker.noWasAway')}
+                  </Button>
+                </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-3 mb-3 sm:grid-cols-2">
-              <div>
-                <Label className="text-xs font-semibold text-muted-text">{t('tracker.travelCountry')}</Label>
-                <Input
-                  placeholder="e.g. United States"
-                  value={newTrip.country}
-                  onChange={(e) => setNewTrip((t) => ({ ...t, country: e.target.value }))}
-                  className="mt-1 rounded-xl border-subtle bg-surface-card text-sm focus-visible:ring-navly-red"
-                />
-              </div>
-              <div>
-                <Label className="text-xs font-semibold text-muted-text">{t('tracker.travelReason')} <span className="font-normal text-muted-text/70">{t('tracker.reasonOptional')}</span></Label>
-                <Input
-                  placeholder="e.g. Family visit"
-                  value={newTrip.reason}
-                  onChange={(e) => setNewTrip((t) => ({ ...t, reason: e.target.value }))}
-                  className="mt-1 rounded-xl border-subtle bg-surface-card text-sm focus-visible:ring-navly-red"
-                />
-              </div>
-            </div>
-            <Button
-              onClick={handleAddTrip}
-              disabled={!newTrip.departureDate || !newTrip.country}
-              size="sm"
-              className="gap-2 bg-navly-navy text-white hover:bg-navly-navy/80 disabled:opacity-40"
-            >
-              <PlusCircle className="h-4 w-4" />
-              {t('tracker.logTripBtn')}
-            </Button>
           </div>
-        </CardContent>
-      </Card>
+        )}
+
+        {/* Travel log — always visible, critical for accuracy */}
+        <Card className="rounded-2xl border-subtle bg-surface-card">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 mb-1">
+              <Plane className="h-4 w-4 text-navly-red" />
+              <p className="text-sm font-semibold text-heading">
+                {t('tracker.tripsOutsideCanada')}
+                {presence.travelLog.length > 0 && (
+                  <span className="ml-2 rounded-full bg-navly-red/10 px-2 py-0.5 text-xs text-navly-red">
+                    {presence.travelLog.length} trip{presence.travelLog.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </p>
+            </div>
+            <p className="mb-5 text-xs text-muted-text">{t('tracker.everyTripSubtracted')}</p>
+
+            {/* Existing trips */}
+            {presence.travelLog.length > 0 ? (
+              <div className="mb-5 flex flex-col gap-2">
+                {presence.travelLog.map((entry) => (
+                  <TripRow key={entry.id} entry={entry} onRemove={handleRemoveTrip} stillAwayLabel={t('tracker.stillAway')} />
+                ))}
+              </div>
+            ) : (
+              <div className="mb-5 rounded-xl border border-dashed border-subtle p-4 text-center">
+                <p className="text-sm text-muted-text/70">{t('tracker.noTripsYet')}</p>
+                <p className="mt-1 text-xs text-muted-text/70">{t('tracker.logTripPromptDesc')}</p>
+              </div>
+            )}
+
+            {/* Add new trip */}
+            <div className="rounded-xl border border-subtle bg-surface-alt p-4">
+              <p className="mb-3 t-eyebrow text-muted-text/70">{t('tracker.logTripHeader')}</p>
+              <div className="grid grid-cols-1 gap-3 mb-3 sm:grid-cols-2">
+                <div>
+                  <Label className="text-xs font-semibold text-muted-text">{t('tracker.travelFrom')}</Label>
+                  <Input
+                    type="date"
+                    value={newTrip.departureDate}
+                    max={new Date().toISOString().slice(0, 10)}
+                    onChange={(e) => setNewTrip((t) => ({ ...t, departureDate: e.target.value }))}
+                    className="mt-1 rounded-xl border-subtle bg-surface-card text-sm focus-visible:ring-navly-red"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold text-muted-text">{t('tracker.travelTo')} <span className="font-normal text-muted-text/70">{t('tracker.returnDateOptional')}</span></Label>
+                  <Input
+                    type="date"
+                    value={newTrip.returnDate}
+                    min={newTrip.departureDate}
+                    max={new Date().toISOString().slice(0, 10)}
+                    onChange={(e) => setNewTrip((t) => ({ ...t, returnDate: e.target.value }))}
+                    className="mt-1 rounded-xl border-subtle bg-surface-card text-sm focus-visible:ring-navly-red"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-3 mb-3 sm:grid-cols-2">
+                <div>
+                  <Label className="text-xs font-semibold text-muted-text">{t('tracker.travelCountry')}</Label>
+                  <Input
+                    placeholder="e.g. United States"
+                    value={newTrip.country}
+                    onChange={(e) => setNewTrip((t) => ({ ...t, country: e.target.value }))}
+                    className="mt-1 rounded-xl border-subtle bg-surface-card text-sm focus-visible:ring-navly-red"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold text-muted-text">{t('tracker.travelReason')} <span className="font-normal text-muted-text/70">{t('tracker.reasonOptional')}</span></Label>
+                  <Input
+                    placeholder="e.g. Family visit"
+                    value={newTrip.reason}
+                    onChange={(e) => setNewTrip((t) => ({ ...t, reason: e.target.value }))}
+                    className="mt-1 rounded-xl border-subtle bg-surface-card text-sm focus-visible:ring-navly-red"
+                  />
+                </div>
+              </div>
+              <Button
+                onClick={handleAddTrip}
+                disabled={!newTrip.departureDate || !newTrip.country}
+                size="sm"
+                className="gap-2 bg-navly-navy text-white hover:bg-navly-navy/80 disabled:opacity-40"
+              >
+                <PlusCircle className="h-4 w-4" />
+                {t('tracker.logTripBtn')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </PlanGate>
+
+      {showUpgradeModal && (
+        <UpgradeModal onClose={() => setShowUpgradeModal(false)} />
+      )}
 
       <p className="mt-4 text-xs text-muted-text/70">{t('tracker.disclaimer')}</p>
     </div>
   )
 }
 
-export default function Page() {
-  return <PlanGate><DaysPage /></PlanGate>
-}
+export default DaysPage
 
 function TripRow({ entry, onRemove, stillAwayLabel }: { entry: TravelEntry; onRemove: (id: string) => void; stillAwayLabel: string }) {
   const start = entry.departureDate
