@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { Plus, ListChecks, ChevronRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
@@ -27,6 +27,20 @@ export default function TasksPage() {
 
   // Track if we've initialized so we don't flash empty state
   const [isLoaded, setIsLoaded] = useState(false)
+
+  // Tasks just checked off, still showing their done state (green check,
+  // strikethrough) in their original spot before they settle into Completed —
+  // without this they'd vanish from the list the instant you tap the checkbox.
+  const [completingIds, setCompletingIds] = useState<Set<string>>(new Set())
+  const completingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+
+  useEffect(() => {
+    const timers = completingTimers.current
+    return () => {
+      timers.forEach(clearTimeout)
+      timers.clear()
+    }
+  }, [])
 
   // localStorage is unavailable during SSR, so this can't be a lazy useState initializer without a hydration mismatch
   useEffect(() => {
@@ -77,8 +91,40 @@ export default function TasksPage() {
   function toggle(id: string) {
     const task = tasks.find((t) => t.id === id)
     if (!task) return
-    update(tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)))
-    showToast(task.done ? 'Marked incomplete' : 'Task completed')
+
+    const willBeDone = !task.done
+    update(tasks.map((t) => (t.id === id ? { ...t, done: willBeDone } : t)))
+    showToast(willBeDone ? 'Task completed' : 'Marked incomplete')
+
+    const existingTimer = completingTimers.current.get(id)
+    if (existingTimer) {
+      clearTimeout(existingTimer)
+      completingTimers.current.delete(id)
+    }
+
+    if (willBeDone) {
+      setCompletingIds((prev) => new Set(prev).add(id))
+      completingTimers.current.set(
+        id,
+        setTimeout(() => {
+          setCompletingIds((prev) => {
+            if (!prev.has(id)) return prev
+            const next = new Set(prev)
+            next.delete(id)
+            return next
+          })
+          completingTimers.current.delete(id)
+        }, 700)
+      )
+    } else if (completingIds.has(id)) {
+      // Unchecked again before the transition finished — drop it immediately so
+      // it doesn't unexpectedly jump to Completed after being marked incomplete.
+      setCompletingIds((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+    }
   }
 
   function addTask() {
@@ -100,8 +146,8 @@ export default function TasksPage() {
   const total = tasks.length
   const progress = total > 0 ? Math.round((done / total) * 100) : 0
 
-  const pendingTasks = tasks.filter(t => !t.done)
-  const completedTasks = tasks.filter(t => t.done)
+  const pendingTasks = tasks.filter(t => !t.done || completingIds.has(t.id))
+  const completedTasks = tasks.filter(t => t.done && !completingIds.has(t.id))
 
   // Group pending tasks by category using useMemo
   const pendingByCategory = useMemo(() => {
