@@ -97,7 +97,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div>
+      {/* No min-h-screen here — the layout's <main> already sizes correctly to the
+          viewport and scrolls on its own. Forcing this div to a full screen height
+          made it taller than <main> by the header's height, so the page scrolled by
+          that gap even when there wasn't enough real content to need it. */}
       <div className="mx-auto w-full max-w-2xl space-y-4 px-4 py-6 pb-24">
 
         {/* ── Greeting ─────────────────────────────────────────────────── */}
@@ -280,101 +284,86 @@ export default function DashboardPage() {
           </Link>
         )}
 
-        {/* ── Quick stats grid ─────────────────────────────────────────── */}
-        {((!isOutside && effectivePresence.arrivalDate) || profile) && (
-          <div className="grid grid-cols-2 gap-3">
+        {/* ── Days in Canada + Next task ──────────────────────────────────
+            These share a 2-column grid only when both exist — pairing one
+            real card with an artificial filler card (as this used to do when
+            only one applied) just reads as visual noise. When only one
+            applies, it stands alone at full width, matching the visual
+            weight of the other full-width cards on this page. */}
+        {(() => {
+          const showDays = !isOutside && !!effectivePresence.arrivalDate
+          const showTask = !!profile
 
-            {/* Days in Canada */}
-            {!isOutside && effectivePresence.arrivalDate && (
-              <div data-tour="days" className={`flex flex-col rounded-2xl border p-4 ${checkedInToday ? 'border-blue-100 bg-blue-50' : 'border-orange-200 bg-orange-50'}`}>
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${checkedInToday ? 'bg-navly-navy/10' : 'bg-orange-100'}`}>
-                      <CalendarDays className={`h-4 w-4 ${checkedInToday ? 'text-navly-navy' : 'text-orange-500'}`} aria-hidden="true" />
-                    </div>
-                    <p className={`truncate text-xs font-semibold ${checkedInToday ? 'text-navly-navy/60' : 'text-orange-700/70'}`}>Days in Canada</p>
+          const daysCard = (
+            <div data-tour="days" className={`flex flex-col rounded-2xl border p-4 ${checkedInToday ? 'border-blue-100 bg-blue-50' : 'border-orange-200 bg-orange-50'}`}>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${checkedInToday ? 'bg-navly-navy/10' : 'bg-orange-100'}`}>
+                    <CalendarDays className={`h-4 w-4 ${checkedInToday ? 'text-navly-navy' : 'text-orange-500'}`} aria-hidden="true" />
                   </div>
-                  {checkedInToday ? (
-                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
-                      <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> Today
-                    </span>
-                  ) : (
-                    <span className="shrink-0 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-600">
-                      Missed
-                    </span>
-                  )}
+                  <p className={`truncate text-xs font-semibold ${checkedInToday ? 'text-navly-navy/60' : 'text-orange-700/70'}`}>Days in Canada</p>
                 </div>
-                <p className={`mt-3 text-3xl font-bold leading-none ${checkedInToday ? 'text-navly-navy' : 'text-orange-700'}`}>{daysInCanada}</p>
-                <div className="mt-auto pt-3">
-                  {checkedInToday ? (
-                    <Link href="/dashboard/days" className="text-xs font-semibold text-navly-navy/70 hover:text-navly-navy">
-                      View details →
-                    </Link>
-                  ) : (
-                    <button
-                      onClick={handleHomeCheckIn}
-                      className="w-full rounded-lg bg-orange-500 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-orange-600"
-                    >
-                      {t('dashboard.checkIn')}
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Next task */}
-            {profile && (
-              <Link
-                href="/dashboard/tasks"
-                data-tour="tasks"
-                className={`group flex flex-col rounded-2xl border p-4 transition ${nextTask ? 'border-navly-red/20 bg-red-50 hover:border-navly-red/40' : 'border-green-200 bg-green-50 hover:border-green-300'}`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${nextTask ? 'bg-navly-red/10' : 'bg-green-100'}`}>
-                      <ListChecks className={`h-4 w-4 ${nextTask ? 'text-navly-red' : 'text-green-600'}`} aria-hidden="true" />
-                    </div>
-                    <p className={`truncate text-xs font-semibold ${nextTask ? 'text-navly-red/70' : 'text-green-700/70'}`}>{t('dashboard.nextTask')}</p>
-                  </div>
-                  <ChevronRight className={`h-4 w-4 shrink-0 transition group-hover:translate-x-0.5 ${nextTask ? 'text-navly-red/30 group-hover:text-navly-red' : 'text-green-400'}`} aria-hidden="true" />
-                </div>
-                <p className={`mt-3 line-clamp-2 text-sm font-bold leading-snug ${nextTask ? 'text-heading' : 'text-green-700'}`}>
-                  {nextTask ? nextTask.title : t('dashboard.allDone')}
-                </p>
-                {doneTasks > 0 && (
-                  <p className="mt-auto pt-3 text-xs text-muted-text">
-                    {doneTasks} {t('dashboard.tasksComplete')}
-                  </p>
+                {checkedInToday ? (
+                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                    <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> Today
+                  </span>
+                ) : (
+                  <span className="shrink-0 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-600">
+                    Missed
+                  </span>
                 )}
-              </Link>
-            )}
+              </div>
+              <p className={`mt-3 text-3xl font-bold leading-none ${checkedInToday ? 'text-navly-navy' : 'text-orange-700'}`}>{daysInCanada}</p>
+              <div className="mt-auto pt-3">
+                {checkedInToday ? (
+                  <Link href="/dashboard/days" className="text-xs font-semibold text-navly-navy/70 hover:text-navly-navy">
+                    View details →
+                  </Link>
+                ) : (
+                  <button
+                    onClick={handleHomeCheckIn}
+                    className="w-full rounded-lg bg-orange-500 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-orange-600"
+                  >
+                    {t('dashboard.checkIn')}
+                  </button>
+                )}
+              </div>
+            </div>
+          )
 
-            {/* Consultant teaser — fills the second column when "Days in Canada"
-                isn't shown (outside Canada, or no arrival date yet), instead of
-                leaving that grid cell empty next to "Next task". */}
-            {profile && (isOutside || !effectivePresence.arrivalDate) && (
-              <Link
-                href="/dashboard/consultants"
-                className="group flex flex-col rounded-2xl border border-subtle bg-surface-card p-4 transition hover:border-navly-navy/20 hover:bg-navly-navy/5"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-navly-navy/10">
-                      <Sparkles className="h-4 w-4 text-navly-navy" aria-hidden="true" />
-                    </div>
-                    <p className="truncate text-xs font-semibold text-muted-text">Consultant</p>
+          const taskCard = (
+            <Link
+              href="/dashboard/tasks"
+              data-tour="tasks"
+              className={`group flex flex-col rounded-2xl border p-4 transition ${nextTask ? 'border-navly-red/20 bg-red-50 hover:border-navly-red/40' : 'border-green-200 bg-green-50 hover:border-green-300'}`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${nextTask ? 'bg-navly-red/10' : 'bg-green-100'}`}>
+                    <ListChecks className={`h-4 w-4 ${nextTask ? 'text-navly-red' : 'text-green-600'}`} aria-hidden="true" />
                   </div>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-text/40 transition group-hover:translate-x-0.5" aria-hidden="true" />
+                  <p className={`truncate text-xs font-semibold ${nextTask ? 'text-navly-red/70' : 'text-green-700/70'}`}>{t('dashboard.nextTask')}</p>
                 </div>
-                <p className="mt-3 line-clamp-2 text-sm font-bold leading-snug text-heading">Talk to an expert</p>
-                <span className="mt-auto w-fit pt-3 text-[10px] font-bold uppercase tracking-wider text-muted-text/70">
-                  {t('common.comingSoon')}
-                </span>
-              </Link>
-            )}
+                <ChevronRight className={`h-4 w-4 shrink-0 transition group-hover:translate-x-0.5 ${nextTask ? 'text-navly-red/30 group-hover:text-navly-red' : 'text-green-400'}`} aria-hidden="true" />
+              </div>
+              <p className={`mt-3 line-clamp-2 text-sm font-bold leading-snug ${nextTask ? 'text-heading' : 'text-green-700'}`}>
+                {nextTask ? nextTask.title : t('dashboard.allDone')}
+              </p>
+              {doneTasks > 0 && (
+                <p className="mt-auto pt-3 text-xs text-muted-text">
+                  {doneTasks} {t('dashboard.tasksComplete')}
+                </p>
+              )}
+            </Link>
+          )
 
-          </div>
-        )}
+          if (showDays && showTask) {
+            return <div className="grid grid-cols-2 gap-3">{daysCard}{taskCard}</div>
+          }
+          if (showDays) return daysCard
+          if (showTask) return taskCard
+          return null
+        })()}
 
         {/* ── PR status cards (residency + citizenship) ────────────────── */}
         {profile?.status === 'pr' && (

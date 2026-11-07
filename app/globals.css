@@ -26,7 +26,7 @@
 }
 .navly-tour-popover .driver-popover-description {
   font-size: 13px;
-  color: #94a3b8;
+  color: #cbd5e1;
   line-height: 1.6;
   margin-top: 6px;
 }
@@ -47,7 +47,7 @@
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: transparent;
-  color: #94a3b8;
+  color: #cbd5e1;
   /* driver.js's base stylesheet puts a white text-shadow on every footer button,
      meant for its default white-background theme. The Next button override already
      neutralized it; this one didn't, so "Back" rendered with a stray white halo on
@@ -61,15 +61,20 @@
   background: rgba(255, 255, 255, 0.08);
   color: #f1f5f9;
 }
+/* driver.js's base rule for this button matches both :hover and :focus at the
+   same specificity as a plain override, so ties can resolve either way depending
+   on stylesheet load order — !important removes the ambiguity, same as the other
+   buttons above. */
 .navly-tour-popover .driver-popover-close-btn {
-  color: #64748b;
+  color: #94a3b8 !important;
 }
-.navly-tour-popover .driver-popover-close-btn:hover {
-  color: #f1f5f9;
+.navly-tour-popover .driver-popover-close-btn:hover,
+.navly-tour-popover .driver-popover-close-btn:focus {
+  color: #f1f5f9 !important;
 }
 .navly-tour-popover .driver-popover-progress-text {
   font-size: 12px;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 @custom-variant dark (&:is(.dark *));
