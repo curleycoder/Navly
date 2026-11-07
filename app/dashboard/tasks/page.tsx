@@ -195,17 +195,26 @@ export default function TasksPage() {
                   )}
                 >
                   <button
+                    type="button"
                     onClick={() => toggleArrival(t.id)}
-                    className={cn(
-                      'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all focus:outline-none cursor-pointer',
-                      done ? 'border-[#10b981] bg-[#10b981]' : 'border-subtle hover:border-[#10b981] hover:bg-green-50'
-                    )}
+                    aria-pressed={done}
+                    aria-label={done ? `Mark "${t.title}" as not done` : `Mark "${t.title}" as done`}
+                    className="group -mt-1.5 flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navly-red focus-visible:ring-offset-2"
                   >
-                    {done && (
-                      <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 12 12">
-                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
+                    <span
+                      className={cn(
+                        'flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all group-active:scale-90',
+                        done
+                          ? 'border-[#10b981] bg-[#10b981]'
+                          : 'border-subtle group-hover:border-[#10b981] group-hover:bg-green-50'
+                      )}
+                    >
+                      {done && (
+                        <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 12 12">
+                          <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </span>
                   </button>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-0.5">
@@ -323,18 +332,31 @@ function TaskRow({
         task.done ? 'border-subtle/50 bg-surface-alt shadow-none' : 'border-subtle bg-surface-card shadow-sm hover:border-navly-navy/20 hover:shadow-md'
       )}
     >
+      {/* The visible checkbox is a compact circle, but the actual tap target is the
+          full 40px button around it — 24px alone is well under the ~40-44px minimum
+          comfortable touch size used everywhere else in the dashboard (MobileNav,
+          ThemeToggle, etc.), so it was an easy miss-tap on a real phone. */}
       <button
+        type="button"
         onClick={() => onToggle(task.id)}
-        className={cn(
-          'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all focus:outline-none cursor-pointer',
-          task.done ? 'border-[#10b981] bg-[#10b981]' : 'border-subtle hover:border-[#10b981] hover:bg-green-50'
-        )}
+        aria-pressed={task.done}
+        aria-label={task.done ? `Mark "${task.title}" as not done` : `Mark "${task.title}" as done`}
+        className="group flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navly-red focus-visible:ring-offset-2"
       >
-        {task.done && (
-          <svg className="h-3.5 w-3.5 text-white animate-fade-in" fill="none" viewBox="0 0 12 12">
-            <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
+        <span
+          className={cn(
+            'flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all group-active:scale-90',
+            task.done
+              ? 'border-[#10b981] bg-[#10b981]'
+              : 'border-subtle group-hover:border-[#10b981] group-hover:bg-green-50'
+          )}
+        >
+          {task.done && (
+            <svg className="h-3.5 w-3.5 text-white animate-fade-in" fill="none" viewBox="0 0 12 12">
+              <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </span>
       </button>
 
       <div className="flex-1 min-w-0">

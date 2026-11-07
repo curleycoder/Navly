@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { ChevronLeft, MoreHorizontal, HelpCircle, Shield, Gift, FileText, UserCircle, TrendingUp } from 'lucide-react'
+import { ChevronLeft, MoreHorizontal, HelpCircle, Shield, Gift, FileText, UserCircle, TrendingUp, LogOut } from 'lucide-react'
 import { NavlyLogo } from '@/components/ui/NavlyLogo'
 import {
   DropdownMenu,
@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { useLocale } from '@/lib/i18n'
+import { supabase } from '@/lib/supabase/client'
 
 export function MobileNav() {
   const pathname = usePathname()
@@ -76,6 +77,17 @@ export function MobileNav() {
                 <Gift className="h-4 w-4" />
                 {t('nav.referFriend')}
                 <span className="ml-auto text-[10px] font-semibold text-muted-text/70">{t('common.comingSoon')}</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={async () => {
+                  await supabase.auth.signOut()
+                  localStorage.clear()
+                  window.location.href = '/'
+                }}
+              >
+                <LogOut className="h-4 w-4" />
+                {t('nav.logOut')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

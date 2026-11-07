@@ -349,6 +349,30 @@ export default function DashboardPage() {
               </Link>
             )}
 
+            {/* Consultant teaser — fills the second column when "Days in Canada"
+                isn't shown (outside Canada, or no arrival date yet), instead of
+                leaving that grid cell empty next to "Next task". */}
+            {profile && (isOutside || !effectivePresence.arrivalDate) && (
+              <Link
+                href="/dashboard/consultants"
+                className="group flex flex-col rounded-2xl border border-subtle bg-surface-card p-4 transition hover:border-navly-navy/20 hover:bg-navly-navy/5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-navly-navy/10">
+                      <Sparkles className="h-4 w-4 text-navly-navy" aria-hidden="true" />
+                    </div>
+                    <p className="truncate text-xs font-semibold text-muted-text">Consultant</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-text/40 transition group-hover:translate-x-0.5" aria-hidden="true" />
+                </div>
+                <p className="mt-3 line-clamp-2 text-sm font-bold leading-snug text-heading">Talk to an expert</p>
+                <span className="mt-auto w-fit pt-3 text-[10px] font-bold uppercase tracking-wider text-muted-text/70">
+                  {t('common.comingSoon')}
+                </span>
+              </Link>
+            )}
+
           </div>
         )}
 

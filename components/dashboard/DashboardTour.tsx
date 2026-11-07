@@ -73,17 +73,45 @@ export function DashboardTour() {
       },
     ]
 
-    const timer = setTimeout(() => {
-      const validSteps = allSteps.filter(step =>
-        !step.element || document.querySelector(step.element as string) !== null
+    let cancelled = false
+
+    // The dashboard's own cards (profile/presence from Supabase) load asynchronously,
+    // and some — like "days" — only render once that resolves. A single fixed delay
+    // raced that fetch: on a slow connection it fired before the cards existed, silently
+    // dropping those steps, so which spots got highlighted varied run to run. Poll
+    // instead, so the tour waits for whatever's actually going to render (capped so it
+    // still starts even if a step's element genuinely never appears).
+    const start = Date.now()
+    const maxWaitMs = 5000
+    const pollMs = 150
+
+    function allTargetsSettled() {
+      return STEPS.every(
+        (step) => !step.element || document.querySelector(step.element as string) !== null
+      )
+    }
+
+    function tryStart() {
+      if (cancelled) return
+      if (!allTargetsSettled() && Date.now() - start < maxWaitMs) {
+        setTimeout(tryStart, pollMs)
+        return
+      }
+
+      const validSteps = allSteps.filter(
+        (step) => !step.element || document.querySelector(step.element as string) !== null
       )
       if (validSteps.length === 0) return
 
       const driverObj = driver({
         showProgress: true,
         animate: true,
-        overlayColor: '#0B1F3A',
-        overlayOpacity: 0.6,
+        // Not navly-navy (#0B1F3A) — several highlighted cards (score, consultant CTA)
+        // use that exact color as their own background, so the "spotlight" cut-out and
+        // the dimmed overlay around it were the same color and barely visible. Pure
+        // black contrasts against every card regardless of its own background.
+        overlayColor: '#000000',
+        overlayOpacity: 0.7,
         smoothScroll: true,
         allowClose: true,
         nextBtnText: 'Next',
@@ -97,9 +125,14 @@ export function DashboardTour() {
       })
 
       driverObj.drive()
-    }, 800)
+    }
 
-    return () => clearTimeout(timer)
+    const initialTimer = setTimeout(tryStart, 400)
+
+    return () => {
+      cancelled = true
+      clearTimeout(initialTimer)
+    }
   }, [])
 
   return null

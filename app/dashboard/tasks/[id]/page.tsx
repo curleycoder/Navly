@@ -55,7 +55,9 @@ export default function TaskDetailPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10 animate-fade-in">
-      <Link href="/dashboard/tasks" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-text hover:text-heading">
+      {/* Mobile already has a back chevron in the persistent nav header (MobileNav) —
+          this in-page link is only needed on desktop, which uses the sidebar instead. */}
+      <Link href="/dashboard/tasks" className="mb-6 hidden md:inline-flex items-center gap-1.5 text-sm text-muted-text hover:text-heading">
         <ArrowLeft className="h-3.5 w-3.5" /> Back to tasks
       </Link>
 

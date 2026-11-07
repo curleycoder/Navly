@@ -3,6 +3,11 @@
 @import "shadcn/tailwind.css";
 
 /* ── Driver.js tour overrides ─────────────────────────────────────────────── */
+/* MobileNav's header (h-14 = 56px) doesn't scroll away with the page — without this,
+   driver.js's smoothScroll could land a highlighted element partly behind it. */
+[data-tour] {
+  scroll-margin-top: 72px;
+}
 .navly-tour-popover.driver-popover {
   background: #0f2744;
   border: 1px solid rgba(255, 255, 255, 0.1);
