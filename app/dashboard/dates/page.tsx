@@ -195,7 +195,7 @@ export default function DatesPage() {
               Complete your profile to see expiry dates and deadline reminders.
             </p>
             <Link
-              href="/onboarding"
+              href="/dashboard/profile"
               className="mt-4 inline-flex items-center rounded-xl bg-navly-red px-4 py-2 text-xs font-bold text-white transition hover:bg-navly-red/80"
             >
               Complete profile

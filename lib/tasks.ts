@@ -97,7 +97,7 @@ export function generateTasks(profile: IntakeData, score: ScoreResult): Task[] {
         'complete-profile',
         'Complete your profile to unlock your CRS score estimate',
         'Immigration',
-        'Go to the onboarding flow and fill in your language test scores, education level, and work experience. These are the three biggest CRS factors and Navly cannot estimate your score without them.',
+        'Go to your profile and fill in your language test scores, education level, and work experience. These are the three biggest CRS factors and Navly cannot estimate your score without them.',
       ))
     }
 

@@ -204,7 +204,7 @@ export default function ConsultantsPage() {
                   </>
                 ) : (
                   <p className="mb-5 text-sm text-muted-text/70">
-                    <a href="/onboarding" className="font-semibold text-navly-red hover:underline">Complete your profile</a> to populate this summary.
+                    <a href="/dashboard/profile" className="font-semibold text-navly-red hover:underline">Complete your profile</a> to populate this summary.
                   </p>
                 )}
                 <SummarySection title="Immigration profile">
@@ -216,7 +216,7 @@ export default function ConsultantsPage() {
                       <SummaryRow label="Main goal" value={goalLabels[profile.goal] ?? profile.goal} />
                     </dl>
                   ) : (
-                    <p className="text-sm text-muted-text/70">No profile found. <a href="/onboarding" className="font-semibold text-navly-red hover:underline">Complete the intake</a> to populate this.</p>
+                    <p className="text-sm text-muted-text/70">No profile found. <a href="/dashboard/profile" className="font-semibold text-navly-red hover:underline">Complete your profile</a> to populate this.</p>
                   )}
                 </SummarySection>
 

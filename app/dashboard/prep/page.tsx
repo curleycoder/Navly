@@ -217,8 +217,8 @@ export default function PrepPage() {
             ) : (
               <p className="text-sm text-muted-text/70">
                 No profile found.{' '}
-                <a href="/onboarding" className="font-semibold text-navly-red hover:underline">
-                  Complete the intake
+                <a href="/dashboard/profile" className="font-semibold text-navly-red hover:underline">
+                  Complete your profile
                 </a>{' '}
                 to populate this section.
               </p>

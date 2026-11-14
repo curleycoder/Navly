@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Download, AlertTriangle, CheckCircle2, XCircle, Clock, ArrowRight, Lock, Loader2 } from 'lucide-react'
 import { loadProfile, statusLabels, type IntakeData } from '@/lib/profile'
 import { calculateScore, type ScoreResult } from '@/lib/scoring'
@@ -429,6 +430,9 @@ export default function ReportPage() {
       <div className="mx-auto max-w-2xl px-6 py-12 text-center">
         <p className="font-semibold text-heading">No profile found</p>
         <p className="mt-2 text-sm text-muted-text">Complete your profile first to generate your report.</p>
+        <Link href="/dashboard/profile" className="mt-4 inline-flex items-center rounded-xl bg-navly-red px-4 py-2 text-sm font-bold text-white hover:bg-navly-red/80">
+          Complete profile
+        </Link>
       </div>
     )
   }

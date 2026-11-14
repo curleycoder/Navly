@@ -57,7 +57,7 @@ function ResidencyPage() {
         <div className="mx-auto w-full max-w-2xl px-4 py-6 pb-24">
           <h1 className="t-page-title">PR Residency Obligation</h1>
           <p className="mt-4 t-body">Complete your profile to use this tracker.</p>
-          <Link href="/onboarding" className="mt-4 inline-flex items-center rounded-xl bg-navly-red px-4 py-2 text-sm font-bold text-white hover:bg-navly-red/80">
+          <Link href="/dashboard/profile" className="mt-4 inline-flex items-center rounded-xl bg-navly-red px-4 py-2 text-sm font-bold text-white hover:bg-navly-red/80">
             Complete profile
           </Link>
         </div>

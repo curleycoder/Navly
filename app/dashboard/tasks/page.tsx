@@ -333,7 +333,7 @@ export default function TasksPage() {
           </div>
           <p className="mt-4 font-semibold text-heading">No tasks yet</p>
           <p className="mt-1 max-w-xs text-sm text-muted-text">
-            Complete your profile in onboarding to generate a personalised checklist, or add a custom task below.
+            Complete your profile in the profile section to generate a personalised checklist, or add a custom task below.
           </p>
         </div>
       )}

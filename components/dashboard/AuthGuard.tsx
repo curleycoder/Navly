@@ -26,11 +26,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         const localProfile = loadProfile()
         if (localProfile?.locationStatus) {
           await saveProfileToSupabase(session.user.id, localProfile)
-          setReady(true)
-          return
         }
-        // No profile anywhere
-        router.replace('/onboarding')
+        // No profile anywhere — let the user into the dashboard; pages show
+        // their own "Complete profile" CTA pointing at /dashboard/profile.
+        setReady(true)
         return
       }
 

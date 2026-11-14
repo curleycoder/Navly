@@ -122,7 +122,7 @@ export default function DashboardPage() {
         {/* ── No-profile CTA ───────────────────────────────────────────── */}
         {!profile && (
           <Link
-            href="/onboarding"
+            href="/dashboard/profile"
             className="flex items-center justify-between rounded-2xl border-2 border-dashed border-navly-red/30 bg-surface-card p-5 transition hover:border-navly-red/60 hover:bg-navly-red/5 focus-visible:ring-2 focus-visible:ring-navly-red focus-visible:ring-offset-2"
           >
             <div>
